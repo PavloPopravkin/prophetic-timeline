@@ -1,0 +1,657 @@
+{
+  "name": "История человечества",
+  "scenes": [
+    {
+      "id": 0,
+      "title": "Каменный век",
+      "subtitle": "Первые люди осваивают огонь и камень",
+      "date": "~300 000 — 10 000 лет до н.э.",
+      "year": "300K до н.э.",
+      "bg": "/uploads/вариации_2K_202603191339.jpg",
+      "night": false,
+      "mid": [
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 1.svg",
+          "x": 0.04,
+          "h": 28,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 2.svg",
+          "x": 0.52,
+          "h": 24,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 3.svg",
+          "x": 0.76,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "Laurels/Asset 1.svg",
+          "x": 0.35,
+          "h": 48,
+          "bottom": 0.04
+        }
+      ],
+      "fg": [
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 1.svg",
+          "x": 0.12,
+          "h": 62,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 2.svg",
+          "x": 0.42,
+          "h": 58,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 3.svg",
+          "x": 0.7,
+          "h": 60,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "Зарождение цивилизации",
+      "subtitle": "Шумер, Египет — первые города и письменность",
+      "date": "~5000 — 3000 лет до н.э.",
+      "year": "5000 до н.э.",
+      "bg": "/uploads/вариации_2K_202603191339-2.jpg",
+      "night": false,
+      "mid": [
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 4.svg",
+          "x": 0.02,
+          "h": 30,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 5.svg",
+          "x": 0.38,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 6.svg",
+          "x": 0.62,
+          "h": 28,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 7.svg",
+          "x": 0.82,
+          "h": 24,
+          "bottom": 0
+        },
+        {
+          "src": "Laurels/Asset 2.svg",
+          "x": 0.2,
+          "h": 50,
+          "bottom": 0.05
+        }
+      ],
+      "fg": [
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 4.svg",
+          "x": 0.15,
+          "h": 60,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 5.svg",
+          "x": 0.46,
+          "h": 64,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 6.svg",
+          "x": 0.72,
+          "h": 58,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Древний Египет",
+      "subtitle": "Фараоны, пирамиды и тайны Нила",
+      "date": "~3000 — 30 лет до н.э.",
+      "year": "3000 до н.э.",
+      "bg": "/uploads/вариации_2K_202603191339-3.jpg",
+      "night": true,
+      "mid": [
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 8.svg",
+          "x": 0.05,
+          "h": 32,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 9.svg",
+          "x": 0.45,
+          "h": 28,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 10.svg",
+          "x": 0.7,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "Laurels/Asset 3.svg",
+          "x": 0.28,
+          "h": 55,
+          "bottom": 0.045
+        },
+        {
+          "src": "Laurels/Asset 4.svg",
+          "x": 0.58,
+          "h": 45,
+          "bottom": 0.055
+        }
+      ],
+      "fg": [
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 7.svg",
+          "x": 0.1,
+          "h": 66,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 8.svg",
+          "x": 0.4,
+          "h": 62,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 9.svg",
+          "x": 0.68,
+          "h": 64,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Древняя Греция",
+      "subtitle": "Философия, демократия, Олимпийские игры",
+      "date": "~800 — 146 лет до н.э.",
+      "year": "500 до н.э.",
+      "bg": "/uploads/вариации_2K_202603191339.jpg",
+      "night": false,
+      "mid": [
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 11.svg",
+          "x": 0.03,
+          "h": 30,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 12.svg",
+          "x": 0.4,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 13.svg",
+          "x": 0.68,
+          "h": 28,
+          "bottom": 0
+        },
+        {
+          "src": "Laurels/Asset 5.svg",
+          "x": 0.2,
+          "h": 52,
+          "bottom": 0.05
+        },
+        {
+          "src": "Laurels/Asset 6.svg",
+          "x": 0.52,
+          "h": 48,
+          "bottom": 0.042
+        },
+        {
+          "src": "Laurels/Asset 7.svg",
+          "x": 0.78,
+          "h": 44,
+          "bottom": 0.038
+        }
+      ],
+      "fg": [
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 10.svg",
+          "x": 0.12,
+          "h": 64,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 11.svg",
+          "x": 0.44,
+          "h": 60,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 12.svg",
+          "x": 0.72,
+          "h": 62,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Римская Империя",
+      "subtitle": "Легионы, право, инженерия и архитектура",
+      "date": "27 г. до н.э. — 476 г. н.э.",
+      "year": "100 н.э.",
+      "bg": "/uploads/вариации_2K_202603191339-2.jpg",
+      "night": false,
+      "mid": [
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 14.svg",
+          "x": 0.04,
+          "h": 32,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 15.svg",
+          "x": 0.42,
+          "h": 28,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 16.svg",
+          "x": 0.72,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "Laurels/Asset 8.svg",
+          "x": 0.25,
+          "h": 56,
+          "bottom": 0.048
+        },
+        {
+          "src": "Laurels/Asset 9.svg",
+          "x": 0.6,
+          "h": 52,
+          "bottom": 0.044
+        }
+      ],
+      "fg": [
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 13.svg",
+          "x": 0.1,
+          "h": 66,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 14.svg",
+          "x": 0.4,
+          "h": 62,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 15.svg",
+          "x": 0.68,
+          "h": 64,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Средние Века",
+      "subtitle": "Рыцари, соборы, чума и крестовые походы",
+      "date": "V — XV вв. н.э.",
+      "year": "1000 н.э.",
+      "bg": "/uploads/вариации_2K_202603191339-3.jpg",
+      "night": true,
+      "mid": [
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 17.svg",
+          "x": 0.02,
+          "h": 30,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 18.svg",
+          "x": 0.38,
+          "h": 28,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 19.svg",
+          "x": 0.64,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 20.svg",
+          "x": 0.84,
+          "h": 24,
+          "bottom": 0
+        },
+        {
+          "src": "Laurels/Asset 10.svg",
+          "x": 0.18,
+          "h": 50,
+          "bottom": 0.04
+        },
+        {
+          "src": "Laurels/Asset 11.svg",
+          "x": 0.55,
+          "h": 46,
+          "bottom": 0.036
+        }
+      ],
+      "fg": [
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 16.svg",
+          "x": 0.12,
+          "h": 64,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 17.svg",
+          "x": 0.44,
+          "h": 60,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 18.svg",
+          "x": 0.72,
+          "h": 62,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Эпоха Возрождения",
+      "subtitle": "Да Винчи, Микеланджело — расцвет науки и искусства",
+      "date": "XIV — XVII вв.",
+      "year": "1500",
+      "bg": "/uploads/вариации_2K_202603191339.jpg",
+      "night": false,
+      "mid": [
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 21.svg",
+          "x": 0.03,
+          "h": 32,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 22.svg",
+          "x": 0.36,
+          "h": 28,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 23.svg",
+          "x": 0.62,
+          "h": 30,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 24.svg",
+          "x": 0.82,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "Laurels/Asset 12.svg",
+          "x": 0.2,
+          "h": 54,
+          "bottom": 0.05
+        },
+        {
+          "src": "Laurels/Asset 13.svg",
+          "x": 0.5,
+          "h": 50,
+          "bottom": 0.046
+        },
+        {
+          "src": "Laurels/Asset 14.svg",
+          "x": 0.74,
+          "h": 46,
+          "bottom": 0.038
+        }
+      ],
+      "fg": [
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 19.svg",
+          "x": 0.12,
+          "h": 64,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 20.svg",
+          "x": 0.44,
+          "h": 60,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 21.svg",
+          "x": 0.7,
+          "h": 62,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Эпоха Великих Открытий",
+      "subtitle": "Колумб, Магеллан — новые горизонты и маршруты",
+      "date": "XV — XVII вв.",
+      "year": "1600",
+      "bg": "/uploads/вариации_2K_202603191339-2.jpg",
+      "night": false,
+      "mid": [
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 25.svg",
+          "x": 0.04,
+          "h": 30,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 26.svg",
+          "x": 0.4,
+          "h": 28,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 27.svg",
+          "x": 0.66,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 28.svg",
+          "x": 0.84,
+          "h": 24,
+          "bottom": 0
+        },
+        {
+          "src": "Laurels/Asset 15.svg",
+          "x": 0.24,
+          "h": 52,
+          "bottom": 0.042
+        },
+        {
+          "src": "Laurels/Asset 16.svg",
+          "x": 0.56,
+          "h": 48,
+          "bottom": 0.04
+        }
+      ],
+      "fg": [
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 22.svg",
+          "x": 0.1,
+          "h": 64,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 23.svg",
+          "x": 0.42,
+          "h": 62,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 24.svg",
+          "x": 0.7,
+          "h": 60,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Промышленная Революция",
+      "subtitle": "Пар, сталь и фабрики меняют мир навсегда",
+      "date": "XVIII — XIX вв.",
+      "year": "1800",
+      "bg": "/uploads/вариации_2K_202603191339-3.jpg",
+      "night": true,
+      "mid": [
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 29.svg",
+          "x": 0.02,
+          "h": 34,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 30.svg",
+          "x": 0.36,
+          "h": 30,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 31.svg",
+          "x": 0.6,
+          "h": 28,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 32.svg",
+          "x": 0.8,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "Laurels/Asset 17.svg",
+          "x": 0.18,
+          "h": 50,
+          "bottom": 0.038
+        },
+        {
+          "src": "Laurels/Asset 18.svg",
+          "x": 0.48,
+          "h": 46,
+          "bottom": 0.034
+        }
+      ],
+      "fg": [
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 25.svg",
+          "x": 0.12,
+          "h": 64,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 26.svg",
+          "x": 0.44,
+          "h": 62,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 27.svg",
+          "x": 0.72,
+          "h": 60,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Современная Эпоха",
+      "subtitle": "Технологии, космос и глобальная цивилизация",
+      "date": "XX — XXI вв.",
+      "year": "2000",
+      "bg": "/uploads/вариации_2K_202603191339.jpg",
+      "night": false,
+      "mid": [
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 40.svg",
+          "x": 0.03,
+          "h": 32,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 42.svg",
+          "x": 0.35,
+          "h": 28,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 45.svg",
+          "x": 0.6,
+          "h": 30,
+          "bottom": 0
+        },
+        {
+          "src": "50-vintage-objects-2026-02-24-01-34-16-utc/Asset 48.svg",
+          "x": 0.8,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "Laurels/Asset 20.svg",
+          "x": 0.2,
+          "h": 54,
+          "bottom": 0.046
+        },
+        {
+          "src": "Laurels/Asset 22.svg",
+          "x": 0.5,
+          "h": 50,
+          "bottom": 0.042
+        },
+        {
+          "src": "Laurels/Asset 25.svg",
+          "x": 0.76,
+          "h": 46,
+          "bottom": 0.038
+        }
+      ],
+      "fg": [
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 1.svg",
+          "x": 0.1,
+          "h": 64,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 14.svg",
+          "x": 0.4,
+          "h": 62,
+          "bottom": 0
+        },
+        {
+          "src": "retro-figures-2026-02-24-01-13-13-utc/Asset 27.svg",
+          "x": 0.68,
+          "h": 60,
+          "bottom": 0
+        }
+      ]
+    }
+  ]
+}

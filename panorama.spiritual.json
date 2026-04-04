@@ -1,0 +1,248 @@
+{
+  "name": "Духовная история человечества",
+  "background": "/uploads/вариации_2K_202603191339-2.jpg",
+  "elements": [
+    {
+      "id": "elem-word",
+      "src": "/uploads/0001.png",
+      "x": 8,
+      "y": 22,
+      "width": 13,
+      "height": null,
+      "sceneId": 0,
+      "anim": "float"
+    },
+    {
+      "id": "elem-light",
+      "src": "/uploads/0002.png",
+      "x": 22,
+      "y": 18,
+      "width": 11,
+      "height": null,
+      "sceneId": 1,
+      "anim": "zoom"
+    },
+    {
+      "id": "elem-tree",
+      "src": "/uploads/0013.png",
+      "x": 33,
+      "y": 38,
+      "width": 10,
+      "height": null,
+      "sceneId": 5,
+      "anim": "float"
+    },
+    {
+      "id": "elem-law",
+      "src": "/uploads/0010.png",
+      "x": 44,
+      "y": 25,
+      "width": 9,
+      "height": null,
+      "sceneId": 13,
+      "anim": null
+    },
+    {
+      "id": "elem-cross",
+      "src": "/uploads/0015.png",
+      "x": 55,
+      "y": 12,
+      "width": 16,
+      "height": null,
+      "sceneId": 27,
+      "anim": "zoom"
+    },
+    {
+      "id": "elem-risen",
+      "src": "/uploads/0016.png",
+      "x": 67,
+      "y": 28,
+      "width": 12,
+      "height": null,
+      "sceneId": 28,
+      "anim": "float"
+    },
+    {
+      "id": "elem-fire",
+      "src": "/uploads/0017.png",
+      "x": 78,
+      "y": 20,
+      "width": 10,
+      "height": null,
+      "sceneId": 29,
+      "anim": "zoom"
+    },
+    {
+      "id": "elem-jerusalem",
+      "src": "/uploads/0018.png",
+      "x": 88,
+      "y": 32,
+      "width": 11,
+      "height": null,
+      "sceneId": 32,
+      "anim": "float"
+    },
+    {
+      "id": "elem-angel",
+      "src": "/uploads/0009.png",
+      "x": 15,
+      "y": 52,
+      "width": 9,
+      "height": null,
+      "sceneId": 19,
+      "anim": "float"
+    },
+    {
+      "id": "elem-star",
+      "src": "/uploads/0012.png",
+      "x": 48,
+      "y": 55,
+      "width": 8,
+      "height": null,
+      "sceneId": 20,
+      "anim": "zoom"
+    },
+    {
+      "id": "elem-flower-l",
+      "src": "/uploads/3D Glass Flowers (5).png",
+      "x": 2,
+      "y": 60,
+      "width": 7,
+      "height": null,
+      "sceneId": null,
+      "anim": "float"
+    },
+    {
+      "id": "elem-flower-r",
+      "src": "/uploads/3D Glass Flowers (13).png",
+      "x": 95,
+      "y": 55,
+      "width": 7,
+      "height": null,
+      "sceneId": null,
+      "anim": "float"
+    }
+  ],
+  "clickAreas": [
+    {
+      "sceneId": 0,
+      "x": 2,
+      "y": 8,
+      "width": 18,
+      "height": 38,
+      "label": "Прежде начала"
+    },
+    {
+      "sceneId": 1,
+      "x": 17,
+      "y": 8,
+      "width": 16,
+      "height": 30,
+      "label": "Сотворение света"
+    },
+    {
+      "sceneId": 4,
+      "x": 27,
+      "y": 55,
+      "width": 14,
+      "height": 35,
+      "label": "Человек — образ Божий"
+    },
+    {
+      "sceneId": 5,
+      "x": 28,
+      "y": 24,
+      "width": 14,
+      "height": 32,
+      "label": "Эдемский сад"
+    },
+    {
+      "sceneId": 9,
+      "x": 40,
+      "y": 55,
+      "width": 12,
+      "height": 35,
+      "label": "Авраам — отец веры"
+    },
+    {
+      "sceneId": 12,
+      "x": 38,
+      "y": 12,
+      "width": 12,
+      "height": 30,
+      "label": "Моисей и Исход"
+    },
+    {
+      "sceneId": 13,
+      "x": 39,
+      "y": 42,
+      "width": 13,
+      "height": 15,
+      "label": "Десять заповедей"
+    },
+    {
+      "sceneId": 17,
+      "x": 50,
+      "y": 65,
+      "width": 13,
+      "height": 25,
+      "label": "Пророчество Исайи"
+    },
+    {
+      "sceneId": 20,
+      "x": 43,
+      "y": 45,
+      "width": 14,
+      "height": 20,
+      "label": "Рождество Христово"
+    },
+    {
+      "sceneId": 27,
+      "x": 50,
+      "y": 5,
+      "width": 18,
+      "height": 38,
+      "label": "Голгофа"
+    },
+    {
+      "sceneId": 28,
+      "x": 62,
+      "y": 14,
+      "width": 14,
+      "height": 32,
+      "label": "Воскресение"
+    },
+    {
+      "sceneId": 19,
+      "x": 10,
+      "y": 40,
+      "width": 14,
+      "height": 28,
+      "label": "Благовещение"
+    },
+    {
+      "sceneId": 29,
+      "x": 73,
+      "y": 8,
+      "width": 14,
+      "height": 32,
+      "label": "Пятидесятница"
+    },
+    {
+      "sceneId": 30,
+      "x": 73,
+      "y": 55,
+      "width": 14,
+      "height": 35,
+      "label": "Церковь"
+    },
+    {
+      "sceneId": 32,
+      "x": 82,
+      "y": 18,
+      "width": 16,
+      "height": 38,
+      "label": "Новый Иерусалим"
+    }
+  ]
+}

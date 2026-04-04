@@ -1,0 +1,188 @@
+{
+  "name": "Рождество Христово",
+  "background": "/uploads/вариации_2K_202603191339.jpg",
+  "elements": [
+    {
+      "id": "elem-angel-ann",
+      "src": "/uploads/0009.png",
+      "x": 8,
+      "y": 22,
+      "width": 12,
+      "height": null,
+      "sceneId": 0,
+      "anim": "float"
+    },
+    {
+      "id": "elem-road",
+      "src": "/uploads/0005.png",
+      "x": 22,
+      "y": 30,
+      "width": 10,
+      "height": null,
+      "sceneId": 1,
+      "anim": null
+    },
+    {
+      "id": "elem-city",
+      "src": "/uploads/0018.png",
+      "x": 38,
+      "y": 20,
+      "width": 13,
+      "height": null,
+      "sceneId": 2,
+      "anim": null
+    },
+    {
+      "id": "elem-birth",
+      "src": "/uploads/0001.png",
+      "x": 52,
+      "y": 14,
+      "width": 14,
+      "height": null,
+      "sceneId": 4,
+      "anim": "zoom"
+    },
+    {
+      "id": "elem-angel-flock",
+      "src": "/uploads/0009.png",
+      "x": 64,
+      "y": 22,
+      "width": 11,
+      "height": null,
+      "sceneId": 5,
+      "anim": "float"
+    },
+    {
+      "id": "elem-star",
+      "src": "/uploads/0012.png",
+      "x": 75,
+      "y": 14,
+      "width": 10,
+      "height": null,
+      "sceneId": 7,
+      "anim": "zoom"
+    },
+    {
+      "id": "elem-magi",
+      "src": "/uploads/0014.png",
+      "x": 87,
+      "y": 24,
+      "width": 11,
+      "height": null,
+      "sceneId": 9,
+      "anim": null
+    },
+    {
+      "id": "elem-flower-l",
+      "src": "/uploads/3D Glass Flowers (1).png",
+      "x": 2,
+      "y": 58,
+      "width": 7,
+      "height": null,
+      "sceneId": null,
+      "anim": "float"
+    },
+    {
+      "id": "elem-flower-c",
+      "src": "/uploads/3D Glass Flowers (7).png",
+      "x": 48,
+      "y": 60,
+      "width": 8,
+      "height": null,
+      "sceneId": null,
+      "anim": "float"
+    },
+    {
+      "id": "elem-flower-r",
+      "src": "/uploads/3D Glass Flowers (21).png",
+      "x": 95,
+      "y": 55,
+      "width": 7,
+      "height": null,
+      "sceneId": null,
+      "anim": "float"
+    }
+  ],
+  "clickAreas": [
+    {
+      "sceneId": 0,
+      "x": 2,
+      "y": 8,
+      "width": 16,
+      "height": 45,
+      "label": "Благовещение"
+    },
+    {
+      "sceneId": 1,
+      "x": 16,
+      "y": 18,
+      "width": 14,
+      "height": 38,
+      "label": "Путь в Вифлеем"
+    },
+    {
+      "sceneId": 2,
+      "x": 29,
+      "y": 8,
+      "width": 14,
+      "height": 38,
+      "label": "Прибытие в Вифлеем"
+    },
+    {
+      "sceneId": 3,
+      "x": 38,
+      "y": 55,
+      "width": 14,
+      "height": 35,
+      "label": "Нет места в гостинице"
+    },
+    {
+      "sceneId": 4,
+      "x": 44,
+      "y": 5,
+      "width": 16,
+      "height": 42,
+      "label": "Рождение Иисуса Христа"
+    },
+    {
+      "sceneId": 5,
+      "x": 57,
+      "y": 8,
+      "width": 14,
+      "height": 40,
+      "label": "Ангелы возвещают пастухам"
+    },
+    {
+      "sceneId": 6,
+      "x": 57,
+      "y": 55,
+      "width": 14,
+      "height": 35,
+      "label": "Поклонение пастухов"
+    },
+    {
+      "sceneId": 7,
+      "x": 70,
+      "y": 5,
+      "width": 14,
+      "height": 40,
+      "label": "Волхвы следуют за звездой"
+    },
+    {
+      "sceneId": 8,
+      "x": 70,
+      "y": 55,
+      "width": 12,
+      "height": 35,
+      "label": "Визит к царю Ироду"
+    },
+    {
+      "sceneId": 9,
+      "x": 82,
+      "y": 8,
+      "width": 16,
+      "height": 45,
+      "label": "Поклонение волхвов"
+    }
+  ]
+}

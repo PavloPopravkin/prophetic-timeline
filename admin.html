@@ -1,0 +1,2628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prophetic Timeline — Editor</title>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0c0c1a;
+  --bg2:      #13132b;
+  --bg3:      #1c1c38;
+  --border:   rgba(200,160,80,0.18);
+  --gold:     #c8a050;
+  --gold2:    #f0d080;
+  --text:     #e8dcc8;
+  --muted:    rgba(200,180,140,0.45);
+  --danger:   #c05050;
+  --success:  #50a070;
+  --radius:   8px;
+  --radius-s: 5px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── HEADER ──────────────────────────────────────────── */
+#header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 50px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+#project-name {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  color: var(--gold2);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 8px;
+  letter-spacing: 0.04em;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 200px;
+}
+#project-name:hover { border-color: var(--border); }
+#project-name:focus { border-color: var(--gold); background: var(--bg3); }
+
+.hdr-sep { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+
+.btn {
+  padding: 5px 13px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.btn:hover  { border-color: var(--gold); color: var(--gold2); }
+.btn.primary { background: var(--gold); border-color: var(--gold); color: #0c0c1a; font-weight: 600; }
+.btn.primary:hover { background: var(--gold2); }
+.btn.danger  { border-color: rgba(192,80,80,0.35); color: var(--danger); }
+.btn.danger:hover { background: rgba(192,80,80,0.12); }
+.btn.small { padding: 3px 9px; font-size: 11px; }
+.btn.active { background: rgba(200,160,80,0.15); border-color: var(--gold); color: var(--gold2); }
+
+#hdr-spacer { flex: 1; }
+
+#save-status { font-size: 11px; color: var(--muted); min-width: 70px; text-align: right; }
+#save-status.ok    { color: var(--success); }
+#save-status.error { color: var(--danger); }
+
+/* ── 3-PANEL LAYOUT ─────────────────────────────────── */
+#app { display: flex; flex: 1; overflow: hidden; }
+
+/* ── LEFT PANEL: scene list ─────────────────────────── */
+#panel-left {
+  width: 180px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#scene-list-header {
+  padding: 10px 12px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#scene-list-header span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+#scene-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#scene-list::-webkit-scrollbar { width: 3px; }
+#scene-list::-webkit-scrollbar-thumb { background: rgba(200,160,80,0.2); border-radius: 2px; }
+
+.scene-card {
+  padding: 7px 9px;
+  border-radius: var(--radius-s);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.12s;
+  position: relative;
+  user-select: none;
+}
+.scene-card:hover  { background: var(--bg3); border-color: var(--border); }
+.scene-card.active { background: rgba(200,160,80,0.09); border-color: rgba(200,160,80,0.38); }
+.scene-card.drag-over { border-color: var(--gold); background: rgba(200,160,80,0.05); }
+
+.scene-num {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--gold); font-weight: 700;
+  flex-shrink: 0;
+}
+.scene-card.active .scene-num { background: var(--gold); color: #0c0c1a; border-color: var(--gold); }
+
+.scene-card-info { flex: 1; min-width: 0; }
+.scene-card-title { font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.scene-card-year  { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+.scene-card-del {
+  width: 18px; height: 18px;
+  border: none; background: transparent;
+  color: rgba(192,80,80,0.35);
+  cursor: pointer; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; opacity: 0; transition: all 0.12s; flex-shrink: 0;
+}
+.scene-card:hover .scene-card-del { opacity: 1; }
+.scene-card-del:hover { color: var(--danger); background: rgba(192,80,80,0.1); }
+
+/* ── CENTER PANEL: stage ─────────────────────────────── */
+#panel-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* Layer toggle bar */
+#layer-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.layer-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.layer-dot.bg  { background: #6070c8; }
+.layer-dot.el  { background: #c8a050; }
+
+#layer-bar span {
+  font-size: 11px; color: var(--muted); letter-spacing: 0.04em;
+}
+#layer-bar .sep { flex: 1; }
+
+/* Stage area */
+#stage-wrap {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  min-height: 0;
+}
+
+#stage {
+  position: relative;
+  background: #070710;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  cursor: default;
+  /* aspect ratio enforced by JS */
+}
+
+#stage.drop-hover::after {
+  content: 'Drop to add element';
+  position: absolute;
+  inset: 0;
+  background: rgba(200,160,80,0.12);
+  border: 2px dashed var(--gold2);
+  border-radius: var(--radius-s);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--gold2);
+  font-weight: 600;
+  z-index: 200;
+  pointer-events: none;
+  letter-spacing: 0.05em;
+}
+
+#stage-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.stage-el {
+  position: absolute;
+  cursor: move;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  transition: border-color 0.1s;
+  user-select: none;
+  transform-origin: bottom center;
+}
+.stage-el img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  transform-origin: bottom center;
+}
+.stage-el.selected  {
+  border: 2px dashed var(--gold2) !important;
+  z-index: 100;
+}
+.stage-el.flipped img { transform: scaleX(-1); }
+
+/* Scene info row */
+#scene-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.info-field label { font-size: 10px; color: var(--muted); letter-spacing: 0.04em; }
+.info-field input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  color: var(--text);
+  padding: 4px 7px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.info-field input:focus { border-color: var(--gold); }
+
+.night-toggle {
+  display: flex; flex-direction: column; gap: 2px; align-items: center; flex-shrink: 0;
+}
+.night-toggle label.top { font-size: 10px; color: var(--muted); }
+
+.toggle { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 18px; cursor: pointer; transition: all 0.2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute;
+  width: 12px; height: 12px; left: 2px; top: 2px;
+  background: var(--muted); border-radius: 50%; transition: all 0.2s;
+}
+.toggle input:checked + .toggle-slider { background: rgba(200,160,80,0.2); border-color: var(--gold); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(14px); background: var(--gold); }
+
+/* ── RIGHT PANEL: properties ─────────────────────────── */
+#panel-right {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#props-header {
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+#elem-inspector {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  max-height: 220px;
+  display: flex;
+  flex-direction: column;
+}
+#elem-inspector-title {
+  padding: 6px 14px 5px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+#elem-list {
+  overflow-y: auto;
+  flex: 1;
+}
+#elem-list::-webkit-scrollbar { width: 3px; }
+#elem-list::-webkit-scrollbar-thumb { background: rgba(200,160,80,0.2); border-radius: 2px; }
+.elem-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  margin: 1px 4px;
+  transition: background 0.1s;
+  user-select: none;
+}
+.elem-item:hover { background: var(--bg3); }
+.elem-item.selected { background: rgba(200,160,80,0.12); outline: 1px solid rgba(200,160,80,0.35); }
+.elem-item-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.elem-item-dot.el  { background: #c8a050; }
+.elem-item-grip {
+  font-size: 10px; color: var(--muted); cursor: grab; flex-shrink: 0;
+  user-select: none; letter-spacing: -2px; padding-right: 2px;
+}
+.elem-item-grip:active { cursor: grabbing; }
+.elem-item-thumb {
+  width: 32px; height: 22px;
+  object-fit: cover; border-radius: 2px;
+  background: var(--bg3); flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.elem-item-name {
+  font-size: 11px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex: 1; min-width: 0;
+}
+.elem-item-del {
+  width: 16px; height: 16px;
+  border: none; background: transparent;
+  color: rgba(192,80,80,0.35);
+  cursor: pointer; border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; opacity: 0; transition: all 0.1s; flex-shrink: 0;
+  padding: 0;
+}
+.elem-item:hover .elem-item-del { opacity: 1; }
+.elem-item-del:hover { color: var(--danger); background: rgba(192,80,80,0.1); }
+.elem-list-empty {
+  padding: 10px 14px;
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+#props-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+#props-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+#props-body::-webkit-scrollbar { width: 3px; }
+#props-body::-webkit-scrollbar-thumb { background: rgba(200,160,80,0.2); border-radius: 2px; }
+
+#props-thumb {
+  width: 100%;
+  height: 90px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  object-fit: contain;
+  display: block;
+}
+
+.prop-group { display: flex; flex-direction: column; gap: 8px; }
+.prop-group-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Layer toggle buttons (unused, kept for reference) */
+.layer-toggle-btn {
+  flex: 1;
+  padding: 5px 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: var(--radius-s);
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.12s;
+  text-align: center;
+}
+.layer-toggle-btn:hover { border-color: var(--gold); color: var(--text); }
+.layer-toggle-btn.active-mid { background: rgba(80,160,100,0.2); border-color: var(--mid-tint); color: #70c080; }
+.layer-toggle-btn.active-fg  { background: rgba(200,130,60,0.2); border-color: var(--fg-tint); color: #e09050; }
+
+/* Prop fields */
+.prop-row { display: flex; gap: 8px; align-items: flex-end; }
+.prop-field { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.prop-field label { font-size: 10px; color: var(--muted); letter-spacing: 0.04em; }
+.prop-field input[type=number],
+.prop-field input[type=text],
+.prop-field select {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  color: var(--text);
+  padding: 5px 7px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.prop-field input:focus,
+.prop-field select:focus { border-color: var(--gold); }
+.prop-field input[type=range] {
+  width: 100%;
+  accent-color: var(--gold);
+  cursor: pointer;
+  margin-top: 2px;
+}
+.prop-field.narrow { flex: 0 0 60px; }
+
+.flip-row { display: flex; align-items: center; gap: 8px; }
+.flip-row label { font-size: 12px; color: var(--text); cursor: pointer; }
+.flip-row input[type=checkbox] { accent-color: var(--gold); width: 14px; height: 14px; cursor: pointer; }
+
+/* ── PANORAMA EDITOR ──────────────────────────────────── */
+#pano-app { display: none; flex: 1; overflow: hidden; }
+#pano-panel-left {
+  width: 180px; flex-shrink: 0; background: var(--bg2);
+  border-right: 1px solid var(--border); display: flex;
+  flex-direction: column; overflow: hidden;
+}
+#pano-panel-center {
+  flex: 1; min-width: 0; display: flex; flex-direction: column;
+  background: var(--bg); overflow: hidden;
+}
+#pano-panel-right {
+  width: 260px; flex-shrink: 0; background: var(--bg2);
+  border-left: 1px solid var(--border); display: flex;
+  flex-direction: column; overflow: hidden;
+}
+
+#pano-left-header {
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#pano-bg-section {
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#pano-bg-section .section-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted); font-weight: 600; margin-bottom: 6px;
+}
+#pano-bg-thumb-img {
+  width: 100%; height: 70px; object-fit: cover;
+  border-radius: var(--radius-s); background: var(--bg3);
+  border: 1px solid var(--border); display: block; margin-bottom: 6px;
+}
+
+#pano-objects-header {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+#pano-objects-header span {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted); font-weight: 600;
+}
+
+#pano-el-list {
+  flex: 1; overflow-y: auto; padding: 5px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+#pano-el-list::-webkit-scrollbar { width: 3px; }
+#pano-el-list::-webkit-scrollbar-thumb { background: rgba(200,160,80,0.2); border-radius: 2px; }
+
+.pano-list-item {
+  display: flex; align-items: center; gap: 7px; padding: 6px 8px;
+  border-radius: var(--radius-s); border: 1px solid transparent;
+  cursor: pointer; transition: all 0.12s; position: relative;
+}
+.pano-list-item:hover { background: var(--bg3); border-color: var(--border); }
+.pano-list-item.active { background: rgba(200,160,80,0.09); border-color: rgba(200,160,80,0.38); }
+.pano-list-thumb {
+  width: 36px; height: 36px; object-fit: contain;
+  border-radius: 3px; background: var(--bg3); flex-shrink: 0;
+}
+.pano-list-info { flex: 1; min-width: 0; }
+.pano-list-label { font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pano-list-scene { font-size: 10px; color: var(--muted); }
+.pano-list-del {
+  width: 18px; height: 18px; border: none; background: transparent;
+  color: rgba(192,80,80,0.35); cursor: pointer; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; opacity: 0; transition: all 0.12s; flex-shrink: 0;
+}
+.pano-list-item:hover .pano-list-del { opacity: 1; }
+.pano-list-del:hover { color: var(--danger); background: rgba(192,80,80,0.1); }
+
+#pano-center-header {
+  padding: 8px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px; color: var(--muted); letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+#pano-stage-wrap {
+  flex: 1; overflow: hidden; display: flex;
+  align-items: center; justify-content: center;
+  padding: 12px; min-height: 0;
+}
+#pano-stage {
+  position: relative; background: #070710;
+  border: 1px solid var(--border); border-radius: var(--radius-s);
+  overflow: hidden; cursor: default;
+}
+#pano-stage-bg {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+}
+
+#pano-stage.drop-hover::after {
+  content: 'Drop to add element';
+  position: absolute; inset: 0;
+  background: rgba(200,160,80,0.12);
+  border: 2px dashed var(--gold2);
+  border-radius: var(--radius-s);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: var(--gold2); font-weight: 600;
+  z-index: 200; pointer-events: none; letter-spacing: 0.05em;
+}
+
+.pano-canvas-el {
+  position: absolute; cursor: move;
+  border: 2px solid transparent; border-radius: 2px;
+}
+.pano-canvas-el.selected { border-color: var(--gold2); z-index: 100; }
+.pano-canvas-el img { display: block; pointer-events: none; }
+
+#pano-props-header {
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted); font-weight: 600; flex-shrink: 0;
+}
+#pano-props-empty {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 12px; text-align: center;
+  padding: 20px; line-height: 1.6;
+}
+#pano-props-body {
+  flex: 1; overflow-y: auto; padding: 12px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+#pano-props-body::-webkit-scrollbar { width: 3px; }
+#pano-props-body::-webkit-scrollbar-thumb { background: rgba(200,160,80,0.2); border-radius: 2px; }
+#pano-props-thumb {
+  width: 100%; height: 90px; border-radius: var(--radius-s);
+  border: 1px solid var(--border); background: var(--bg3);
+  object-fit: contain; display: block;
+}
+
+/* ── MODAL ───────────────────────────────────────────── */
+#modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(4,2,15,0.85);
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+#modal-overlay.open { opacity: 1; pointer-events: all; }
+
+#modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 780px;
+  max-width: 95vw;
+  max-height: 85vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: translateY(10px); transition: transform 0.2s;
+}
+#modal-overlay.open #modal { transform: translateY(0); }
+
+#modal-header {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+#modal-title { flex: 1; font-size: 13px; font-weight: 600; color: var(--gold2); }
+#modal-close { font-size: 16px; cursor: pointer; color: var(--muted); border: none; background: none; font-family: inherit; }
+#modal-close:hover { color: var(--text); }
+
+.tab-bar { display: flex; border-bottom: 1px solid var(--border); padding: 0 18px; }
+.tab-btn {
+  padding: 7px 13px; font-size: 12px; border: none; background: none;
+  color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: all 0.15s; font-family: inherit;
+}
+.tab-btn.active { color: var(--gold2); border-bottom-color: var(--gold); }
+
+.tab-pane { display: none; flex-direction: column; }
+.tab-pane.active { display: flex; }
+
+#lib-search-wrap { padding: 10px 18px; border-bottom: 1px solid var(--border); }
+#lib-search {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-s); color: var(--text); padding: 6px 11px;
+  font-size: 12px; outline: none; font-family: inherit;
+}
+#lib-search:focus { border-color: var(--gold); }
+
+#lib-categories {
+  display: flex; gap: 5px; padding: 8px 18px;
+  overflow-x: auto; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+#lib-categories::-webkit-scrollbar { height: 3px; }
+#lib-categories::-webkit-scrollbar-thumb { background: rgba(200,160,80,0.2); }
+
+.cat-btn {
+  padding: 2px 9px; font-size: 11px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); border-radius: 20px; cursor: pointer;
+  white-space: nowrap; transition: all 0.12s; font-family: inherit;
+}
+.cat-btn.active, .cat-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(200,160,80,0.07); }
+
+#lib-grid {
+  flex: 1; overflow-y: auto; padding: 12px 18px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(100px,1fr));
+  gap: 8px; align-content: start;
+}
+#lib-grid::-webkit-scrollbar { width: 4px; }
+#lib-grid::-webkit-scrollbar-thumb { background: rgba(200,160,80,0.2); border-radius: 2px; }
+
+.lib-item {
+  display: flex; flex-direction: column; gap: 4px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: var(--radius-s);
+  padding: 5px; background: var(--bg3); transition: all 0.12s;
+}
+.lib-item:hover { border-color: var(--gold); transform: translateY(-1px); }
+.lib-item.selected { border-color: var(--gold); background: rgba(200,160,80,0.09); }
+
+.lib-thumb {
+  width: 100%; aspect-ratio: 1; object-fit: contain;
+  background: rgba(0,0,0,0.3); border-radius: 3px;
+}
+.lib-name {
+  font-size: 10px; color: var(--muted); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; text-align: center;
+}
+
+#upload-zone {
+  margin: 16px; border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 36px 20px; text-align: center; cursor: pointer;
+  transition: all 0.2s; flex: 1;
+}
+#upload-zone:hover, #upload-zone.dragover { border-color: var(--gold); background: rgba(200,160,80,0.04); }
+#upload-zone input { display: none; }
+#upload-icon { font-size: 32px; margin-bottom: 10px; color: var(--muted); }
+#upload-text { color: var(--muted); font-size: 12px; line-height: 1.6; }
+#upload-progress { display: none; color: var(--gold); margin-top: 10px; font-size: 12px; }
+
+#modal-footer {
+  padding: 10px 18px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 7px; flex-shrink: 0;
+}
+
+/* ── TOAST ───────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 20px; right: 20px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 9px 15px;
+  font-size: 12px; color: var(--text); z-index: 2000;
+  transform: translateY(8px); opacity: 0;
+  transition: all 0.22s; pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+#toast.ok    { border-color: rgba(80,160,100,0.5); color: var(--success); }
+#toast.error { border-color: rgba(192,80,80,0.5); color: var(--danger); }
+
+/* ── NO SCENE placeholder ──────────────────────────────*/
+#no-scene-msg {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 13px; letter-spacing: 0.04em;
+}
+
+/* ── Rich Text Editor ────────────────────────────── */
+.rte-wrap { display: flex; flex-direction: column; }
+.rte-toolbar {
+  display: flex; gap: 3px; padding: 4px 6px;
+  background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+  border-bottom: none; border-radius: var(--radius-s) var(--radius-s) 0 0;
+  flex-wrap: wrap;
+}
+.rte-btn {
+  background: rgba(200,160,80,0.07); border: 1px solid var(--border);
+  color: rgba(200,160,80,0.75); cursor: pointer; padding: 2px 8px;
+  font-size: 12px; border-radius: 2px; line-height: 1.5;
+  font-family: Georgia, serif; transition: background 0.15s;
+}
+.rte-btn:hover { background: rgba(200,160,80,0.18); color: rgba(240,208,128,1); }
+.rte-sep { width: 1px; background: var(--border); margin: 2px 2px; }
+#elem-content-editor {
+  min-height: 100px; max-height: 280px; overflow-y: auto;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-s) var(--radius-s);
+  color: rgba(220,200,160,0.9); font-family: Georgia, serif;
+  font-size: 12px; line-height: 1.7; outline: none;
+}
+#elem-content-editor:focus { border-color: rgba(200,160,80,0.4); }
+#elem-content-editor img { max-width: 100%; height: auto; margin: 4px 0; display: block; }
+#elem-content-editor b, #elem-content-editor strong { color: rgba(240,208,128,0.9); }
+#elem-content-editor:empty:before {
+  content: 'Введите текст или вставьте изображение...';
+  color: rgba(200,160,80,0.3); pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <input id="project-name" type="text" value="Timeline Project" placeholder="Project name" title="Project name">
+  <div class="hdr-sep"></div>
+  <button id="mode-scenes-btn" class="btn active" onclick="setMode('scenes')">&#127902; Scenes</button>
+  <button id="mode-pano-btn" class="btn" onclick="setMode('panorama')">&#127748; Panorama</button>
+  <div class="hdr-sep"></div>
+  <div id="scene-nav-controls" style="display:contents">
+    <button class="btn" id="btn-prev" onclick="navigateScene(-1)">&#8592;</button>
+    <button class="btn" id="btn-next" onclick="navigateScene(1)">&#8594;</button>
+    <button class="btn" onclick="addScene()">+ Scene</button>
+    <div class="hdr-sep"></div>
+  </div>
+  <button class="btn primary" onclick="saveScenes()">Save</button>
+  <span id="save-status"></span>
+  <div id="hdr-spacer"></div>
+  <label style="color:var(--muted);font-size:11px;white-space:nowrap">Preset:</label>
+  <select id="preset-select" class="btn" style="padding:4px 8px;cursor:pointer" onchange="loadPreset(this.value)">
+    <option value="">— select —</option>
+  </select>
+  <div class="hdr-sep"></div>
+  <a href="/" target="_blank" class="btn">Preview &#8599;</a>
+</div>
+
+<!-- APP (scenes editor) -->
+<div id="app">
+
+  <!-- LEFT: scene list -->
+  <div id="panel-left">
+    <div id="scene-list-header">
+      <span>Scenes</span>
+    </div>
+    <div id="scene-list"></div>
+  </div>
+
+  <!-- CENTER: stage -->
+  <div id="panel-center">
+
+    <!-- Layer toggle bar -->
+    <div id="layer-bar">
+      <span class="layer-dot bg"></span><span>BG</span>
+      <span class="layer-dot el"></span><span>Elements</span>
+      <div class="sep"></div>
+      <button class="btn small" onclick="openModal('add-element')">+ Add element</button>
+    </div>
+
+    <!-- Stage preview -->
+    <div id="stage-wrap">
+      <div id="no-scene-msg">Select or create a scene</div>
+      <div id="stage" style="display:none;">
+        <div id="stage-bg"></div>
+        <!-- elements rendered here by JS -->
+      </div>
+    </div>
+
+    <!-- Scene info row -->
+    <div id="scene-info-row" style="display:none;">
+      <div class="info-field" style="flex:2;">
+        <label>Title</label>
+        <input type="text" id="f-title" oninput="onSceneField('title', this.value)">
+      </div>
+      <div class="info-field" style="flex:2;">
+        <label>Subtitle</label>
+        <input type="text" id="f-subtitle" oninput="onSceneField('subtitle', this.value)">
+      </div>
+      <div class="info-field">
+        <label>Date</label>
+        <input type="text" id="f-date" oninput="onSceneField('date', this.value)">
+      </div>
+      <div class="info-field" style="flex:0 0 70px;">
+        <label>Year</label>
+        <input type="text" id="f-year" oninput="onSceneField('year', this.value)">
+      </div>
+      <div class="night-toggle">
+        <label class="top">Night</label>
+        <label class="toggle">
+          <input type="checkbox" id="f-night" onchange="onSceneField('night', this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <button class="btn small" onclick="openModal('bg')">Change BG</button>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: properties -->
+  <div id="panel-right">
+    <div id="props-header">Properties</div>
+    <div id="elem-inspector">
+      <div id="elem-inspector-title">Elements</div>
+      <div id="elem-list"></div>
+    </div>
+    <div id="props-empty">Select an element above<br>or drag an image onto the stage</div>
+    <div id="props-body" style="display:none;">
+      <div style="position:relative;">
+        <img id="props-thumb" src="" alt="">
+        <button class="btn small" onclick="openModal('replace-element')"
+          style="position:absolute;bottom:6px;right:6px;font-size:10px;padding:3px 8px;opacity:0.9;">
+          &#x21BB; Replace
+        </button>
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-group-title">Bottom Left</div>
+        <div class="prop-row">
+          <div class="prop-field">
+            <label>Left (0 – 1)</label>
+            <input type="range" id="p-x-range" min="0" max="1" step="0.005" oninput="syncProp('x', parseFloat(this.value))">
+          </div>
+          <div class="prop-field narrow">
+            <label>&nbsp;</label>
+            <input type="number" id="p-x-num" min="0" max="1" step="0.01" oninput="syncProp('x', parseFloat(this.value))">
+          </div>
+        </div>
+        <div class="prop-row">
+          <div class="prop-field">
+            <label>Bottom (0 – 1)</label>
+            <input type="range" id="p-bottom-range" min="0" max="1" step="0.005" oninput="syncProp('bottom', parseFloat(this.value))">
+          </div>
+          <div class="prop-field narrow">
+            <label>&nbsp;</label>
+            <input type="number" id="p-bottom-num" min="0" max="1" step="0.01" oninput="syncProp('bottom', parseFloat(this.value))">
+          </div>
+        </div>
+        <div class="prop-row">
+          <div class="prop-field">
+            <label>Height (vh%, 0=auto)</label>
+            <input type="range" id="p-h-range" min="0" max="100" step="1" oninput="syncProp('h', parseInt(this.value))">
+          </div>
+          <div class="prop-field narrow">
+            <label>&nbsp;</label>
+            <input type="number" id="p-h-num" min="0" max="100" step="1" oninput="syncProp('h', parseInt(this.value))">
+          </div>
+        </div>
+        <div class="prop-row">
+          <div class="prop-field">
+            <label>Width (vw%, 0=auto)</label>
+            <input type="range" id="p-w-range" min="0" max="100" step="1" oninput="syncProp('w', parseInt(this.value))">
+          </div>
+          <div class="prop-field narrow">
+            <label>&nbsp;</label>
+            <input type="number" id="p-w-num" min="0" max="100" step="1" oninput="syncProp('w', parseInt(this.value))">
+          </div>
+        </div>
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-group-title">Behaviour</div>
+        <div class="prop-row">
+          <div class="prop-field">
+            <label>Parallax (0–2)</label>
+            <input type="range" id="p-parallax-range" min="0" max="2" step="0.1" oninput="syncProp('parallax', parseFloat(this.value))">
+          </div>
+          <div class="prop-field narrow">
+            <label>&nbsp;</label>
+            <input type="number" id="p-parallax-num" min="0" max="2" step="0.1" oninput="syncProp('parallax', parseFloat(this.value))">
+          </div>
+        </div>
+        <div class="flip-row">
+          <input type="checkbox" id="p-flip" onchange="syncProp('flip', this.checked)">
+          <label for="p-flip">Flip horizontally</label>
+        </div>
+        <div class="prop-row">
+          <div class="prop-field">
+            <label>Края (0=нет)</label>
+            <input type="range" id="p-soft-edge-range" min="0" max="100" step="1" oninput="syncProp('softEdge', parseInt(this.value))">
+          </div>
+          <div class="prop-field narrow">
+            <label>&nbsp;</label>
+            <input type="number" id="p-soft-edge-num" min="0" max="100" step="1" oninput="syncProp('softEdge', parseInt(this.value))">
+          </div>
+        </div>
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-group-title">Текст объекта</div>
+        <div class="rte-wrap">
+          <div class="rte-toolbar">
+            <button class="rte-btn" onclick="rteExec('bold')" title="Bold"><b>B</b></button>
+            <button class="rte-btn" onclick="rteExec('italic')" title="Italic"><i>I</i></button>
+            <button class="rte-btn" onclick="rteExec('insertUnorderedList')" title="Список">&#8226;&#8801;</button>
+            <div class="rte-sep"></div>
+            <button class="rte-btn" onclick="rteExec('formatBlock', 'h2')" title="Заголовок">H</button>
+            <button class="rte-btn" onclick="rteExec('formatBlock', 'p')" title="Параграф">P</button>
+            <div class="rte-sep"></div>
+            <button class="rte-btn" onclick="rteInsertImage()" title="Вставить изображение">&#128247;</button>
+            <button class="rte-btn" onclick="rteExec('removeFormat')" title="Очистить формат" style="margin-left:auto">&#x2715;</button>
+          </div>
+          <div id="elem-content-editor" contenteditable="true" oninput="syncElemContent()"></div>
+        </div>
+      </div>
+
+      <button class="btn danger" onclick="deleteSelectedElement()" style="width:100%;justify-content:center;">
+        Delete element
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- PANORAMA EDITOR -->
+<div id="pano-app">
+  <!-- LEFT: bg + element list -->
+  <div id="pano-panel-left">
+    <div id="pano-bg-section">
+      <div class="section-label">Background</div>
+      <img id="pano-bg-thumb-img" src="" alt="bg">
+      <button class="btn small" onclick="openModal('pano-bg')" style="width:100%;justify-content:center;margin-top:4px">Change BG</button>
+    </div>
+    <div id="pano-objects-header">
+      <span>Objects</span>
+      <button class="btn small" onclick="openModal('pano-add')" title="Add image">+ Object</button>
+      <button class="btn small" onclick="addZoneCentered()" title="Add click zone" style="margin-left:4px">+ Zone</button>
+    </div>
+    <div id="pano-el-list"></div>
+  </div>
+
+  <!-- CENTER: canvas -->
+  <div id="pano-panel-center">
+    <div id="pano-center-header">Panorama canvas — drag objects to position</div>
+    <div id="pano-stage-wrap">
+      <div id="pano-stage">
+        <div id="pano-stage-bg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: props -->
+  <div id="pano-panel-right">
+    <div id="pano-props-header">Object Properties</div>
+    <div id="pano-props-empty">Select an object<br>on the canvas or in the list</div>
+    <div id="pano-props-body" style="display:none;">
+      <!-- Image-only fields -->
+      <div id="pp-image-section">
+      <img id="pano-props-thumb" src="" alt="">
+      </div>
+      <!-- Zone-only fields -->
+      <div id="pp-zone-section" style="display:none;">
+        <div class="prop-group">
+          <div class="prop-group-title">Zone Size</div>
+          <div class="prop-row">
+            <div class="prop-field">
+              <label>W (0–1)</label>
+              <input type="range" id="pp-w-range" min="0.01" max="1" step="0.005" oninput="syncPanoElProp('w', parseFloat(this.value))">
+            </div>
+            <div class="prop-field narrow">
+              <label>&nbsp;</label>
+              <input type="number" id="pp-w-num" min="0.01" max="1" step="0.01" oninput="syncPanoElProp('w', parseFloat(this.value))">
+            </div>
+          </div>
+          <div class="prop-row">
+            <div class="prop-field">
+              <label>H (0–1)</label>
+              <input type="range" id="pp-zh-range" min="0.01" max="1" step="0.005" oninput="syncPanoElProp('h', parseFloat(this.value))">
+            </div>
+            <div class="prop-field narrow">
+              <label>&nbsp;</label>
+              <input type="number" id="pp-zh-num" min="0.01" max="1" step="0.01" oninput="syncPanoElProp('h', parseFloat(this.value))">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-group-title">Position</div>
+        <div class="prop-row">
+          <div class="prop-field">
+            <label>PX (0 – 1)</label>
+            <input type="range" id="pp-px-range" min="0" max="1" step="0.005" oninput="syncPanoElProp('px', parseFloat(this.value))">
+          </div>
+          <div class="prop-field narrow">
+            <label>&nbsp;</label>
+            <input type="number" id="pp-px-num" min="0" max="1" step="0.01" oninput="syncPanoElProp('px', parseFloat(this.value))">
+          </div>
+        </div>
+        <div class="prop-row">
+          <div class="prop-field">
+            <label>PY (0 – 1)</label>
+            <input type="range" id="pp-py-range" min="0" max="1" step="0.005" oninput="syncPanoElProp('py', parseFloat(this.value))">
+          </div>
+          <div class="prop-field narrow">
+            <label>&nbsp;</label>
+            <input type="number" id="pp-py-num" min="0" max="1" step="0.01" oninput="syncPanoElProp('py', parseFloat(this.value))">
+          </div>
+        </div>
+        <div class="prop-row" id="pp-image-h-row">
+          <div class="prop-field">
+            <label>H (vh%)</label>
+            <input type="range" id="pp-h-range" min="5" max="100" step="1" oninput="syncPanoElProp('h', parseInt(this.value))">
+          </div>
+          <div class="prop-field narrow">
+            <label>&nbsp;</label>
+            <input type="number" id="pp-h-num" min="5" max="100" step="1" oninput="syncPanoElProp('h', parseInt(this.value))">
+          </div>
+        </div>
+      </div>
+
+      <div class="prop-group">
+        <div class="prop-group-title">Link</div>
+        <div class="prop-field">
+          <label>Scene on click</label>
+          <select id="pp-scene" onchange="syncPanoElProp('scene_id', parseInt(this.value))">
+            <option value="-1">— none —</option>
+          </select>
+        </div>
+        <div class="prop-field">
+          <label>Animation</label>
+          <select id="pp-anim" onchange="syncPanoElProp('anim', this.value)">
+            <option value="">none</option>
+            <option value="float">float</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn danger" onclick="deletePanoEl(selPanoEl)" style="width:100%;justify-content:center;">
+        Delete object
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" onclick="closeModalIfOverlay(event)">
+  <div id="modal">
+    <div id="modal-header">
+      <span id="modal-title">Select image</span>
+      <button id="modal-close" onclick="closeModal()">&#x2715;</button>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="library">Library</button>
+      <button class="tab-btn" data-tab="upload">Upload</button>
+    </div>
+
+    <div class="tab-pane active" id="tab-library" style="overflow:hidden;flex:1;">
+      <div id="lib-search-wrap">
+        <input id="lib-search" type="text" placeholder="Search by name..." oninput="filterLibrary()">
+      </div>
+      <div id="lib-categories"></div>
+      <div id="lib-grid"></div>
+    </div>
+
+    <div class="tab-pane" id="tab-upload">
+      <div id="upload-zone" onclick="document.getElementById('file-input').click()"
+           ondragover="handleModalDragOver(event)" ondragleave="handleModalDragLeave()" ondrop="handleModalDrop(event)">
+        <input type="file" id="file-input" accept="image/*" multiple onchange="uploadFiles(this.files)">
+        <div id="upload-icon">[img]</div>
+        <div id="upload-text">Drag PNG/JPG here<br>or click to choose files (multiple)</div>
+        <div id="upload-progress"></div>
+      </div>
+    </div>
+
+    <div id="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="confirmModal()">Select</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let scenes      = [];
+let projectName = 'Timeline Project';
+let activeIdx   = null;   // selected scene index
+let library     = [];
+let libFilter   = '';
+let libCategory = 'all';
+
+// Selected element: { idx: number }
+let selEl = null;
+
+// Modal context: 'bg' | 'add-element' | 'pano-bg' | 'pano-add'
+let modalCtx     = null;
+let modalSelected = null;
+
+// Pending drop position (for element drop on stage)
+let pendingDropX = 0.3;
+let pendingDropY = 0.5;
+
+// Panorama state
+let panorama = { bg: null, elements: [] };
+let appMode = 'scenes';    // 'scenes' | 'panorama'
+let selPanoEl = null;      // selected panorama element index
+let panoStageW = 0, panoStageH = 0;
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+async function init() {
+  await loadScenes();
+  await loadLibrary();
+  loadPresetList();   // async, no need to await
+  renderSidebar();
+  if (scenes.length > 0) selectScene(0);
+}
+
+async function loadScenes() {
+  try {
+    const r = await fetch('/api/scenes');
+    const d = await r.json();
+    scenes = d.scenes || [];
+    // Backward compat: merge mid[]+fg[] into elements[]
+    scenes.forEach(sc => {
+      if (!sc.elements) {
+        sc.elements = [...(sc.mid || []), ...(sc.fg || [])];
+      }
+      delete sc.mid; delete sc.fg;
+    });
+    projectName = d.name || (scenes[0] && scenes[0].projectName) || 'Timeline Project';
+    document.getElementById('project-name').value = projectName;
+  } catch(e) { scenes = []; }
+  await loadPanorama();
+}
+
+async function loadPanorama() {
+  try {
+    const d = await fetch('/api/panorama').then(r => r.json());
+    // panorama.json stores: { background, elements[]{x,y,width,sceneId}, clickAreas[]{x,y,width,height,sceneId} }
+    // admin canvas expects: { bg, elements[] } where images use px/py/h (0-1) and zones use type:'zone' px/py/w/h
+    panorama = {
+      bg: d.background || d.bg || null,
+      elements: [
+        ...(d.elements || []).map(el => {
+          // Already in admin format (has px field)?
+          if (el.px != null) return el;
+          // Convert from panorama.json format
+          return {
+            ...el,
+            px:       el.x / 100,
+            py:       el.y / 100,
+            h:        el.width,        // width% of viewport ≈ h% of stage height
+            scene_id: el.sceneId ?? el.scene_id,
+          };
+        }),
+        ...(d.clickAreas || []).map(ca => ({
+          id:       'pz_' + (ca.sceneId ?? ca.scene_id ?? Date.now()),
+          type:     'zone',
+          px:       (ca.x + ca.width  / 2) / 100,
+          py:       (ca.y + ca.height / 2) / 100,
+          w:        ca.width  / 100,
+          h:        ca.height / 100,
+          scene_id: ca.sceneId ?? ca.scene_id,
+        })),
+      ],
+    };
+  } catch(e) { panorama = { bg: null, elements: [] }; }
+}
+
+async function savePanorama() {
+  const imageElems = (panorama.elements || []).filter(e => e.type !== 'zone');
+  const zoneElems  = (panorama.elements || []).filter(e => e.type === 'zone');
+  const panoData = {
+    name:       projectName,
+    background: panorama.bg,
+    elements:   imageElems.map(el => ({
+      id:      el.id,
+      src:     el.src,
+      x:       el.x    != null ? el.x    : Math.round(el.px * 100),
+      y:       el.y    != null ? el.y    : Math.round(el.py * 100),
+      width:   el.width != null ? el.width : el.h,
+      sceneId: el.sceneId ?? el.scene_id,
+      anim:    el.anim,
+    })),
+    clickAreas: zoneElems.map(z => ({
+      sceneId: z.scene_id ?? z.sceneId,
+      x:       (z.px - z.w / 2) * 100,
+      y:       (z.py - z.h / 2) * 100,
+      width:   z.w * 100,
+      height:  z.h * 100,
+    })),
+  };
+  await fetch('/api/panorama', {
+    method:  'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(panoData),
+  });
+}
+
+async function loadLibrary() {
+  try {
+    const r = await fetch('/api/library');
+    library = await r.json();
+  } catch(e) { library = []; }
+}
+
+// ═══════════════════════════════════════════════════════
+//  PRESETS
+// ═══════════════════════════════════════════════════════
+async function loadPresetList() {
+  try {
+    const r = await fetch('/api/presets');
+    const presets = await r.json();
+    const sel = document.getElementById('preset-select');
+    presets.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.textContent = p.title;
+      sel.appendChild(opt);
+    });
+  } catch(e) {}
+}
+
+async function loadPreset(name) {
+  if (!name) return;
+  if (!confirm(`Load preset "${name}"? Unsaved changes will be lost.`)) {
+    document.getElementById('preset-select').value = '';
+    return;
+  }
+  try {
+    const r = await fetch(`/api/presets/${encodeURIComponent(name)}/load`, { method: 'POST' });
+    if (!r.ok) throw new Error('Error');
+    await loadScenes(); // also reloads panorama
+    renderSceneList();
+    selectScene(0);
+    if (appMode === 'panorama') renderPanoEditor();
+    showToast('Preset loaded: ' + name, 'ok');
+    document.getElementById('preset-select').value = '';
+  } catch(e) {
+    showToast('Error loading preset', 'error');
+    document.getElementById('preset-select').value = '';
+  }
+}
+
+// Project name
+document.getElementById('project-name').addEventListener('input', function() {
+  projectName = this.value;
+});
+
+// ═══════════════════════════════════════════════════════
+//  MODE TOGGLE
+// ═══════════════════════════════════════════════════════
+function setMode(mode) {
+  appMode = mode;
+  document.getElementById('app').style.display = mode === 'scenes' ? 'flex' : 'none';
+  document.getElementById('pano-app').style.display = mode === 'panorama' ? 'flex' : 'none';
+  document.getElementById('scene-nav-controls').style.display = mode === 'scenes' ? 'contents' : 'none';
+  document.getElementById('mode-scenes-btn').classList.toggle('active', mode === 'scenes');
+  document.getElementById('mode-pano-btn').classList.toggle('active', mode === 'panorama');
+  if (mode === 'panorama') renderPanoEditor();
+}
+
+// ═══════════════════════════════════════════════════════
+//  SAVE
+// ═══════════════════════════════════════════════════════
+async function saveScenes() {
+  const status = document.getElementById('save-status');
+  status.textContent = 'Saving...';
+  status.className = '';
+  try {
+    const [r] = await Promise.all([
+      fetch('/api/scenes', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ name: projectName, scenes }),
+      }),
+      savePanorama(),
+    ]);
+    if (!r.ok) throw new Error('Server error');
+    status.textContent = 'Saved';
+    status.className = 'ok';
+    showToast('Saved', 'ok');
+    setTimeout(() => { status.textContent = ''; status.className = ''; }, 3000);
+  } catch(e) {
+    status.textContent = 'Error';
+    status.className = 'error';
+    showToast('Save error: ' + e.message, 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  SIDEBAR
+// ═══════════════════════════════════════════════════════
+function renderSidebar() {
+  renderSceneList();
+}
+
+function renderSceneList() {
+  const list = document.getElementById('scene-list');
+  list.innerHTML = '';
+  scenes.forEach((sc, i) => {
+    const card = document.createElement('div');
+    card.className = 'scene-card' + (i === activeIdx ? ' active' : '');
+    card.draggable = true;
+    card.dataset.idx = i;
+    card.innerHTML = `
+      <div class="scene-num">${i + 1}</div>
+      <div class="scene-card-info">
+        <div class="scene-card-title">${esc(sc.title || 'Untitled')}</div>
+        <div class="scene-card-year">${esc(sc.year || '')}</div>
+      </div>
+      <button class="scene-card-del" title="Delete" onclick="deleteScene(event,${i})">&#x2715;</button>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.classList.contains('scene-card-del')) return;
+      selectScene(i);
+    });
+    // Drag to reorder
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', String(i));
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => card.style.opacity = '0.5', 0);
+    });
+    card.addEventListener('dragend', () => { card.style.opacity = ''; card.classList.remove('drag-over'); });
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      const from = parseInt(e.dataTransfer.getData('text/plain'));
+      const to = i;
+      if (from !== to) {
+        const [moved] = scenes.splice(from, 1);
+        scenes.splice(to, 0, moved);
+        const newActive = (activeIdx === from) ? to
+          : (activeIdx > from && activeIdx <= to) ? activeIdx - 1
+          : (activeIdx < from && activeIdx >= to) ? activeIdx + 1
+          : activeIdx;
+        activeIdx = newActive;
+        renderSidebar();
+        renderStage();
+      }
+    });
+    list.appendChild(card);
+  });
+}
+
+function selectScene(idx) {
+  selEl = null;
+  activeIdx = idx;
+  renderSidebar();
+  renderStage();
+  fillSceneInfoRow();
+  showPropsEmpty();
+}
+
+function navigateScene(dir) {
+  if (activeIdx === null) return;
+  const next = activeIdx + dir;
+  if (next >= 0 && next < scenes.length) selectScene(next);
+}
+
+function addScene() {
+  const last = scenes[scenes.length - 1];
+  scenes.push({
+    id: Date.now(),
+    title: 'New Scene',
+    subtitle: '',
+    date: '',
+    year: '',
+    bg: last ? last.bg : '',
+    night: false,
+    elements: [],
+  });
+  selectScene(scenes.length - 1);
+  renderSidebar();
+}
+
+function deleteScene(e, idx) {
+  e.stopPropagation();
+  if (!confirm(`Delete scene "${scenes[idx].title}"?`)) return;
+  scenes.splice(idx, 1);
+  if (scenes.length === 0) {
+    activeIdx = null;
+    selEl = null;
+    renderSidebar();
+    document.getElementById('stage').style.display = 'none';
+    document.getElementById('no-scene-msg').style.display = '';
+    document.getElementById('scene-info-row').style.display = 'none';
+    showPropsEmpty();
+    return;
+  }
+  activeIdx = Math.max(0, Math.min(activeIdx, scenes.length - 1));
+  renderSidebar();
+  renderStage();
+  fillSceneInfoRow();
+}
+
+// ═══════════════════════════════════════════════════════
+//  STAGE RENDERING
+// ═══════════════════════════════════════════════════════
+let stageW = 0;
+let stageH = 0;
+
+function getScale() { return stageW / 1000; }
+
+function renderStage() {
+  if (activeIdx === null) return;
+  const sc = scenes[activeIdx];
+
+  const stageWrap = document.getElementById('stage-wrap');
+  const stage = document.getElementById('stage');
+  const noScene = document.getElementById('no-scene-msg');
+
+  noScene.style.display = 'none';
+  stage.style.display = 'block';
+  document.getElementById('scene-info-row').style.display = '';
+
+  // Compute size
+  const wrapW = stageWrap.clientWidth - 24;
+  const wrapH = stageWrap.clientHeight - 24;
+  stageW = Math.min(wrapW, Math.floor(wrapH / 0.5625)); // 16:9
+  stageH = Math.round(stageW * 0.5625);
+  // Clamp
+  if (stageH > wrapH) { stageH = wrapH; stageW = Math.round(stageH / 0.5625); }
+
+  stage.style.width  = stageW + 'px';
+  stage.style.height = stageH + 'px';
+
+  // Background
+  const bg = document.getElementById('stage-bg');
+  if (sc.bg) {
+    bg.style.backgroundImage = `url("${encodePath(sc.bg).replace(/"/g, '%22')}")`;
+  } else {
+    bg.style.backgroundImage = 'none';
+  }
+
+  // Remove old elements
+  stage.querySelectorAll('.stage-el').forEach(el => el.remove());
+
+  // Render elements (bottom of array = back, top = front)
+  (sc.elements || []).forEach((el, i) => renderStageEl(el, i));
+
+  // Update selection border and element list
+  updateSelectionBorder();
+  renderElemList();
+}
+
+function renderStageEl(el, idx) {
+  const stage = document.getElementById('stage');
+  const scale = getScale();
+
+  const wrap = document.createElement('div');
+  wrap.className = 'stage-el' + (el.flip ? ' flipped' : '');
+  wrap.dataset.idx = idx;
+
+  const elH = (el.h && el.h > 0) ? (el.h / 100 * stageH) + 'px' : 'auto';
+  const elW = (el.w && el.w > 0) ? (el.w / 100 * stageW) + 'px' : 'auto';
+  const left = el.x * stageW;
+  const bottom = (el.bottom || 0) * stageH;
+
+  const edgeMask = softEdgeMask(el.softEdge);
+  wrap.style.cssText = `
+    left: ${left}px;
+    bottom: ${bottom}px;
+    height: ${elH};
+    width: ${elW};
+    min-width: 10px;
+    transform: translateX(-50%);
+  `;
+  applyMaskStyle(wrap, edgeMask);
+
+  const img = document.createElement('img');
+  img.src = encodePath(el.src || '');
+  applyImgContain(img, el);
+  img.draggable = false;
+
+  wrap.appendChild(img);
+  stage.appendChild(wrap);
+
+  // Drag to reposition
+  wrap.addEventListener('mousedown', e => {
+    e.stopPropagation();
+    selectElement(idx);
+
+    const stageRect = stage.getBoundingClientRect();
+    const startMouseX = e.clientX;
+    const startMouseY = e.clientY;
+    const startX = el.x;
+    const startBottom = el.bottom || 0;
+
+    function onMove(ev) {
+      const dx = ev.clientX - startMouseX;
+      const dy = ev.clientY - startMouseY;
+      const newX = Math.max(0, Math.min(1, startX + dx / stageW));
+      const newBottom = Math.max(0, Math.min(1, startBottom - dy / stageH));
+      el.x = Math.round(newX * 1000) / 1000;
+      el.bottom = Math.round(newBottom * 1000) / 1000;
+      wrap.style.left   = (el.x * stageW) + 'px';
+      wrap.style.bottom = (el.bottom * stageH) + 'px';
+      updatePropFields();
+    }
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  });
+
+  wrap.addEventListener('click', e => {
+    e.stopPropagation();
+    selectElement(idx);
+  });
+}
+
+// Click empty stage = deselect
+document.getElementById('stage').addEventListener('click', () => {
+  selEl = null;
+  updateSelectionBorder();
+  showPropsEmpty();
+});
+
+function updateSelectionBorder() {
+  document.querySelectorAll('.stage-el').forEach(el => {
+    el.classList.remove('selected');
+    if (selEl && parseInt(el.dataset.idx) === selEl.idx) {
+      el.classList.add('selected');
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  STAGE DROP — drag from desktop
+// ═══════════════════════════════════════════════════════
+const stageEl = document.getElementById('stage');
+
+stageEl.addEventListener('dragover', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  stageEl.classList.add('drop-hover');
+});
+
+stageEl.addEventListener('dragleave', e => {
+  if (!stageEl.contains(e.relatedTarget)) {
+    stageEl.classList.remove('drop-hover');
+  }
+});
+
+stageEl.addEventListener('drop', async e => {
+  e.preventDefault();
+  e.stopPropagation();
+  stageEl.classList.remove('drop-hover');
+
+  if (activeIdx === null) return;
+
+  const rect = stageEl.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  pendingDropX = Math.max(0, Math.min(0.98, mouseX / stageW));
+  pendingDropY = mouseY / stageH;
+
+  // Check if it's a file drop (supports multiple)
+  const files = e.dataTransfer.files;
+  if (files && files.length > 0) {
+    const imgFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (!imgFiles.length) { showToast('Only image files are supported', 'error'); return; }
+    for (const file of imgFiles) {
+      try {
+        const path = await uploadFileReturnPath(file);
+        addElementAtDrop(path);
+      } catch(err) {
+        showToast('Upload failed: ' + err.message, 'error');
+      }
+    }
+    return;
+  }
+
+  // Check library drag (text/uri-list or text/plain with path)
+  const text = e.dataTransfer.getData('text/plain');
+  if (text) {
+    addElementAtDrop(text);
+  }
+});
+
+function addElementAtDrop(src) {
+  if (activeIdx === null) return;
+  const sc = scenes[activeIdx];
+  if (!sc.elements) sc.elements = [];
+  const dropBottom = Math.max(0, Math.min(1, Math.round((1 - pendingDropY) * 1000) / 1000));
+  const newEl = { src, x: pendingDropX, h: 50, bottom: dropBottom, anim: 'fade' };
+  sc.elements.push(newEl);
+  const newIdx = sc.elements.length - 1;
+  renderStage();
+  selectElement(newIdx);
+}
+
+// ═══════════════════════════════════════════════════════
+//  ELEMENT SELECTION / PROPERTIES
+// ═══════════════════════════════════════════════════════
+function renderElemList() {
+  const list = document.getElementById('elem-list');
+  if (!list) return;
+  list.innerHTML = '';
+  if (activeIdx === null) return;
+  const sc = scenes[activeIdx];
+  const elems = sc.elements || [];
+  if (!elems.length) {
+    list.innerHTML = '<div class="elem-list-empty">Нет элементов</div>';
+    return;
+  }
+  // Photoshop order: last in array = topmost, shown at top of list
+  for (let i = elems.length - 1; i >= 0; i--) {
+    const el = elems[i];
+    const isSelected = selEl && selEl.idx === i;
+    const name = (el.src || '').split('/').pop() || '(no src)';
+
+    const item = document.createElement('div');
+    item.className = 'elem-item' + (isSelected ? ' selected' : '');
+    item.title = el.src || '';
+    item.draggable = true;
+    item.dataset.elemIdx = i;
+
+    const grip = document.createElement('span');
+    grip.className = 'elem-item-grip';
+    grip.innerHTML = '&#8942;&#8942;';
+
+    const dot = document.createElement('span');
+    dot.className = 'elem-item-dot el';
+
+    const thumb = document.createElement('img');
+    thumb.className = 'elem-item-thumb';
+    thumb.src = encodePath(el.src || '');
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'elem-item-name';
+    nameEl.textContent = name;
+
+    const del = document.createElement('button');
+    del.className = 'elem-item-del';
+    del.title = 'Delete';
+    del.innerHTML = '&#x2715;';
+    del.addEventListener('click', e => {
+      e.stopPropagation();
+      sc.elements.splice(i, 1);
+      if (selEl && selEl.idx === i) { selEl = null; showPropsEmpty(); }
+      else if (selEl && selEl.idx > i) { selEl.idx--; }
+      renderStage();
+    });
+
+    item.appendChild(grip);
+    item.appendChild(dot);
+    item.appendChild(thumb);
+    item.appendChild(nameEl);
+    item.appendChild(del);
+    item.addEventListener('click', () => selectElement(i));
+    list.appendChild(item);
+  }
+
+  // Drag-to-reorder
+  let dragSrcIdx = null;
+  list.querySelectorAll('.elem-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragSrcIdx = parseInt(item.dataset.elemIdx);
+      e.dataTransfer.effectAllowed = 'move';
+      item.style.opacity = '0.5';
+    });
+    item.addEventListener('dragend', () => { item.style.opacity = ''; });
+    item.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      const dropIdx = parseInt(item.dataset.elemIdx);
+      if (dragSrcIdx === null || dragSrcIdx === dropIdx) return;
+      const sc2 = scenes[activeIdx];
+      const [moved] = sc2.elements.splice(dragSrcIdx, 1);
+      sc2.elements.splice(dropIdx, 0, moved);
+      // Update selEl index
+      if (selEl) {
+        if (selEl.idx === dragSrcIdx) selEl.idx = dropIdx;
+        else if (dragSrcIdx < dropIdx && selEl.idx > dragSrcIdx && selEl.idx <= dropIdx) selEl.idx--;
+        else if (dragSrcIdx > dropIdx && selEl.idx < dragSrcIdx && selEl.idx >= dropIdx) selEl.idx++;
+      }
+      dragSrcIdx = null;
+      renderStage();
+    });
+  });
+}
+
+function selectElement(idx) {
+  selEl = { idx };
+  updateSelectionBorder();
+  renderElemList();
+  fillPropsPanel();
+}
+
+function fillPropsPanel() {
+  if (!selEl || activeIdx === null) { showPropsEmpty(); return; }
+  const sc = scenes[activeIdx];
+  const el = (sc.elements || [])[selEl.idx];
+  if (!el) { showPropsEmpty(); return; }
+
+  document.getElementById('props-empty').style.display = 'none';
+  document.getElementById('props-body').style.display  = '';
+
+  // Thumb
+  const thumb = document.getElementById('props-thumb');
+  thumb.src = encodePath(el.src || '');
+
+  updatePropFields();
+}
+
+// ── Rich Text Editor ─────────────────────────────────
+let rteSelection = null;
+
+function rteExec(cmd, val) {
+  const ed = document.getElementById('elem-content-editor');
+  ed.focus();
+  document.execCommand(cmd, false, val || null);
+  syncElemContent();
+}
+
+function rteInsertImage() {
+  const ed = document.getElementById('elem-content-editor');
+  ed.focus();
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) rteSelection = sel.getRangeAt(0).cloneRange();
+  openModal('elem-img');
+}
+
+function syncElemContent() {
+  if (!selEl || activeIdx === null) return;
+  const el = (scenes[activeIdx].elements || [])[selEl.idx];
+  if (el) el.content = document.getElementById('elem-content-editor').innerHTML;
+}
+
+function updatePropFields() {
+  if (!selEl || activeIdx === null) return;
+  const el = (scenes[activeIdx].elements || [])[selEl.idx];
+  if (!el) return;
+
+  setVal('p-x-range',  el.x ?? 0.5);
+  setVal('p-x-num',    el.x ?? 0.5);
+  setVal('p-h-range',  el.h ?? 50);
+  setVal('p-h-num',    el.h ?? 50);
+  setVal('p-w-range',      el.w ?? 0);
+  setVal('p-w-num',        el.w ?? 0);
+  setVal('p-bottom-range', el.bottom ?? 0);
+  setVal('p-bottom-num',   el.bottom ?? 0);
+
+  setVal('p-parallax-range', el.parallax ?? 1);
+  setVal('p-parallax-num',   el.parallax ?? 1);
+
+  document.getElementById('p-flip').checked = !!el.flip;
+  setVal('p-soft-edge-range', el.softEdge ?? 0);
+  setVal('p-soft-edge-num',   el.softEdge ?? 0);
+
+  // Populate content editor
+  const ed = document.getElementById('elem-content-editor');
+  ed.innerHTML = el.content || '';
+}
+
+function showPropsEmpty() {
+  document.getElementById('props-empty').style.display = '';
+  document.getElementById('props-body').style.display  = 'none';
+  selEl = null;
+  updateSelectionBorder();
+  renderElemList();
+}
+
+function setVal(id, v) {
+  const el = document.getElementById(id);
+  if (el) el.value = v;
+}
+
+function applyMaskStyle(el, mask) {
+  if (!mask) {
+    el.style.webkitMaskImage = '';
+    el.style.maskImage = '';
+    el.style.webkitMaskComposite = '';
+    el.style.maskComposite = '';
+  } else {
+    el.style.webkitMaskImage    = mask.image;
+    el.style.maskImage          = mask.image;
+    el.style.webkitMaskComposite = mask.webkitComposite;
+    el.style.maskComposite      = mask.composite;
+  }
+}
+
+// softEdge: 0 = off, 1–100 = strength
+// Returns { image, composite } or null
+function softEdgeMask(v) {
+  if (!v || v <= 0) return null;
+  const fade = Math.round(v * 0.4); // 0.4% → 40%
+  const g = `linear-gradient(to right,  transparent 0%, black ${fade}%, black ${100 - fade}%, transparent 100%), ` +
+            `linear-gradient(to bottom, transparent 0%, black ${fade}%, black ${100 - fade}%, transparent 100%)`;
+  return { image: g, composite: 'intersect', webkitComposite: 'destination-in' };
+}
+
+function applyImgContain(img, el) {
+  const hasH = el.h && el.h > 0;
+  const hasW = el.w && el.w > 0;
+  if (hasH && hasW) {
+    img.style.width = '100%'; img.style.height = '100%';
+    img.style.objectFit = 'contain'; img.style.objectPosition = 'center';
+    img.style.maxHeight = ''; img.style.maxWidth = '';
+  } else if (hasH) {
+    img.style.height = '100%'; img.style.width = 'auto';
+    img.style.objectFit = ''; img.style.objectPosition = '';
+    img.style.maxHeight = ''; img.style.maxWidth = '';
+  } else if (hasW) {
+    img.style.width = '100%'; img.style.height = 'auto';
+    img.style.objectFit = ''; img.style.objectPosition = '';
+    img.style.maxHeight = ''; img.style.maxWidth = '';
+  } else {
+    img.style.width = 'auto'; img.style.height = 'auto';
+    img.style.objectFit = ''; img.style.objectPosition = '';
+    img.style.maxHeight = '30vh'; img.style.maxWidth = '30vw';
+  }
+}
+
+// Sync a property change: updates model + stage visually
+function syncProp(field, value) {
+  if (!selEl || activeIdx === null) return;
+  const el = (scenes[activeIdx].elements || [])[selEl.idx];
+  if (!el) return;
+  el[field] = value;
+  // Keep range/number inputs in sync
+  if (field === 'x') {
+    setVal('p-x-range', value); setVal('p-x-num', value);
+  } else if (field === 'h') {
+    setVal('p-h-range', value); setVal('p-h-num', value);
+  } else if (field === 'w') {
+    setVal('p-w-range', value); setVal('p-w-num', value);
+  } else if (field === 'bottom') {
+    setVal('p-bottom-range', value); setVal('p-bottom-num', value);
+  } else if (field === 'softEdge') {
+    setVal('p-soft-edge-range', value); setVal('p-soft-edge-num', value);
+  } else if (field === 'parallax') {
+    setVal('p-parallax-range', value); setVal('p-parallax-num', value);
+  }
+  updateStageEl(selEl.idx);
+}
+
+function updateStageEl(idx) {
+  const el = document.querySelector(`.stage-el[data-idx="${idx}"]`);
+  if (!el || activeIdx === null) return;
+  const def = (scenes[activeIdx].elements || [])[idx];
+  if (!def) return;
+  el.style.left      = (def.x * stageW) + 'px';
+  el.style.bottom    = ((def.bottom || 0) * stageH) + 'px';
+  el.style.height    = (def.h && def.h > 0) ? (def.h / 100 * stageH) + 'px' : 'auto';
+  el.style.width     = (def.w && def.w > 0) ? (def.w / 100 * stageW) + 'px' : 'auto';
+  el.style.transform = 'translateX(-50%)';
+  el.classList.toggle('flipped', !!def.flip);
+  applyMaskStyle(el, softEdgeMask(def.softEdge));
+  const img = el.querySelector('img');
+  if (img) applyImgContain(img, def);
+}
+
+function deleteSelectedElement() {
+  if (!selEl || activeIdx === null) return;
+  const sc = scenes[activeIdx];
+  (sc.elements || []).splice(selEl.idx, 1);
+  selEl = null;
+  renderStage();
+  showPropsEmpty();
+}
+
+// ═══════════════════════════════════════════════════════
+//  SCENE INFO ROW
+// ═══════════════════════════════════════════════════════
+function fillSceneInfoRow() {
+  if (activeIdx === null) return;
+  const sc = scenes[activeIdx];
+  setVal('f-title',    sc.title    || '');
+  setVal('f-subtitle', sc.subtitle || '');
+  setVal('f-date',     sc.date     || '');
+  setVal('f-year',     sc.year     || '');
+  const nightEl = document.getElementById('f-night');
+  if (nightEl) nightEl.checked = !!sc.night;
+}
+
+function onSceneField(field, value) {
+  if (activeIdx === null) return;
+  scenes[activeIdx][field] = value;
+  if (field === 'title' || field === 'year') renderSidebar();
+  if (field === 'bg') renderStage();
+}
+
+// ═══════════════════════════════════════════════════════
+//  PANORAMA EDITOR
+// ═══════════════════════════════════════════════════════
+
+function renderPanoEditor() {
+  renderPanoSidebar();
+  renderPanoCanvas();
+  updatePanoPropsPanel();
+}
+
+function renderPanoSidebar() {
+  // BG thumbnail
+  const bgThumb = document.getElementById('pano-bg-thumb-img');
+  bgThumb.src = panorama.bg ? encodePath(panorama.bg) : '';
+
+  // Element list
+  const list = document.getElementById('pano-el-list');
+  list.innerHTML = '';
+  (panorama.elements || []).forEach((el, i) => {
+    const item = document.createElement('div');
+    item.className = 'pano-list-item' + (i === selPanoEl ? ' active' : '');
+    const scLabel = (el.scene_id != null && el.scene_id >= 0 && el.scene_id < scenes.length)
+      ? (el.scene_id + 1) + '. ' + (scenes[el.scene_id].title || 'Untitled')
+      : 'no scene';
+    const thumbHtml = el.type === 'zone'
+      ? `<div class="pano-list-thumb" style="display:flex;align-items:center;justify-content:center;border:1px dashed rgba(240,208,128,0.4);font-size:16px;color:rgba(240,208,128,0.6)">&#9632;</div>`
+      : `<img class="pano-list-thumb" src="${esc(encodePath(el.src || ''))}" alt="">`;
+    const typeLabel = el.type === 'zone' ? 'Click zone' : ('Object ' + (i + 1));
+    item.innerHTML = `
+      ${thumbHtml}
+      <div class="pano-list-info">
+        <div class="pano-list-label">${typeLabel}</div>
+        <div class="pano-list-scene">${esc(scLabel)}</div>
+      </div>
+      <button class="pano-list-del" title="Delete" onclick="event.stopPropagation(); deletePanoEl(${i})">&#x2715;</button>
+    `;
+    item.addEventListener('click', () => selectPanoEl(i));
+    list.appendChild(item);
+  });
+}
+
+function renderPanoCanvas() {
+  const wrap = document.getElementById('pano-stage-wrap');
+  const stage = document.getElementById('pano-stage');
+  const bg = document.getElementById('pano-stage-bg');
+
+  // Compute 16:9 size to fit
+  const wrapW = wrap.clientWidth - 24;
+  const wrapH = wrap.clientHeight - 24;
+  panoStageW = Math.min(wrapW, Math.floor(wrapH / 0.5625));
+  panoStageH = Math.round(panoStageW * 0.5625);
+  if (panoStageH > wrapH) { panoStageH = wrapH; panoStageW = Math.round(panoStageH / 0.5625); }
+
+  stage.style.width  = panoStageW + 'px';
+  stage.style.height = panoStageH + 'px';
+
+  // Background
+  if (panorama.bg) {
+    bg.style.backgroundImage = `url("${encodePath(panorama.bg).replace(/"/g, '%22')}")`;
+  } else {
+    bg.style.backgroundImage = 'none';
+  }
+
+  // Remove old canvas elements
+  stage.querySelectorAll('.pano-canvas-el').forEach(el => el.remove());
+
+  // Render elements
+  (panorama.elements || []).forEach((el, i) => {
+    const div = document.createElement('div');
+    div.className = 'pano-canvas-el' + (i === selPanoEl ? ' selected' : '');
+    div.dataset.idx = i;
+
+    if (el.type === 'zone') {
+      // Zone: dashed rectangle
+      const zw = (el.w || 0.125) * panoStageW;
+      const zh = (el.h || 1.0)   * panoStageH;
+      const left = el.px * panoStageW - zw / 2;
+      const top  = el.py * panoStageH - zh / 2;
+      const scLabel = (el.scene_id != null && el.scene_id >= 0)
+        ? 'Zone → ' + (el.scene_id + 1) : 'Zone';
+      div.style.cssText = `
+        position:absolute; left:${left}px; top:${top}px;
+        width:${zw}px; height:${zh}px; transform:none;
+        border:${i === selPanoEl ? '2px solid rgba(240,208,128,0.9)' : '2px dashed rgba(240,208,128,0.45)'};
+        background:rgba(240,208,128,${i === selPanoEl ? '0.1' : '0.03'});
+        display:flex; align-items:center; justify-content:center;
+        cursor:pointer; box-sizing:border-box; z-index:1;
+      `;
+      const lbl = document.createElement('span');
+      lbl.style.cssText = 'color:rgba(240,208,128,0.7);font-size:10px;pointer-events:none;text-align:center;padding:2px;';
+      lbl.textContent = scLabel;
+      div.appendChild(lbl);
+    } else {
+      // Image element
+      const left = el.px * panoStageW;
+      const top  = el.py * panoStageH;
+      const elH  = (el.h / 100) * panoStageH;
+      div.style.cssText = `left:${left}px; top:${top}px; transform:translate(-50%,-50%); height:${elH}px; width:auto;`;
+
+      const img = document.createElement('img');
+      img.src = encodePath(el.src || '');
+      img.style.height = '100%';
+      img.style.width = 'auto';
+      img.draggable = false;
+      div.appendChild(img);
+    }
+
+    stage.appendChild(div);
+
+    // Click to select
+    div.addEventListener('click', ev => {
+      ev.stopPropagation();
+      selectPanoEl(i);
+    });
+
+    // Drag to reposition
+    div.addEventListener('mousedown', ev => {
+      ev.stopPropagation();
+      selectPanoEl(i);
+      startPanoElDrag(ev, i, div);
+    });
+  });
+
+  // Click empty stage = deselect
+  stage.addEventListener('click', () => {
+    selPanoEl = null;
+    renderPanoCanvas();
+    renderPanoSidebar();
+    updatePanoPropsPanel();
+  });
+}
+
+function startPanoElDrag(e, idx, wrap) {
+  const el = panorama.elements[idx];
+  const stage = document.getElementById('pano-stage');
+  const startX = e.clientX;
+  const startY = e.clientY;
+  const startPx = el.px;
+  const startPy = el.py;
+
+  function onMove(ev) {
+    const dx = ev.clientX - startX;
+    const dy = ev.clientY - startY;
+    el.px = Math.max(0, Math.min(1, startPx + dx / panoStageW));
+    el.py = Math.max(0, Math.min(1, startPy + dy / panoStageH));
+    el.px = Math.round(el.px * 1000) / 1000;
+    el.py = Math.round(el.py * 1000) / 1000;
+
+    if (el.type === 'zone') {
+      const zw = (el.w || 0.125) * panoStageW;
+      const zh = (el.h || 1.0)   * panoStageH;
+      wrap.style.left = (el.px * panoStageW - zw / 2) + 'px';
+      wrap.style.top  = (el.py * panoStageH - zh / 2) + 'px';
+    } else {
+      wrap.style.left = (el.px * panoStageW) + 'px';
+      wrap.style.top  = (el.py * panoStageH) + 'px';
+    }
+    updatePanoPropFields();
+  }
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  e.preventDefault();
+}
+
+function selectPanoEl(idx) {
+  selPanoEl = idx;
+  renderPanoCanvas();
+  renderPanoSidebar();
+  updatePanoPropsPanel();
+}
+
+function updatePanoPropsPanel() {
+  const empty = document.getElementById('pano-props-empty');
+  const body  = document.getElementById('pano-props-body');
+
+  if (selPanoEl == null || !panorama.elements || selPanoEl >= panorama.elements.length) {
+    empty.style.display = '';
+    body.style.display  = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  body.style.display  = '';
+
+  const el = panorama.elements[selPanoEl];
+  const isZone = el.type === 'zone';
+
+  // Show/hide image vs zone sections
+  document.getElementById('pp-image-section').style.display  = isZone ? 'none' : '';
+  document.getElementById('pp-zone-section').style.display   = isZone ? '' : 'none';
+  document.getElementById('pp-image-h-row').style.display    = isZone ? 'none' : '';
+
+  // Thumb
+  if (!isZone) {
+    document.getElementById('pano-props-thumb').src = encodePath(el.src || '');
+  }
+
+  // Scene dropdown
+  const sceneSel = document.getElementById('pp-scene');
+  sceneSel.innerHTML = '<option value="-1">— нет —</option>';
+  scenes.forEach((sc, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = (i + 1) + '. ' + (sc.title || 'Untitled');
+    sceneSel.appendChild(opt);
+  });
+
+  updatePanoPropFields();
+}
+
+function updatePanoPropFields() {
+  if (selPanoEl == null || !panorama.elements || selPanoEl >= panorama.elements.length) return;
+  const el = panorama.elements[selPanoEl];
+  const isZone = el.type === 'zone';
+
+  setVal('pp-px-range', el.px ?? 0.5);
+  setVal('pp-px-num',   el.px ?? 0.5);
+  setVal('pp-py-range', el.py ?? 0.5);
+  setVal('pp-py-num',   el.py ?? 0.5);
+
+  if (isZone) {
+    setVal('pp-w-range',  el.w  ?? 0.125);
+    setVal('pp-w-num',    el.w  ?? 0.125);
+    setVal('pp-zh-range', el.h  ?? 1.0);
+    setVal('pp-zh-num',   el.h  ?? 1.0);
+  } else {
+    setVal('pp-h-range',  el.h  ?? 30);
+    setVal('pp-h-num',    el.h  ?? 30);
+  }
+
+  document.getElementById('pp-scene').value = String(el.scene_id != null ? el.scene_id : -1);
+  document.getElementById('pp-anim').value  = el.anim || '';
+}
+
+function syncPanoElProp(field, value) {
+  if (selPanoEl == null || !panorama.elements || selPanoEl >= panorama.elements.length) return;
+  const el = panorama.elements[selPanoEl];
+  el[field] = value;
+
+  const isZone = el.type === 'zone';
+  if (field === 'px') {
+    setVal('pp-px-range', value); setVal('pp-px-num', value);
+  } else if (field === 'py') {
+    setVal('pp-py-range', value); setVal('pp-py-num', value);
+  } else if (field === 'h' && !isZone) {
+    setVal('pp-h-range', value); setVal('pp-h-num', value);
+  } else if (field === 'h' && isZone) {
+    setVal('pp-zh-range', value); setVal('pp-zh-num', value);
+  } else if (field === 'w') {
+    setVal('pp-w-range', value); setVal('pp-w-num', value);
+  }
+
+  // Update canvas element
+  const canvasEl = document.querySelector(`.pano-canvas-el[data-idx="${selPanoEl}"]`);
+  if (canvasEl) {
+    if (isZone) {
+      const zw = (el.w || 0.125) * panoStageW;
+      const zh = (el.h || 1.0)   * panoStageH;
+      canvasEl.style.left   = (el.px * panoStageW - zw / 2) + 'px';
+      canvasEl.style.top    = (el.py * panoStageH - zh / 2) + 'px';
+      canvasEl.style.width  = zw + 'px';
+      canvasEl.style.height = zh + 'px';
+    } else {
+      const left = el.px * panoStageW;
+      const top  = el.py * panoStageH;
+      const elH  = (el.h / 100) * panoStageH;
+      canvasEl.style.left   = left + 'px';
+      canvasEl.style.top    = top  + 'px';
+      canvasEl.style.height = elH  + 'px';
+    }
+  }
+
+  // Update sidebar scene label if scene_id changed
+  if (field === 'scene_id') {
+    renderPanoSidebar();
+  }
+}
+
+function deletePanoEl(idx) {
+  if (idx == null || !panorama.elements) return;
+  panorama.elements.splice(idx, 1);
+  if (selPanoEl === idx) selPanoEl = null;
+  else if (selPanoEl != null && selPanoEl > idx) selPanoEl--;
+  renderPanoEditor();
+}
+
+// Pano stage drop zone
+(function() {
+  const panoStage = document.getElementById('pano-stage');
+  panoStage.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    panoStage.classList.add('drop-hover');
+  });
+  panoStage.addEventListener('dragleave', e => {
+    if (!panoStage.contains(e.relatedTarget)) {
+      panoStage.classList.remove('drop-hover');
+    }
+  });
+  panoStage.addEventListener('drop', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    panoStage.classList.remove('drop-hover');
+
+    const rect = panoStage.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const px = Math.max(0, Math.min(1, mx / panoStageW));
+    const py = Math.max(0, Math.min(1, my / panoStageH));
+
+    // Check file drop
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (!file.type.startsWith('image/')) {
+        showToast('Only image files are supported', 'error');
+        return;
+      }
+      try {
+        const path = await uploadFileReturnPath(file);
+        addPanoElAtPos(path, px, py);
+      } catch(err) {
+        showToast('Upload failed: ' + err.message, 'error');
+      }
+      return;
+    }
+
+    // Library drag
+    const text = e.dataTransfer.getData('text/plain');
+    if (text) {
+      addPanoElAtPos(text, px, py);
+    }
+  });
+})();
+
+function addPanoElAtPos(src, px, py) {
+  if (!panorama.elements) panorama.elements = [];
+  const newEl = {
+    id: 'pe_' + Date.now(),
+    type: 'image',
+    src: src,
+    px: Math.round(px * 1000) / 1000,
+    py: Math.round(py * 1000) / 1000,
+    h: 30,
+    scene_id: -1,
+    anim: ''
+  };
+  panorama.elements.push(newEl);
+  selectPanoEl(panorama.elements.length - 1);
+}
+
+function addZoneCentered() {
+  if (!panorama.elements) panorama.elements = [];
+  const newZone = {
+    id: 'pz_' + Date.now(),
+    type: 'zone',
+    px: 0.5,
+    py: 0.5,
+    w: 0.125,
+    h: 1.0,
+    scene_id: -1
+  };
+  panorama.elements.push(newZone);
+  selectPanoEl(panorama.elements.length - 1);
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════
+function openModal(ctx) {
+  modalCtx = ctx;
+  modalSelected = null;
+  if (ctx === 'bg' && activeIdx !== null) {
+    modalSelected = scenes[activeIdx].bg || null;
+  } else if (ctx === 'pano-bg') {
+    modalSelected = panorama.bg || null;
+  }
+  document.getElementById('modal-title').textContent =
+    ctx === 'bg'              ? 'Change Background' :
+    ctx === 'pano-bg'         ? 'Panorama Background' :
+    ctx === 'pano-add'        ? 'Add Object' :
+    ctx === 'elem-img'        ? 'Insert Image' :
+    ctx === 'replace-element' ? 'Replace Image' :
+    'Add Element';
+  document.getElementById('modal-overlay').classList.add('open');
+  renderLibrary();
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalSelected = null;
+}
+
+function closeModalIfOverlay(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+function confirmModal() {
+  if (!modalSelected) { showToast('Select an image', 'error'); return; }
+
+  if (modalCtx === 'bg') {
+    if (activeIdx === null) { closeModal(); return; }
+    scenes[activeIdx].bg = modalSelected;
+    renderStage();
+  } else if (modalCtx === 'add-element') {
+    if (activeIdx === null) { closeModal(); return; }
+    const sc = scenes[activeIdx];
+    if (!sc.elements) sc.elements = [];
+    sc.elements.push({ src: modalSelected, x: 0.3, h: 50, bottom: 0, anim: 'fade' });
+    renderStage();
+    selectElement(sc.elements.length - 1);
+  } else if (modalCtx === 'pano-bg') {
+    panorama.bg = modalSelected;
+    renderPanoEditor();
+  } else if (modalCtx === 'elem-img') {
+    const ed = document.getElementById('elem-content-editor');
+    ed.focus();
+    if (rteSelection) {
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(rteSelection);
+    }
+    const imgHtml = `<img src="${encodePath(modalSelected)}" style="max-width:100%;height:auto;">`;
+    document.execCommand('insertHTML', false, imgHtml);
+    syncElemContent();
+    closeModal();
+    return;
+  } else if (modalCtx === 'replace-element') {
+    if (selEl && activeIdx !== null) {
+      const el = (scenes[activeIdx].elements || [])[selEl.idx];
+      if (el) {
+        el.src = modalSelected;
+        renderStage();
+        fillPropsPanel();
+      }
+    }
+  } else if (modalCtx === 'pano-add') {
+    if (!panorama.elements) panorama.elements = [];
+    const newEl = {
+      id: 'pe_' + Date.now(),
+      src: modalSelected,
+      px: 0.5,
+      py: 0.5,
+      h: 30,
+      scene_id: -1,
+      anim: ''
+    };
+    panorama.elements.push(newEl);
+    selectPanoEl(panorama.elements.length - 1);
+  }
+  closeModal();
+}
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Library ─────────────────────────────────────────────
+function renderLibrary() {
+  const cats = ['all', ...new Set(library.map(i => i.category).filter(Boolean))];
+  const catEl = document.getElementById('lib-categories');
+  catEl.innerHTML = cats.map(c =>
+    `<button class="cat-btn ${c === libCategory ? 'active' : ''}" onclick="setCategory('${esc(c)}')">${c === 'all' ? 'All' : esc(c)}</button>`
+  ).join('');
+  filterLibrary();
+}
+
+function setCategory(cat) {
+  libCategory = cat;
+  renderLibrary();
+}
+
+function filterLibrary() {
+  libFilter = document.getElementById('lib-search').value.toLowerCase();
+  const grid = document.getElementById('lib-grid');
+  const filtered = library.filter(item => {
+    const matchCat = libCategory === 'all' || item.category === libCategory;
+    const matchSearch = !libFilter || item.name.toLowerCase().includes(libFilter);
+    return matchCat && matchSearch;
+  });
+  grid.innerHTML = filtered.map(item => `
+    <div class="lib-item ${modalSelected === item.path ? 'selected' : ''}"
+         draggable="true"
+         ondragstart="event.dataTransfer.setData('text/plain','${esc(item.path)}')"
+         onclick="selectLibItem('${esc(item.path)}', this)">
+      <img class="lib-thumb" src="${esc(encodePath(item.path))}" alt="${esc(item.name)}" loading="lazy">
+      <div class="lib-name">${esc(item.name.replace(/\.[^.]+$/, ''))}</div>
+    </div>
+  `).join('') || '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;grid-column:1/-1">Nothing found</div>';
+}
+
+function selectLibItem(path, el) {
+  modalSelected = path;
+  document.querySelectorAll('.lib-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── Upload in modal ─────────────────────────────────────
+function handleModalDragOver(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.add('dragover');
+}
+function handleModalDragLeave() {
+  document.getElementById('upload-zone').classList.remove('dragover');
+}
+function handleModalDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('dragover');
+  if (e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files);
+}
+
+async function uploadFileReturnPath(file) {
+  const form = new FormData();
+  form.append('file', file);
+  const r = await fetch('/api/upload', { method: 'POST', body: form });
+  const d = await r.json();
+  if (d.error) throw new Error(d.error);
+  await loadLibrary();
+  return d.path;
+}
+
+async function uploadFiles(fileList) {
+  const files = Array.from(fileList);
+  if (!files.length) return;
+  const prog = document.getElementById('upload-progress');
+  prog.style.display = 'block';
+  let lastPath = null;
+  let done = 0, failed = 0;
+
+  for (const file of files) {
+    prog.textContent = `Uploading ${done + failed + 1} / ${files.length}: ${file.name}`;
+    try {
+      lastPath = await uploadFileReturnPath(file);
+      done++;
+    } catch(e) {
+      failed++;
+      showToast('Error: ' + file.name, 'error');
+    }
+  }
+
+  prog.textContent = `Done: ${done} uploaded${failed ? ', ' + failed + ' failed' : ''}`;
+  if (lastPath) modalSelected = lastPath;
+  libCategory = 'all';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-tab="library"]').classList.add('active');
+  document.getElementById('tab-library').classList.add('active');
+  renderLibrary();
+  showToast(`Загружено: ${done} файл${done === 1 ? '' : done < 5 ? 'а' : 'ов'}`, 'ok');
+}
+
+// Keep single-file upload for backward compat (used in other places)
+async function uploadFile(file) {
+  if (file) await uploadFiles([file]);
+}
+
+// ═══════════════════════════════════════════════════════
+//  RESIZE
+// ═══════════════════════════════════════════════════════
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (appMode === 'scenes' && activeIdx !== null) renderStage();
+    if (appMode === 'panorama') renderPanoCanvas();
+  }, 120);
+});
+
+// ═══════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════
+function encodePath(raw) {
+  if (!raw) return '';
+  if (raw.startsWith('/') || raw.startsWith('http') || raw.startsWith('blob')) return raw;
+  return raw.split('/').map(encodeURIComponent).join('/');
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/'/g, '&#39;');
+}
+
+let toastTimer = null;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 3200);
+}
+
+// ═══════════════════════════════════════════════════════
+//  KEYBOARD
+// ═══════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); saveScenes(); }
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (document.activeElement === document.body) {
+      if (appMode === 'scenes' && selEl) deleteSelectedElement();
+      if (appMode === 'panorama' && selPanoEl != null) deletePanoEl(selPanoEl);
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>

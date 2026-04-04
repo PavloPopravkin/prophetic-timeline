@@ -1,0 +1,552 @@
+{
+  "name": "Timeline Project",
+  "scenes": [
+    {
+      "id": 0,
+      "title": "Благовещение",
+      "subtitle": "Архангел Гавриил является Деве Марии",
+      "date": "~6 г. до н.э., весна",
+      "year": "6 до н.э.",
+      "bg": "christmas-nativity-vector-illustrations/07 Backgrounds/Night time 01/PNG/Night time BG 01.png",
+      "night": false,
+      "mid": [
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Buildings _ Houses/PNG/House 01.png",
+          "x": 0.04,
+          "h": 58,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Buildings _ Houses/PNG/House 02.png",
+          "x": 0.622,
+          "h": 48,
+          "bottom": 0,
+          "flip": true
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Tropical trees/PNG/Tropical tree 01.png",
+          "x": 0.8,
+          "h": 62,
+          "bottom": 0
+        }
+      ],
+      "fg": [
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Marry/PNG/Marry 01.png",
+          "x": 0.202,
+          "h": 52,
+          "bottom": 0.004
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Angel Gabriel/PNG/Angel Gabriel 01.png",
+          "x": 0.139,
+          "h": 62,
+          "bottom": 0.275
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/02 Elements/The North Star/PNG/The North Star 01.png",
+          "x": 0.31,
+          "h": 16,
+          "bottom": 0.422,
+          "cls": "star-el"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "Путь в Вифлеем",
+      "subtitle": "Мария и Иосиф отправляются из Назарета",
+      "date": "~5 г. до н.э., ноябрь",
+      "year": "5 до н.э.",
+      "bg": "christmas-nativity-vector-illustrations/07 Backgrounds/Day time 02/PNG/Day time BG 02.png",
+      "night": false,
+      "mid": [
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Town/PNG/Town 01.png",
+          "x": 0.05,
+          "h": 55,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Tropical trees/PNG/Tropical tree 03.png",
+          "x": 0.7,
+          "h": 65,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Tropical trees/PNG/Tropical tree 04.png",
+          "x": 0.84,
+          "h": 50,
+          "bottom": 0
+        }
+      ],
+      "fg": [
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Josep/PNG/Josep 01.png",
+          "x": 0.15,
+          "h": 50,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/04 Animals/Donkey/PNG/Donkey 01.png",
+          "x": 0.3,
+          "h": 36,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Marry/PNG/Marry 02.png",
+          "x": 0.35,
+          "h": 46,
+          "bottom": 0.008
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Прибытие в Вифлеем",
+      "subtitle": "Перепись населения, город переполнен",
+      "date": "~4 г. до н.э., декабрь",
+      "year": "4 до н.э.",
+      "bg": "christmas-nativity-vector-illustrations/07 Backgrounds/Day time 03/PNG/Day time BG 03.png",
+      "night": false,
+      "mid": [
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Inns/PNG/Inns 01.png",
+          "x": 0.02,
+          "h": 62,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Buildings _ Houses/PNG/House 03.png",
+          "x": 0.6,
+          "h": 50,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Buildings _ Houses/PNG/House 02.png",
+          "x": 0.8,
+          "h": 44,
+          "bottom": 0,
+          "flip": true
+        }
+      ],
+      "fg": [
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Marry/PNG/Marry 03.png",
+          "x": 0.22,
+          "h": 50,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Josep/PNG/Josep 02.png",
+          "x": 0.44,
+          "h": 52,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/04 Animals/Donkey/PNG/Donkey 02.png",
+          "x": 0.58,
+          "h": 34,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Нет места в гостинице",
+      "subtitle": "Все дворы заняты — Иосиф ищет кров",
+      "date": "24 декабря, ~4 г. до н.э.",
+      "year": "24 дек.",
+      "bg": "christmas-nativity-vector-illustrations/07 Backgrounds/Night time 02/PNG/Night time BG 02.png",
+      "night": true,
+      "mid": [
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Inns/PNG/Inns 02.png",
+          "x": 0.04,
+          "h": 60,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Inns/PNG/Inns 04.png",
+          "x": 0.56,
+          "h": 52,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Tropical trees/PNG/Tropical tree 02.png",
+          "x": 0.82,
+          "h": 58,
+          "bottom": 0
+        }
+      ],
+      "fg": [
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Marry/PNG/Marry 02.png",
+          "x": 0.2,
+          "h": 50,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Josep/PNG/Josep 03.png",
+          "x": 0.38,
+          "h": 52,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Рождение Иисуса Христа",
+      "subtitle": "В яслях конюшни родился Спаситель мира",
+      "date": "25 декабря, ~4 г. до н.э., полночь",
+      "year": "25 дек.",
+      "bg": "christmas-nativity-vector-illustrations/07 Backgrounds/Night time 01/PNG/Night time BG 01.png",
+      "night": true,
+      "mid": [
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Stable/PNG/Stable 01.png",
+          "x": 0.12,
+          "h": 68,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Tropical trees/PNG/Tropical tree 01.png",
+          "x": 0.75,
+          "h": 60,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/02 Elements/The North Star/PNG/The North Star 02.png",
+          "x": 0.46,
+          "h": 22,
+          "bottom": 0.076,
+          "cls": "star-el"
+        }
+      ],
+      "fg": [
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Marry/PNG/Marry 01.png",
+          "x": 0.16,
+          "h": 50,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Jesus/PNG/Jesus 01.png",
+          "x": 0.36,
+          "h": 30,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Josep/PNG/Josep 01.png",
+          "x": 0.52,
+          "h": 52,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/04 Animals/Cow/PNG/Cow.png",
+          "x": 0.7,
+          "h": 34,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/04 Animals/Donkey/PNG/Donkey 01.png",
+          "x": 0.84,
+          "h": 30,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Ангелы возвещают пастухам",
+      "subtitle": "Небо озарилось — Слава в вышних Богу!",
+      "date": "Ночь 25 декабря, ~4 г. до н.э.",
+      "year": "Ночь",
+      "bg": "christmas-nativity-vector-illustrations/07 Backgrounds/Night time 03/PNG/Night time BG 03.png",
+      "night": true,
+      "mid": [
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Tropical trees/PNG/Tropical tree 02.png",
+          "x": 0.04,
+          "h": 65,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Tropical trees/PNG/Tropical tree 03.png",
+          "x": 0.76,
+          "h": 60,
+          "bottom": 0
+        }
+      ],
+      "fg": [
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Angel/PNG/Angel 01.png",
+          "x": 0.4,
+          "h": 68,
+          "bottom": 0.004
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Angel/PNG/Angel 02.png",
+          "x": 0.62,
+          "h": 52,
+          "bottom": 0.008,
+          "flip": true
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Shepherd/PNG/Shepherd 01.png",
+          "x": 0.1,
+          "h": 50,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/04 Animals/Sheep/PNG/Sheep 01.png",
+          "x": 0.22,
+          "h": 24,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/04 Animals/Sheep/PNG/Sheep 02.png",
+          "x": 0.84,
+          "h": 24,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Поклонение пастухов",
+      "subtitle": "Пастухи приходят поклониться Младенцу",
+      "date": "~26 декабря, ~4 г. до н.э.",
+      "year": "26 дек.",
+      "bg": "christmas-nativity-vector-illustrations/07 Backgrounds/Night time 02/PNG/Night time BG 02.png",
+      "night": true,
+      "mid": [
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Stable/PNG/Stable 02.png",
+          "x": 0.1,
+          "h": 65,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/02 Elements/The North Star/PNG/The North Star 03.png",
+          "x": 0.5,
+          "h": 20,
+          "bottom": 0.072,
+          "cls": "star-el"
+        }
+      ],
+      "fg": [
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Marry/PNG/Marry 02.png",
+          "x": 0.14,
+          "h": 48,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Jesus/PNG/Jesus 02.png",
+          "x": 0.3,
+          "h": 26,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Shepherd/PNG/Shepherd 02.png",
+          "x": 0.48,
+          "h": 52,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Shepherd/PNG/Shepherd 03.png",
+          "x": 0.66,
+          "h": 50,
+          "bottom": 0,
+          "flip": true
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/04 Animals/Sheep/PNG/Sheep 01.png",
+          "x": 0.82,
+          "h": 26,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Волхвы следуют за звездой",
+      "subtitle": "Мудрецы с Востока видят необычную звезду",
+      "date": "Несколько недель позже, ~3 г. до н.э.",
+      "year": "~3 до н.э.",
+      "bg": "christmas-nativity-vector-illustrations/07 Backgrounds/Night time 03/PNG/Night time BG 03.png",
+      "night": true,
+      "mid": [
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Tropical trees/PNG/Tropical tree 04.png",
+          "x": 0.04,
+          "h": 60,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Tropical trees/PNG/Tropical tree 01.png",
+          "x": 0.78,
+          "h": 55,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/02 Elements/The North Star/PNG/The North Star 01.png",
+          "x": 0.44,
+          "h": 24,
+          "bottom": 0.07,
+          "cls": "star-el"
+        }
+      ],
+      "fg": [
+        {
+          "src": "christmas-nativity-vector-illustrations/05 Other/Kings riding camels/PNG/Kings riding camel 01.png",
+          "x": 0.06,
+          "h": 48,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/05 Other/Kings riding camels/PNG/Kings riding camel 02.png",
+          "x": 0.36,
+          "h": 52,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/05 Other/Kings riding camels/PNG/Kings riding camel 03.png",
+          "x": 0.62,
+          "h": 46,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Визит к царю Ироду",
+      "subtitle": "Волхвы ищут Царя Иудейского во дворце",
+      "date": "~3 г. до н.э.",
+      "year": "Дворец",
+      "bg": "christmas-nativity-vector-illustrations/07 Backgrounds/Day time 01/PNG/Day time BG 01.png",
+      "night": false,
+      "mid": [
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Buildings _ Houses/PNG/House 01.png",
+          "x": 0.04,
+          "h": 62,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Buildings _ Houses/PNG/House 03.png",
+          "x": 0.58,
+          "h": 55,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Tropical trees/PNG/Tropical tree 02.png",
+          "x": 0.84,
+          "h": 58,
+          "bottom": 0
+        }
+      ],
+      "fg": [
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/King & Roman Solider/PNG/King Herod.png",
+          "x": 0.2,
+          "h": 58,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/King & Roman Solider/PNG/Roman Solider.png",
+          "x": 0.44,
+          "h": 54,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/King/PNG/King 01.png",
+          "x": 0.64,
+          "h": 52,
+          "bottom": 0
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Поклонение волхвов",
+      "subtitle": "Три мудреца приносят дары Царю царей",
+      "date": "~6 января, ~3 г. до н.э. — Богоявление",
+      "year": "6 янв.",
+      "bg": "christmas-nativity-vector-illustrations/07 Backgrounds/Day time 02/PNG/Day time BG 02.png",
+      "night": false,
+      "mid": [
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Stable/PNG/Stable 01.png",
+          "x": 0.08,
+          "h": 65,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/03 Scene elements/Buildings _ Houses/PNG/House 01.png",
+          "x": 0.66,
+          "h": 50,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/02 Elements/The North Star/PNG/The North Star 02.png",
+          "x": 0.36,
+          "h": 20,
+          "bottom": 0.072,
+          "cls": "star-el"
+        }
+      ],
+      "fg": [
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/King/PNG/King 01.png",
+          "x": 0.08,
+          "h": 52,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/King/PNG/King 02.png",
+          "x": 0.24,
+          "h": 54,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/King/PNG/King 03.png",
+          "x": 0.4,
+          "h": 50,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/02 Elements/Gifts/PNG/Gift 01.png",
+          "x": 0.55,
+          "h": 16,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/02 Elements/Gifts/PNG/Gift 02.png",
+          "x": 0.62,
+          "h": 14,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/02 Elements/Gifts/PNG/Gift 03.png",
+          "x": 0.68,
+          "h": 18,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Marry/PNG/Marry 01.png",
+          "x": 0.76,
+          "h": 48,
+          "bottom": 0
+        },
+        {
+          "src": "christmas-nativity-vector-illustrations/01 People/Jesus/PNG/Jesus 03.png",
+          "x": 0.88,
+          "h": 28,
+          "bottom": 0
+        }
+      ]
+    }
+  ]
+}

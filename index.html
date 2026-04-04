@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Prophetic Timeline — interactive visual timeline of world history">
+<title>Prophetic Timeline</title>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://esm.sh/three@0.162.0",
+    "three/addons/": "https://esm.sh/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #02010a;
+  overflow: hidden;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  user-select: none;
+  cursor: default;
+}
+
+/* ══════════════════════════════════════════════════
+   PANORAMA VIEW
+══════════════════════════════════════════════════ */
+
+#panorama-view {
+  position: fixed; inset: 0; z-index: 200; overflow: hidden;
+  background: #04020f;
+}
+#panorama-bg {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+}
+#panorama-overlay {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(2,1,12,0.7) 100%);
+  pointer-events: none; z-index: 2;
+}
+#panorama-elements { position: absolute; inset: 0; z-index: 3; }
+.pano-elem-wrap {
+  position: absolute; cursor: pointer; z-index: 3;
+  transform: translate(-50%, -50%);
+  transition: filter 0.3s, transform 0.3s;
+}
+.pano-elem-wrap img {
+  display: block; user-select: none; pointer-events: none;
+  transform: scale(1);
+  filter: brightness(1);
+  transition: transform 0.6s cubic-bezier(0.25, 0, 0.25, 1),
+              filter    0.6s cubic-bezier(0.25, 0, 0.25, 1);
+  will-change: transform, filter;
+}
+.pano-elem-wrap:hover img {
+  transform: scale(1.06);
+  filter: brightness(1.08) drop-shadow(0 0 18px rgba(240,208,128,0.3));
+}
+.pano-zone { position: absolute; cursor: pointer; z-index: 2; }
+.float-anim { animation: pano-float 4s ease-in-out infinite; }
+@keyframes pano-float {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, calc(-50% - 12px)); }
+}
+#panorama-title-area {
+  position: absolute; top: 28px; left: 50%; transform: translateX(-50%);
+  text-align: center; z-index: 10; pointer-events: none;
+}
+#panorama-main-title {
+  font-size: clamp(16px, 2.5vw, 30px); color: rgba(240,208,128,0.92);
+  letter-spacing: 0.25em; text-transform: uppercase; font-family: Georgia, serif;
+  text-shadow: 0 0 40px rgba(240,208,128,0.35), 0 2px 20px rgba(0,0,0,0.9);
+}
+#panorama-subtitle {
+  margin-top: 6px; font-size: clamp(10px, 1.2vw, 14px);
+  color: rgba(200,160,80,0.38); letter-spacing: 0.14em;
+  font-style: italic; font-family: Georgia, serif;
+}
+#panorama-hint {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; color: rgba(200,160,80,0.28); letter-spacing: 0.2em;
+  font-style: italic; font-family: Georgia, serif;
+  pointer-events: none; z-index: 10; white-space: nowrap;
+}
+#panorama-empty-msg {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: rgba(200,160,80,0.3); font-size: 14px; letter-spacing: 0.1em;
+  font-family: Georgia, serif; font-style: italic; z-index: 5; pointer-events: none;
+  text-align: center; line-height: 1.8;
+}
+
+/* ══════════════════════════════════════════════════
+   ZOOM TRANSITION OVERLAY
+══════════════════════════════════════════════════ */
+
+#zoom-overlay {
+  position: fixed;
+  z-index: 400;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+  display: none;
+}
+
+/* ══════════════════════════════════════════════════
+   APP VIEW (3D scene + timeline)
+══════════════════════════════════════════════════ */
+
+#app-view {
+  position: fixed;
+  inset: 0;
+  display: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+#app-content-wrapper {
+  position: relative;
+  min-height: 200vh; /* Allow scrolling */
+}
+
+#stage {
+  position: sticky;
+  top: 0;
+  left: 0; right: 0;
+  height: calc(100vh - 110px);
+  overflow: hidden;
+  cursor: grab;
+}
+#stage:active { cursor: grabbing; }
+
+#layer-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.bg-img {
+  position: absolute;
+  inset: -30%;
+  width: 160%;
+  height: 160%;
+  object-fit: cover;
+  opacity: 0;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
+#stars-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+#ground {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 160px;
+  background: linear-gradient(to top, rgba(3,1,12,0.85) 0%, rgba(4,2,15,0.5) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+#stage::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(200,160,80,0.3) 25%, rgba(240,208,128,0.6) 50%, rgba(200,160,80,0.3) 75%, transparent);
+  z-index: 30;
+  pointer-events: none;
+}
+
+#vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, transparent 40%, rgba(2,1,12,0.8) 100%),
+    radial-gradient(ellipse at 20% 80%, rgba(80,20,140,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(20,60,140,0.08) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 6;
+}
+
+#scene-info {
+  position: absolute;
+  top: 28px; left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: #f5e6c8;
+  pointer-events: none;
+  z-index: 20;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.9), 0 0 40px rgba(255,200,100,0.3);
+  transition: opacity 0.4s ease;
+}
+
+#scene-title {
+  font-size: clamp(20px, 3.5vw, 42px);
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+  text-shadow: 0 0 30px rgba(240,200,80,0.4), 0 2px 20px rgba(0,0,0,0.9);
+}
+
+#scene-subtitle {
+  font-size: clamp(12px, 1.6vw, 20px);
+  opacity: 0.82;
+  font-style: italic;
+  letter-spacing: 0.03em;
+}
+
+#scene-date {
+  font-size: clamp(10px, 1.2vw, 15px);
+  opacity: 0.55;
+  margin-top: 6px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+#scene-counter {
+  position: absolute;
+  top: 28px; right: 32px;
+  color: rgba(200,160,80,0.5);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  pointer-events: none;
+  z-index: 20;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.9);
+}
+
+.stage-hint {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  width: 50px; height: 100px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  color: rgba(200,160,80,0.15);
+  pointer-events: none;
+  z-index: 15;
+  transition: color 0.5s;
+}
+#stage-hint-r { right: 8px; }
+#stage-hint-l { left: 8px; }
+
+#back-btn {
+  position: absolute;
+  top: 28px; left: 32px;
+  z-index: 20;
+  background: rgba(10,5,30,0.65);
+  border: 1px solid rgba(200,160,80,0.35);
+  border-radius: 20px;
+  color: rgba(200,160,80,0.7);
+  font-size: 11px;
+  font-family: Georgia, serif;
+  letter-spacing: 0.12em;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+#back-btn:hover {
+  background: rgba(20,10,50,0.9);
+  border-color: rgba(240,208,128,0.6);
+  color: rgba(240,208,128,1);
+}
+
+
+#timeline-container {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 110px;
+  background: linear-gradient(to top, rgba(2,1,12,0.97) 0%, rgba(6,3,22,0.92) 60%, rgba(10,5,30,0.75) 100%);
+  border-top: 1px solid rgba(200,160,80,0.25);
+  z-index: 100;
+  transition: height 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: hidden;
+}
+#timeline-zoom-btns {
+  display: none;
+}
+.tl-zoom-btn {
+  width: 22px; height: 22px;
+  background: rgba(200,160,80,0.07);
+  border: 1px solid rgba(200,160,80,0.18);
+  color: rgba(200,160,80,0.65);
+  border-radius: 3px; cursor: pointer;
+  font-size: 15px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s, color 0.2s;
+  user-select: none;
+}
+.tl-zoom-btn:hover { background: rgba(200,160,80,0.15); color: rgba(240,208,128,0.95); }
+#tl-zoom-label {
+  font-size: 9px; color: rgba(200,160,80,0.4);
+  font-family: Georgia, serif; letter-spacing: 0.05em;
+  min-width: 28px; text-align: center;
+  pointer-events: none;
+}
+
+#timeline-scroll {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 8px;
+  overflow-x: auto; overflow-y: hidden;
+  overscroll-behavior: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200,160,80,0.15) transparent;
+}
+#timeline-scroll::-webkit-scrollbar { height: 3px; }
+#timeline-scroll::-webkit-scrollbar-thumb { background: rgba(200,160,80,0.15); border-radius: 2px; }
+#timeline-active-label {
+  position: absolute; top: 14px; transform: translateX(-50%);
+  font-size: 9px; color: rgba(240,208,128,0.75); white-space: nowrap;
+  font-family: Georgia, serif; letter-spacing: 0.06em; pointer-events: none;
+  transition: left 0.15s ease; display: none;
+}
+#timeline-track {
+  position: absolute;
+  top: 55%; left: 70px;
+  height: 2px;
+  background: linear-gradient(to right, rgba(200,160,80,0.15) 0%, rgba(200,160,80,0.7) 20%, rgba(200,160,80,0.7) 80%, rgba(200,160,80,0.15) 100%);
+  transform: translateY(-50%);
+  cursor: pointer;
+  border-radius: 2px;
+  isolation: isolate;
+}
+
+#timeline-progress {
+  height: 100%;
+  background: linear-gradient(to right, #c8a050, #f0d080, #ffe090);
+  width: 0%;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(240,208,128,0.6);
+}
+
+.timeline-node {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 5;
+}
+
+.node-pip {
+  width: 1px; height: 10px;
+  background: rgba(200,160,80,0.45);
+  border-radius: 1px;
+  transition: all 0.3s ease;
+  margin: auto;
+}
+
+.timeline-node.active .node-pip {
+  background: #f0d080;
+  height: 16px;
+  box-shadow: 0 0 8px rgba(240,208,128,0.7), 0 0 20px rgba(240,208,128,0.3);
+  transform: scaleX(1);
+}
+
+.node-label {
+  position: absolute;
+  top: 28px; left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 9px;
+  color: rgba(200,160,80,0.6);
+  letter-spacing: 0.04em;
+  font-family: Georgia, serif;
+  text-align: center;
+  opacity: 0.5;
+  transition: color 0.3s, opacity 0.2s;
+}
+
+.timeline-node:hover .node-label { opacity: 1; }
+.timeline-node.active .node-label { color: rgba(240,208,128,0.95); opacity: 1; }
+
+.node-year {
+  position: absolute;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 10px;
+  color: rgba(200,160,80,0.5);
+  font-family: Georgia, serif;
+  transition: color 0.3s;
+}
+
+.timeline-node.active .node-year { color: rgba(240,208,128,0.9); font-weight: bold; }
+
+#playhead {
+  position: absolute;
+  top: 55%;
+  transform: translate(-50%, -50%);
+  width: 26px; height: 26px;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  filter: drop-shadow(0 0 4px rgba(240,208,128,0.9)) drop-shadow(0 0 10px rgba(240,208,128,0.35));
+  cursor: grab;
+  z-index: 10;
+  transition: filter 0.2s ease, transform 0.15s ease;
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+#playhead svg {
+  width: 100%; height: 100%;
+  display: block;
+}
+#playhead:hover {
+  filter: drop-shadow(0 0 6px rgba(240,208,128,1)) drop-shadow(0 0 16px rgba(240,208,128,0.6));
+}
+#playhead.dragging {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.1);
+  filter: drop-shadow(0 0 8px rgba(240,208,128,1)) drop-shadow(0 0 20px rgba(240,208,128,0.75));
+}
+
+#hint { display: none; }
+
+.nav-arrow {
+  position: absolute;
+  top: calc(50% + 3px);
+  transform: translateY(-50%);
+  width: 44px; height: 44px;
+  background: rgba(10,5,30,0.6);
+  border: 1px solid rgba(200,160,80,0.3);
+  border-radius: 50%;
+  color: rgba(200,160,80,0.7);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+  transition: all 0.2s ease;
+}
+.nav-arrow:hover {
+  background: rgba(20,10,50,0.8);
+  border-color: rgba(200,160,80,0.7);
+  color: rgba(240,208,128,1);
+  box-shadow: 0 0 12px rgba(240,208,128,0.3);
+}
+#nav-prev { left: 16px; }
+#nav-next { right: 16px; }
+
+.timeline-decoration {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(200,160,80,0.4) 20%, rgba(240,208,128,0.7) 50%, rgba(200,160,80,0.4) 80%, transparent);
+}
+
+#detail-btn {
+  position: absolute;
+  bottom: 0; right: 0;
+  z-index: 50;
+  width: 110px; height: 110px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  overflow: visible;
+}
+#detail-btn::before {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 0 110px 110px;
+  border-color: transparent transparent rgba(200,160,80,0.13) transparent;
+  transition: border-color 0.25s;
+}
+#detail-btn::after {
+  content: '›';
+  position: absolute;
+  bottom: 6px; right: 8px;
+  font-size: 22px;
+  color: rgba(200,160,80,0.5);
+  line-height: 1;
+  pointer-events: none;
+  transition: color 0.25s, transform 0.25s;
+  transform: rotate(45deg);
+}
+#detail-btn-label {
+  position: absolute;
+  top: 62%; left: 62%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-family: Georgia, serif;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(200,160,80,0.55);
+  text-align: center;
+  pointer-events: none;
+  transition: color 0.25s;
+  white-space: nowrap;
+}
+#detail-btn:hover::before { border-color: transparent transparent rgba(240,208,128,0.28) transparent; }
+#detail-btn:hover::after  { color: rgba(240,208,128,1); transform: rotate(45deg) scale(1.15); }
+#detail-btn:hover #detail-btn-label { color: rgba(240,208,128,1); }
+
+/* ══════════════════════════════════════════════════
+   DETAIL PANEL
+══════════════════════════════════════════════════ */
+
+#detail-panel {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  z-index: 50;
+  overflow-y: visible;
+  background: #04020f;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  transform: translateY(20px);
+}
+#detail-panel.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+#detail-panel-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.22;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#detail-panel-gradient {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center top, rgba(4,2,15,0.3) 0%, rgba(2,1,10,0.85) 70%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+#detail-panel-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 72px 48px 80px;
+  color: #f5e6c8;
+}
+
+#detail-close {
+  position: sticky;
+  top: 24px;
+  float: right;
+  z-index: 160;
+  background: rgba(10,5,30,0.8);
+  border: 1px solid rgba(200,160,80,0.4);
+  border-radius: 20px;
+  color: rgba(200,160,80,0.8);
+  font-size: 11px;
+  font-family: Georgia, serif;
+  letter-spacing: 0.14em;
+  padding: 7px 20px;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin: 24px 32px 0 0;
+}
+#detail-close:hover {
+  border-color: rgba(240,208,128,0.7);
+  color: rgba(240,208,128,1);
+  background: rgba(20,10,50,0.95);
+}
+
+#detail-year-label {
+  font-size: 11px;
+  color: rgba(200,160,80,0.55);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+#detail-title-text {
+  font-size: clamp(26px, 4.5vw, 54px);
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  margin-bottom: 28px;
+  text-shadow: 0 0 50px rgba(240,200,80,0.25);
+  color: #f5e6c8;
+}
+
+.detail-divider {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(to right, rgba(200,160,80,0.7), transparent);
+  margin: 0 0 28px;
+}
+
+#detail-subtitle-text {
+  font-size: clamp(15px, 2vw, 22px);
+  font-style: italic;
+  color: rgba(240,225,195,0.82);
+  line-height: 1.75;
+  border-left: 2px solid rgba(200,160,80,0.35);
+  padding-left: 24px;
+  margin-bottom: 36px;
+}
+
+#detail-date-text {
+  font-size: 12px;
+  color: rgba(200,160,80,0.45);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+#detail-obj-content {
+  font-family: Georgia, serif;
+  color: rgba(240,225,195,0.88);
+  font-size: clamp(15px, 2vw, 21px);
+  line-height: 1.85;
+}
+#detail-obj-content img {
+  max-width: 100%; height: auto;
+  margin: 28px 0; border-radius: 4px; display: block;
+  box-shadow: 0 4px 40px rgba(0,0,0,0.6);
+}
+#detail-obj-content h1, #detail-obj-content h2, #detail-obj-content h3 {
+  color: rgba(240,208,128,0.95); margin: 28px 0 12px;
+  font-family: Georgia, serif; font-weight: bold;
+}
+#detail-obj-content h1 { font-size: clamp(22px, 3.5vw, 42px); }
+#detail-obj-content h2 { font-size: clamp(18px, 2.5vw, 32px); }
+#detail-obj-content p  { margin-bottom: 18px; }
+#detail-obj-content b, #detail-obj-content strong { color: rgba(240,208,128,0.9); }
+#detail-obj-content ul, #detail-obj-content ol { padding-left: 28px; margin-bottom: 18px; }
+#detail-obj-content li { margin-bottom: 6px; }
+
+/* ══════════════════════════════════════════════════
+   OBJECT CONTENT PANEL
+══════════════════════════════════════════════════ */
+#obj-panel {
+  position: fixed; inset: 0; z-index: 190;
+  background: rgba(4,2,15,0.96);
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+  padding: 64px 10% 60px;
+}
+#obj-panel.open { opacity: 1; pointer-events: auto; }
+#obj-panel-close {
+  position: fixed; top: 18px; right: 20px;
+  background: none; border: 1px solid rgba(200,160,80,0.35);
+  color: rgba(200,160,80,0.75); cursor: pointer;
+  padding: 6px 14px; font-size: 13px; letter-spacing: 0.08em;
+  border-radius: 3px; font-family: Georgia, serif;
+  transition: all 0.2s;
+}
+#obj-panel-close:hover { border-color: rgba(200,160,80,0.7); color: rgba(240,208,128,1); }
+#obj-panel-body {
+  max-width: 760px; margin: 0 auto;
+  color: rgba(220,200,160,0.9); font-family: Georgia, serif;
+  line-height: 1.8; font-size: clamp(14px,1.8vw,18px);
+}
+#obj-panel-body img { max-width: 100%; height: auto; margin: 20px 0; border-radius: 4px; display: block; }
+#obj-panel-body h1, #obj-panel-body h2, #obj-panel-body h3 {
+  color: rgba(240,208,128,0.95); margin: 24px 0 10px; font-family: Georgia, serif;
+}
+#obj-panel-body p { margin-bottom: 14px; }
+#obj-panel-body b, #obj-panel-body strong { color: rgba(240,208,128,0.9); }
+#obj-panel-body ul, #obj-panel-body ol { padding-left: 24px; margin-bottom: 14px; }
+
+/* ══════════════════════════════════════════════════
+   LOADER
+══════════════════════════════════════════════════ */
+#loader {
+  position: fixed; inset: 0; z-index: 999;
+  background: #04020f;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 1s ease;
+}
+#loader.fade-out { opacity: 0; pointer-events: none; }
+#loader-stars { position: absolute; inset: 0; pointer-events: none; }
+#loader-content {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 22px;
+  text-align: center;
+}
+#loader-title {
+  font-family: Georgia, serif;
+  font-size: clamp(22px, 4.5vw, 54px);
+  color: rgba(240,208,128,0.92);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  text-shadow: 0 0 80px rgba(240,208,128,0.5);
+}
+#loader-sub {
+  font-family: Georgia, serif; font-style: italic;
+  font-size: clamp(10px, 1.2vw, 13px);
+  color: rgba(200,160,80,0.35); letter-spacing: 0.3em;
+}
+#loader-track {
+  width: clamp(220px, 38vw, 420px); height: 1px;
+  background: rgba(200,160,80,0.1); border-radius: 1px;
+  position: relative; overflow: visible;
+}
+#loader-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(to right, rgba(200,160,80,0.5), #f0d080, rgba(255,248,220,0.9));
+  border-radius: 1px;
+  box-shadow: 0 0 14px rgba(240,208,128,0.7), 0 0 4px rgba(255,248,220,0.9);
+  position: relative;
+}
+#loader-bar::after {
+  content: '';
+  position: absolute; right: -1px; top: -4px;
+  width: 2px; height: 9px;
+  background: rgba(255,248,220,0.95);
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(255,248,220,0.9);
+}
+#loader-pct {
+  font-family: Georgia, serif;
+  font-size: clamp(10px, 1vw, 12px);
+  color: rgba(200,160,80,0.4); letter-spacing: 0.2em;
+  min-width: 4ch; text-align: center;
+  transition: opacity 0.2s;
+}
+
+/* ══════════════════════════════════════════════════
+   LANGUAGE SWITCHER
+══════════════════════════════════════════════════ */
+#lang-switcher {
+  position: absolute;
+  bottom: 44px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+}
+#lang-switcher button {
+  background: rgba(8,4,24,0.55);
+  border: 1px solid rgba(200,160,80,0.2);
+  border-radius: 10px;
+  color: rgba(200,160,80,0.45);
+  font-family: Georgia, serif;
+  font-size: 9px; letter-spacing: 0.1em;
+  padding: 3px 7px; cursor: pointer;
+  transition: all 0.2s;
+}
+#lang-switcher button:hover { border-color: rgba(200,160,80,0.5); color: rgba(240,208,128,0.9); }
+#lang-switcher button.active { border-color: rgba(200,160,80,0.55); color: rgba(240,208,128,1); background: rgba(200,160,80,0.1); }
+
+/* ══════════════════════════════════════════════════
+   MOBILE
+══════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  #timeline-container { height: 100px; }
+  #stage { height: calc(100vh - 100px); }
+  #detail-btn { width: 80px; height: 80px; }
+  #detail-btn::before { border-width: 0 0 80px 80px; }
+  #detail-btn-label { font-size: 7px; }
+  #back-btn { top: 16px; left: 14px; padding: 6px 12px; font-size: 10px; }
+  #scene-info { top: 16px; width: 90%; }
+  #scene-title { font-size: clamp(15px, 5vw, 24px); }
+  #scene-subtitle { font-size: clamp(10px, 3vw, 14px); }
+  #scene-counter { top: 16px; right: 14px; font-size: 10px; }
+  #scene-info { width: 70%; }
+  .nav-arrow { width: 36px; height: 36px; font-size: 14px; }
+  #nav-prev { left: 8px; }
+  #nav-next { right: 8px; }
+  #timeline-track { top: 52%; }
+  #playhead { width: 22px; height: 22px; }
+  .node-pip { height: 8px; }
+  .timeline-node.active .node-pip { height: 13px; }
+  .node-label { font-size: 8px; top: 22px; }
+  .node-year  { font-size: 9px; bottom: 16px; }
+  #detail-panel-inner { padding: 48px 20px 60px; }
+  #panorama-hint { font-size: 9px; bottom: 14px; }
+  #panorama-main-title { font-size: clamp(14px, 5vw, 22px); letter-spacing: 0.15em; }
+  #panorama-subtitle { font-size: clamp(9px, 2.5vw, 12px); }
+  .pano-elem-wrap img { max-width: 45vw; max-height: 38vh; }
+  .pano-elem-wrap { transform: translate(-50%, -50%) scale(0.72) !important; transform-origin: center; }
+  #obj-panel { font-size: 13px; }
+  #loader-title { font-size: clamp(18px, 6vw, 32px); }
+}
+@media (max-width: 400px) {
+  #timeline-container { height: 94px; }
+  #stage { height: calc(100vh - 94px); }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <canvas id="loader-stars"></canvas>
+  <div id="loader-content">
+    <div id="loader-title">Prophetic Timeline</div>
+    <div id="loader-sub">loading</div>
+    <div id="loader-track"><div id="loader-bar"></div></div>
+    <div id="loader-pct">0%</div>
+  </div>
+</div>
+
+<!-- PANORAMA VIEW -->
+<div id="panorama-view">
+  <div id="panorama-bg"></div>
+  <div id="panorama-overlay"></div>
+  <div id="panorama-elements"><!-- built by JS --></div>
+  <div id="panorama-title-area">
+    <div id="panorama-main-title">Prophetic Timeline</div>
+    <div id="panorama-subtitle">The Story of Humanity from Creation to Eternity</div>
+  </div>
+  <div id="panorama-hint">Tap an object to zoom in</div>
+  <div id="panorama-empty-msg" style="display:none">Add objects to the panorama via Admin</div>
+</div>
+
+<!-- ZOOM TRANSITION OVERLAY -->
+<div id="zoom-overlay"></div>
+
+<!-- OBJECT CONTENT PANEL -->
+<div id="obj-panel">
+  <button id="obj-panel-close" onclick="closeObjPanel()">&#x2715; Close</button>
+  <div id="obj-panel-body"></div>
+</div>
+
+<!-- APP VIEW -->
+<div id="app-view">
+  <div id="app-content-wrapper">
+    <div id="stage">
+      <div id="layer-bg"></div>
+      <canvas id="stars-canvas"></canvas>
+      <div id="ground"></div>
+      <div id="vignette"></div>
+      <div class="stage-hint" id="stage-hint-l">&#8592;</div>
+      <div class="stage-hint" id="stage-hint-r">&#8594;</div>
+      <div id="scene-counter">1 / 1</div>
+      <div id="scene-info">
+        <div id="scene-title"></div>
+        <div id="scene-subtitle"></div>
+        <div id="scene-date"></div>
+      </div>
+      <button id="back-btn">&larr; Panorama</button>
+      <button id="detail-btn" title="Learn more"><span id="detail-btn-label">Details</span></button>
+    </div>
+
+    <div id="timeline-container">
+      <div class="timeline-decoration"></div>
+      <button class="nav-arrow" id="nav-prev">&#8592;</button>
+      <button class="nav-arrow" id="nav-next">&#8594;</button>
+      <div id="timeline-scroll">
+        <div id="timeline-active-label"></div>
+        <div id="timeline-track">
+          <div id="timeline-progress"></div>
+          <div id="playhead"><svg viewBox="0 0 490 490" xmlns="http://www.w3.org/2000/svg"><circle cx="245" cy="245" r="218" fill="#06031a"/><path fill="#f0d080" d="M245,0C109.5,0,0,109.5,0,245s109.5,245,245,245s245-109.5,245-245S380.5,0,245,0z M245,462c-119.6,0-217-97.4-217-217S125.4,28,245,28S462,125.4,462,245S364.6,462,245,462z"/><path fill="#fff8dc" d="M211.8,165.5c-6.5-6.5-16.4-6.5-22.9,0l-58.9,58.9c-6.5,6.5-6.5,16.4,0,22.9l58.9,58.9c9,8.3,18.6,4.6,22.1,0c6.5-6.5,6.5-16.4,0-22.9L163.5,245l48.3-47.5C217.9,191.3,218.3,172,211.8,165.5z"/><path fill="#fff8dc" d="M359.9,224.4l-58.9-58.9c-6.5-6.5-16.4-6.5-22.9,0c-6.5,6.5-6.5,16.4,0,22.9l48.3,47.5l-47.5,47.5c-6.5,6.5-6.5,16.4,0,22.9c3.5,4.6,13.1,8.3,22.1,0l58.9-58.9C366.4,240.8,366.4,230.9,359.9,224.4z"/></svg></div>
+        </div>
+      </div>
+      <div id="timeline-zoom-btns">
+        <button class="tl-zoom-btn" id="tl-zoom-out" title="Уменьшить масштаб">−</button>
+        <span id="tl-zoom-label">100%</span>
+        <button class="tl-zoom-btn" id="tl-zoom-in" title="Увеличить масштаб">+</button>
+      </div>
+    </div>
+
+    <!-- DETAIL PANEL (scrolls below) -->
+    <div id="detail-panel">
+      <div id="detail-panel-bg"></div>
+      <div id="detail-panel-gradient"></div>
+      <button id="detail-close">&#9650; Collapse</button>
+      <div id="detail-panel-inner">
+        <!-- Scene metadata (shown by openDetail) -->
+        <div id="detail-scene-content">
+          <div id="detail-year-label"></div>
+          <h1 id="detail-title-text"></h1>
+          <div class="detail-divider"></div>
+          <p id="detail-subtitle-text"></p>
+          <p id="detail-date-text"></p>
+        </div>
+        <!-- Object rich content (shown by showObjPanel) -->
+        <div id="detail-obj-content" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ═══════════════════════════════════════════════
+//  3D CONSTANTS
+// ═══════════════════════════════════════════════
+
+const FOV         = 65;
+const CAMERA_LEAD = 6;
+const SCENE_Z     = 14;
+const WORLD_H     = 2 * CAMERA_LEAD * Math.tan(FOV / 2 * Math.PI / 180);
+
+// ═══════════════════════════════════════════════
+//  SCENE DATA
+// ═══════════════════════════════════════════════
+
+function encodePath(raw) {
+  if (!raw) return raw;
+  if (raw.startsWith('http')) return raw;
+  if (raw.startsWith('/'))
+    return '/' + raw.slice(1).split('/').map(encodeURIComponent).join('/');
+  return raw.split('/').map(encodeURIComponent).join('/');
+}
+
+let PANORAMA = { bg: null, elements: [] };
+let SCENES = [], NUM_SCENES = 0;
+
+async function fetchScenes() {
+  try {
+    const [d, panoRaw] = await Promise.all([
+      fetch('/api/scenes').then(r => r.json()),
+      fetch('/api/panorama').then(r => r.json()).catch(() => null),
+    ]);
+
+    // scenes.json may carry its own panorama section (legacy inline format)
+    const inlinePano = d.panorama || { bg: null, elements: [] };
+
+    if ((inlinePano.elements || []).length > 0) {
+      // Inline format: { bg, elements[{px,py,h,scene_id,type,...}] }
+      PANORAMA = inlinePano;
+    } else if (panoRaw && ((panoRaw.elements || []).length > 0 || (panoRaw.clickAreas || []).length > 0)) {
+      // panorama.json format (admin): convert to frontend format
+      PANORAMA = {
+        bg: panoRaw.background || null,
+        elements: [
+          ...(panoRaw.elements || []).map(el => ({
+            id:       el.id,
+            src:      el.src,
+            px:       el.x / 100,
+            py:       el.y / 100,
+            h:        el.width,
+            anim:     el.anim,
+            scene_id: el.sceneId != null ? el.sceneId : el.scene_id,
+          })),
+          ...(panoRaw.clickAreas || []).map(ca => ({
+            type:     'zone',
+            px:       (ca.x + ca.width  / 2) / 100,
+            py:       (ca.y + ca.height / 2) / 100,
+            w:        ca.width  / 100,
+            h:        ca.height / 100,
+            scene_id: ca.sceneId != null ? ca.sceneId : ca.scene_id,
+          })),
+        ],
+      };
+    } else {
+      PANORAMA = { bg: null, elements: [] };
+    }
+
+    PANORAMA.bg = encodePath(PANORAMA.bg);
+    (PANORAMA.elements || []).forEach(el => { if (el.src) el.src = encodePath(el.src); });
+
+    SCENES = (d.scenes || []).map(sc => {
+      // Backward compat: merge mid+fg into elements
+      const elements = sc.elements
+        ? sc.elements.map(el => ({ ...el, src: encodePath(el.src) }))
+        : [...(sc.mid || []), ...(sc.fg || [])].map(el => ({ ...el, src: encodePath(el.src) }));
+      return { ...sc, bg: encodePath(sc.bg), elements };
+    });
+  } catch { SCENES = []; PANORAMA = { bg: null, elements: [] }; }
+  NUM_SCENES = SCENES.length;
+}
+
+// ═══════════════════════════════════════════════
+//  APP STATE
+// ═══════════════════════════════════════════════
+
+let appState   = 'panorama'; // 'panorama' | 'diorama'
+let detailOpen = false;
+
+// ═══════════════════════════════════════════════
+//  STATE (timeline / 3D)
+// ═══════════════════════════════════════════════
+
+let worldPos = 0, targetPos = 0;
+let isDragging = false, stageDragging = false, stageDragMoved = false;
+let stageDragStartX = 0, stageDragStartPos = 0;
+let starsOpacity = 0;
+
+// Diorama mode: continuous position (0 to NUM_SCENES-1)
+let dioramaPos = 0, dioramaTarget = 0;
+const DIORAMA_CAMERA_Z = 8; // Closer camera for diorama mode
+
+const keys = {};
+
+const _billM4 = new THREE.Matrix4();
+const _identQ = new THREE.Quaternion();
+const _billQ  = new THREE.Quaternion();
+const _upV    = new THREE.Vector3(0, 1, 0);
+
+// ═══════════════════════════════════════════════
+//  DOM REFS
+// ═══════════════════════════════════════════════
+
+const panoramaView     = document.getElementById('panorama-view');
+const panoramaBg       = document.getElementById('panorama-bg');
+const panoramaElements = document.getElementById('panorama-elements');
+const panoramaEmptyMsg = document.getElementById('panorama-empty-msg');
+const panoramaHint     = document.getElementById('panorama-hint');
+const zoomOverlay      = document.getElementById('zoom-overlay');
+const appView          = document.getElementById('app-view');
+const stageEl          = document.getElementById('stage');
+const layerBg          = document.getElementById('layer-bg');
+const track            = document.getElementById('timeline-track');
+const progressBar      = document.getElementById('timeline-progress');
+const playhead         = document.getElementById('playhead');
+const sceneTitle       = document.getElementById('scene-title');
+const sceneSub         = document.getElementById('scene-subtitle');
+const sceneDate        = document.getElementById('scene-date');
+const starsCanvas      = document.getElementById('stars-canvas');
+const navPrev          = document.getElementById('nav-prev');
+const navNext          = document.getElementById('nav-next');
+const sceneCounter     = document.getElementById('scene-counter');
+const stageHintL       = document.getElementById('stage-hint-l');
+const stageHintR       = document.getElementById('stage-hint-r');
+const backBtn          = document.getElementById('back-btn');
+const detailBtn        = document.getElementById('detail-btn');
+const detailPanel      = document.getElementById('detail-panel');
+const detailClose      = document.getElementById('detail-close');
+const detailPanelBg    = document.getElementById('detail-panel-bg');
+
+function getStageSize() {
+  return {
+    w: stageEl.offsetWidth  || window.innerWidth,
+    h: stageEl.offsetHeight || (window.innerHeight - 110),
+  };
+}
+
+// ═══════════════════════════════════════════════
+//  PANORAMA — build from PANORAMA.elements
+// ═══════════════════════════════════════════════
+
+// Map from scene_id to the pano element wrapper DOM node (for zoom animations)
+let panoElemWraps = [];
+
+function buildPanorama() {
+  panoramaElements.innerHTML = '';
+  panoElemWraps = [];
+
+  // Set background
+  if (PANORAMA.bg) {
+    panoramaBg.style.backgroundImage = `url("${PANORAMA.bg}")`;
+  } else {
+    panoramaBg.style.backgroundImage = 'none';
+  }
+
+  const elems = PANORAMA.elements || [];
+
+  if (elems.length === 0) {
+    panoramaEmptyMsg.style.display = '';
+    panoramaHint.style.display = 'none';
+    return;
+  }
+
+  panoramaEmptyMsg.style.display = 'none';
+  panoramaHint.style.display = '';
+
+  elems.forEach((el, idx) => {
+    if (el.type === 'zone') {
+      // Invisible clickable zone
+      const zone = document.createElement('div');
+      zone.className = 'pano-zone';
+      const zw = (el.w || 0.125) * 100;
+      const zh = (el.h || 1.0)   * 100;
+      zone.style.left   = ((el.px - (el.w || 0.125) / 2) * 100) + '%';
+      zone.style.top    = ((el.py - (el.h || 1.0)   / 2) * 100) + '%';
+      zone.style.width  = zw + '%';
+      zone.style.height = zh + '%';
+
+      if (el.scene_id != null && el.scene_id >= 0 && el.scene_id < NUM_SCENES) {
+        zone.addEventListener('click', () => zoomIntoScene(el.scene_id, zone));
+      } else {
+        zone.style.cursor = 'default';
+      }
+      zone.dataset.idx = idx;
+      panoramaElements.appendChild(zone);
+      panoElemWraps.push(zone);
+      return;
+    }
+
+    // Image element
+    const wrap = document.createElement('div');
+    wrap.className = 'pano-elem-wrap' + (el.anim === 'float' ? ' float-anim' : '');
+    wrap.style.left = (el.px * 100) + '%';
+    wrap.style.top  = (el.py * 100) + '%';
+
+    const img = document.createElement('img');
+    img.src = el.src;
+    const hasH = el.h && el.h > 0, hasW = el.w && el.w > 0;
+    if (hasH && hasW) {
+      img.style.width = el.w + 'vw'; img.style.height = el.h + 'vh';
+      img.style.objectFit = 'contain'; img.style.objectPosition = 'center';
+    } else if (hasH) {
+      img.style.height = el.h + 'vh'; img.style.width = 'auto';
+    } else if (hasW) {
+      img.style.width = el.w + 'vw'; img.style.height = 'auto';
+    } else {
+      img.style.height = 'auto'; img.style.width = 'auto';
+    }
+    img.draggable = false;
+
+    wrap.appendChild(img);
+
+    // Click handler
+    if (el.scene_id != null && el.scene_id >= 0 && el.scene_id < NUM_SCENES) {
+      wrap.addEventListener('click', () => zoomIntoScene(el.scene_id, wrap));
+    } else {
+      wrap.style.cursor = 'default';
+    }
+
+    wrap.dataset.idx = idx;
+    panoramaElements.appendChild(wrap);
+    panoElemWraps.push(wrap);
+  });
+}
+
+// Find the panorama element wrap linked to a given scene_id
+function findPanoWrapForScene(sceneId) {
+  const elems = PANORAMA.elements || [];
+  for (let i = 0; i < elems.length; i++) {
+    if (elems[i].scene_id === sceneId) return panoElemWraps[i];
+  }
+  // Fallback: return the first element
+  return panoElemWraps[0] || null;
+}
+
+// ═══════════════════════════════════════════════
+//  ZOOM ANIMATIONS
+// ═══════════════════════════════════════════════
+
+function zoomIntoScene(sceneId, fromEl) {
+  if (sceneId < 0 || sceneId >= NUM_SCENES) return;
+
+  // Prepare app state immediately (render runs behind the transition)
+  dioramaTarget = sceneId; dioramaPos = sceneId; _wheelBase = sceneId;
+  targetPos = sceneId;     worldPos   = sceneId;
+  appState = 'diorama';
+
+  const s = SCENES[sceneId];
+  if (s) {
+    sceneTitle.textContent = s.title;
+    sceneSub.textContent   = s.subtitle;
+    sceneDate.textContent  = s.date;
+    nodes.forEach((n, i) => n.classList.toggle('active', i === sceneId));
+    sceneCounter.textContent = (sceneId + 1) + ' / ' + NUM_SCENES;
+  }
+
+  // Show app view hidden behind panorama
+  appView.style.cssText = 'display:block; opacity:0; transform:scale(1.06); transition:none;';
+  requestAnimationFrame(onResize);
+
+  // Panorama: zoom in + blur + fade
+  const pv = panoramaView;
+  pv.style.transition = 'none';
+  pv.style.transform  = 'scale(1)';
+  pv.style.opacity    = '1';
+  pv.style.filter     = 'blur(0px)';
+  void pv.offsetWidth;
+
+  const DUR = 1200;
+  pv.style.transition = `transform ${DUR}ms cubic-bezier(0.3,0,0.7,1),
+                          opacity   ${DUR * 0.75}ms ease-in,
+                          filter    ${DUR}ms ease`;
+  pv.style.transform  = 'scale(1.35)';
+  pv.style.opacity    = '0';
+  pv.style.filter     = 'blur(20px)';
+
+  // App view: unblur + fade in (slight delay so panorama starts first)
+  setTimeout(() => {
+    appView.style.transition = `opacity ${DUR * 0.8}ms ease-out,
+                                transform ${DUR * 0.8}ms cubic-bezier(0.2,0,0.3,1)`;
+    appView.style.opacity   = '1';
+    appView.style.transform = 'scale(1)';
+  }, DUR * 0.18);
+
+  // Cleanup — must set display:none AFTER clearing cssText, not before
+  setTimeout(() => {
+    pv.style.transform  = '';
+    pv.style.filter     = '';
+    pv.style.opacity    = '';
+    pv.style.transition = '';
+    pv.style.display    = 'none';   // ← last, so it isn't wiped by cssText=''
+    appView.style.transform  = '';
+    appView.style.transition = '';
+    appView.style.opacity    = '';
+  }, DUR + 100);
+}
+
+function zoomOutToPanorama() {
+  if (detailOpen) closeDetail();
+  if (objPanelOpen) { objPanelOpen = false; detailPanel.classList.remove('visible'); detailOpen = false; }
+
+  const idx = Math.max(0, Math.min(NUM_SCENES - 1, Math.round(worldPos)));
+  appState = 'panorama';
+
+  // Prepare panorama (hidden, scale slightly small)
+  const pv = panoramaView;
+  pv.style.cssText = 'display:block; opacity:0; transform:scale(0.93); filter:blur(8px); transition:none;';
+  void pv.offsetWidth;
+
+  const DUR = 1000;
+
+  // App view: zoom out + blur + fade
+  appView.style.transition = `transform ${DUR}ms cubic-bezier(0.3,0,0.7,1),
+                               opacity   ${DUR * 0.75}ms ease-in,
+                               filter    ${DUR}ms ease`;
+  appView.style.transform  = 'scale(0.88)';
+  appView.style.opacity    = '0';
+  appView.style.filter     = 'blur(14px)';
+
+  // Panorama: fade + unscale in
+  setTimeout(() => {
+    pv.style.transition = `opacity ${DUR * 0.85}ms ease-out,
+                            transform ${DUR * 0.85}ms cubic-bezier(0.2,0,0.3,1),
+                            filter ${DUR * 0.85}ms ease-out`;
+    pv.style.opacity   = '1';
+    pv.style.transform = 'scale(1)';
+    pv.style.filter    = 'blur(0px)';
+  }, DUR * 0.15);
+
+  setTimeout(() => {
+    appView.style.transform  = '';
+    appView.style.filter     = '';
+    appView.style.opacity    = '';
+    appView.style.transition = '';
+    appView.style.display    = 'none';
+    pv.style.transform  = '';
+    pv.style.filter     = '';
+    pv.style.opacity    = '';
+    pv.style.transition = '';
+  }, DUR + 80);
+}
+
+backBtn.addEventListener('click', zoomOutToPanorama);
+
+// ═══════════════════════════════════════════════
+//  DETAIL PANEL
+// ═══════════════════════════════════════════════
+
+function updateDetailContent(idx) {
+  const sc = SCENES[idx];
+  if (!sc) return;
+  detailPanelBg.style.backgroundImage = sc.bg ? `url("${sc.bg}")` : 'none';
+  document.getElementById('detail-year-label').textContent    = sc.year     || '';
+  document.getElementById('detail-title-text').textContent    = sc.title    || '';
+  document.getElementById('detail-subtitle-text').textContent = sc.subtitle || '';
+  document.getElementById('detail-date-text').textContent     = sc.date     || '';
+}
+
+let objPanelOpen = false;
+
+function _openDetailPanel() {
+  detailPanel.classList.add('visible');
+  detailOpen = true;
+  setTimeout(() => {
+    const appViewEl = document.getElementById('app-view');
+    appViewEl.scrollTo({ top: detailPanel.offsetTop, behavior: 'smooth' });
+  }, 50);
+}
+
+function showObjPanel(content) {
+  // Show object's rich HTML in the detail panel
+  const sceneEl = document.getElementById('detail-scene-content');
+  const objEl   = document.getElementById('detail-obj-content');
+  sceneEl.style.display = 'none';
+  objEl.style.display   = '';
+  objEl.innerHTML = content;
+
+  const sc = SCENES[Math.max(0, Math.min(NUM_SCENES - 1, Math.round(worldPos)))];
+  detailPanelBg.style.backgroundImage = sc && sc.bg ? `url("${sc.bg}")` : 'none';
+
+  objPanelOpen = true;
+  if (detailOpen) {
+    // Already open — just swap content, panel already scrolled
+    const appViewEl = document.getElementById('app-view');
+    appViewEl.scrollTo({ top: detailPanel.offsetTop, behavior: 'smooth' });
+    return;
+  }
+  _openDetailPanel();
+}
+
+function closeObjPanel() {
+  objPanelOpen = false;
+  closeDetail();
+  // Restore scene-content visibility so openDetail works next time
+  document.getElementById('detail-scene-content').style.display = '';
+  document.getElementById('detail-obj-content').style.display   = 'none';
+}
+
+function openDetail() {
+  // Reset to scene metadata view
+  document.getElementById('detail-scene-content').style.display = '';
+  document.getElementById('detail-obj-content').style.display   = 'none';
+  objPanelOpen = false;
+
+  if (detailOpen) return;
+  updateDetailContent(Math.max(0, Math.min(NUM_SCENES - 1, Math.round(worldPos))));
+  _openDetailPanel();
+}
+
+function closeDetail() {
+  if (!detailOpen) return;
+  detailOpen = false;
+  // Scroll back to top first
+  const appViewEl = document.getElementById('app-view');
+  appViewEl.scrollTo({ top: 0, behavior: 'smooth' });
+  // Hide panel after scroll
+  setTimeout(() => {
+    detailPanel.classList.remove('visible');
+  }, 400);
+}
+
+detailBtn.addEventListener('click',      openDetail);
+detailBtn.addEventListener('mouseenter', openDetail);
+detailClose.addEventListener('click', () => {
+  if (objPanelOpen) closeObjPanel();
+  else closeDetail();
+});
+
+// ═══════════════════════════════════════════════
+//  CSS BACKGROUNDS
+// ═══════════════════════════════════════════════
+
+let bgImgs = [];
+const _bg = new Float32Array(50), _bgSc = new Float32Array(50);
+
+function buildBgImgs() {
+  bgImgs.forEach(img => img.remove());
+  bgImgs = SCENES.map(sc => {
+    const img = document.createElement('img');
+    img.src = sc.bg; img.className = 'bg-img'; img.draggable = false;
+    layerBg.appendChild(img);
+    return img;
+  });
+}
+
+function updateBgs(wp) {
+  const FOCAL_BG = 1.2;
+  for (let i = 0; i < bgImgs.length; i++) {
+    const depth = i - wp;
+    const opR = Math.round(Math.max(0, 1 - Math.abs(depth)) * 100) / 100;
+    let sc = depth >= 0
+      ? 0.65 + 0.35 * (FOCAL_BG / (depth + FOCAL_BG))
+      : 1.0 + (-depth) * 0.55;
+    const scR = Math.round(sc * 1000) / 1000;
+    if (Math.abs(_bg[i]  - opR) > 0.005) { bgImgs[i].style.opacity   = opR; _bg[i]  = opR; }
+    if (Math.abs(_bgSc[i] - scR) > 0.002) { bgImgs[i].style.transform = `scale(${scR})`; _bgSc[i] = scR; }
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  THREE.JS
+// ═══════════════════════════════════════════════
+
+const threeScene = new THREE.Scene();
+let camera, renderer;
+
+function initRenderer() {
+  const { w, h } = getStageSize();
+  camera = new THREE.PerspectiveCamera(FOV, w / h, 0.1, 600);
+  camera.position.set(0, 0, CAMERA_LEAD);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(w, h);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.3;
+
+  const cv = renderer.domElement;
+  cv.style.cssText = 'position:absolute;inset:0;z-index:3;pointer-events:none;';
+  stageEl.insertBefore(cv, starsCanvas);
+}
+
+const texCache = {};
+const texLoader = new THREE.TextureLoader();
+
+function loadTex(src) {
+  if (texCache[src]) return Promise.resolve(texCache[src]);
+  return new Promise(resolve => {
+    texLoader.load(src, tex => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      texCache[src] = tex;
+      resolve(tex);
+    }, undefined, () => resolve(null));
+  });
+}
+
+let meshRecords = [];
+
+const _raycaster = new THREE.Raycaster();
+const _rmouse = new THREE.Vector2();
+
+function getMeshAtClick(clientX, clientY) {
+  if (!camera || !renderer) return null;
+  const rect = stageEl.getBoundingClientRect();
+  const { w, h } = getStageSize();
+  _rmouse.x = ((clientX - rect.left) / w) * 2 - 1;
+  _rmouse.y = -((clientY - rect.top) / h) * 2 + 1;
+  _raycaster.setFromCamera(_rmouse, camera);
+  const clampedIdx = Math.max(0, Math.min(NUM_SCENES - 1, Math.round(worldPos)));
+  const sceneMeshes = meshRecords.filter(m => m._sceneIdx === clampedIdx);
+  const hits = _raycaster.intersectObjects(sceneMeshes);
+  for (const hit of hits) {
+    if (hit.object._def && hit.object._def.content) return hit.object;
+  }
+  return null;
+}
+
+// ── Mesh hover zoom ──────────────────────────────────
+let _hovMesh     = null;
+let _prevHovMesh = null; // mesh lerping back to base scale after unhover
+
+function _setHoveredMesh(mesh) {
+  if (mesh === _hovMesh) return;
+  if (_hovMesh) {
+    // snap any already-returning mesh instantly, queue current to return
+    if (_prevHovMesh && _prevHovMesh._baseScale) _prevHovMesh.scale.copy(_prevHovMesh._baseScale);
+    _prevHovMesh = _hovMesh;
+    _hovMesh = null;
+  }
+  _hovMesh = mesh || null;
+}
+
+function getWorldWidth() {
+  const { w, h } = getStageSize();
+  return WORLD_H * (w / h);
+}
+
+// Scale-down factor for small screens so 3D objects don't feel too large
+const MOBILE_SCALE = window.innerWidth <= 600 ? 0.65 : 1.0;
+
+// Returns [planeWidth, planeHeight] for a mesh using object-fit logic
+function meshContainSize(def, ar, WW) {
+  const hFrac = (def.h && def.h > 0) ? def.h / 100 : 0;
+  const wFrac = (def.w && def.w > 0) ? def.w / 100 : null;
+  if (hFrac > 0 && wFrac) {
+    const bW = wFrac * WW, bH = hFrac * WORLD_H;
+    // At 100×100% use cover so image always fills screen edge-to-edge
+    if (hFrac >= 1 && wFrac >= 1) {
+      return bW / bH > ar ? [bW, bW / ar] : [bH * ar, bH];
+    }
+    // Otherwise contain within the bounding box
+    return bW / bH > ar ? [bH * ar, bH] : [bW, bW / ar];
+  } else if (wFrac) {
+    const pw = wFrac * WW; return [pw, pw / ar];
+  } else if (hFrac > 0) {
+    const mH = hFrac * WORLD_H; return [mH * ar, mH];
+  } else {
+    const mH = 0.3 * WORLD_H; return [mH * ar, mH];
+  }
+}
+
+const _softEdgeTexCache = {};
+function getSoftEdgeTexture(v) {
+  if (_softEdgeTexCache[v]) return _softEdgeTexCache[v];
+  const size   = 512;
+  const fadePx = size * (v / 100) * 0.4; // 0%→40% from each edge
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+
+  // White base (opaque center)
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, size, size);
+  ctx.globalCompositeOperation = 'multiply';
+
+  // Each edge: gradient from black (at edge) → white (inward), multiplied onto base
+  const drawEdge = (x0, y0, x1, y1, rx, ry, rw, rh, invert) => {
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    g.addColorStop(0, invert ? 'white' : 'black');
+    g.addColorStop(1, invert ? 'black' : 'white');
+    ctx.fillStyle = g;
+    ctx.fillRect(rx, ry, rw, rh);
+  };
+  drawEdge(0, 0, fadePx, 0,                    0,              0,              fadePx, size,   false); // left
+  drawEdge(size-fadePx, 0, size, 0,            size-fadePx,    0,              fadePx, size,   true);  // right
+  drawEdge(0, 0, 0, fadePx,                    0,              0,              size,   fadePx, false); // top
+  drawEdge(0, size-fadePx, 0, size,            0,              size-fadePx,    size,   fadePx, true);  // bottom
+
+  ctx.globalCompositeOperation = 'source-over';
+  _softEdgeTexCache[v] = new THREE.CanvasTexture(c);
+  return _softEdgeTexCache[v];
+}
+
+function buildElementMeshes() {
+  meshRecords.forEach(m => { threeScene.remove(m); m.geometry.dispose(); m.material.dispose(); });
+  meshRecords = [];
+
+  const { h: stageH } = getStageSize();
+  const WW = getWorldWidth();
+
+  SCENES.forEach((sc, si) => {
+    const sZ   = -(si * SCENE_Z);
+    const defs = sc.elements || [];
+
+    defs.forEach((def, defIdx) => {
+      const mat = new THREE.MeshBasicMaterial({
+        transparent: true, opacity: 0,
+        blending:   THREE.NormalBlending,
+        depthWrite: false, side: THREE.FrontSide,
+        alphaMap:   (def.softEdge > 0) ? getSoftEdgeTexture(def.softEdge) : null,
+      });
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+
+      // Layer depth: front layers sit slightly closer → natural perspective parallax
+      const isFullScreen = def.h >= 100 && def.w >= 100;
+      const zOff = isFullScreen
+        ? 2.75 + defIdx * 0.25  // full-screen: ~12% over-screen, modest Z spread
+        : 2.2  + defIdx * 0.15; // others: subtle spread
+      const hFrac     = (def.h && def.h > 0) ? def.h / 100 : 0;
+      const bottomFrac = def.bottom || 0;
+      // if h=0, y will be corrected after texture loads (when we know actual height)
+      const y = -WORLD_H / 2 + bottomFrac * WORLD_H + hFrac * WORLD_H / 2;
+      const x = (def.x - 0.5) * WW;
+
+      mesh.position.set(x, y, sZ + zOff);
+      mesh.renderOrder      = defIdx;   // explicit paint order: bg first, front last
+      mesh._sceneIdx        = si;
+      mesh._defIdx          = defIdx;
+      mesh._anim            = def.anim || '';
+      mesh._floatPhase      = def.x * Math.PI * 3.7 + si * 1.3;
+      mesh._baseY           = y;
+      mesh._nominalZ        = sZ + zOff;
+      mesh._def             = def;
+      mesh._hFrac           = hFrac;
+      mesh._softEdgeLive    = def.softEdge > 0 ? def.softEdge : 0;
+      mesh._softEdgeRounded = def.softEdge > 0 ? Math.round(def.softEdge) : 0;
+
+      threeScene.add(mesh);
+      meshRecords.push(mesh);
+
+      if (def.src) {
+        loadTex(def.src).then(tex => {
+          if (!tex) return;
+          mat.map = tex; mat.needsUpdate = true;
+          const ar = tex.image.width / tex.image.height || 1;
+          mesh._imgAspect = ar;
+          const [pw, meshH] = meshContainSize(def, ar, getWorldWidth());
+          const ms = (hFrac >= 1 && (def.w || 0) >= 100) ? 1.0 : MOBILE_SCALE;
+          mesh.scale.set(pw * ms, meshH * ms, 1);
+          mesh._baseScale = mesh.scale.clone();
+          if (hFrac === 0) {
+            const newY = -WORLD_H / 2 + bottomFrac * WORLD_H + meshH * ms / 2;
+            mesh.position.y = newY; mesh._baseY = newY;
+          }
+        });
+      }
+    });
+  });
+}
+
+function layoutMeshes() {
+  const { h: stageH } = getStageSize();
+  const WW = getWorldWidth();
+  meshRecords.forEach(mesh => {
+    const def   = mesh._def;
+    const hFrac = (def.h && def.h > 0) ? def.h / 100 : 0;
+    const bFrac = def.bottom || 0;
+    const x = (def.x - 0.5) * WW;
+    mesh.position.x = x;
+    if (mesh._imgAspect) {
+      const [pw, meshH] = meshContainSize(def, mesh._imgAspect, WW);
+      const ms = (hFrac >= 1 && (def.w || 0) >= 100) ? 1.0 : MOBILE_SCALE;
+      const y = -WORLD_H / 2 + bFrac * WORLD_H + meshH * ms / 2;
+      mesh.position.y = y; mesh._baseY = y;
+      mesh.scale.set(pw * ms, meshH * ms, 1);
+      mesh._baseScale = mesh.scale.clone();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  TIMELINE NODES
+// ═══════════════════════════════════════════════
+
+let nodes = [], cachedTrackW = 0;
+
+function buildNodes() {
+  nodes.forEach(n => n.remove());
+  nodes = SCENES.map((sc, i) => {
+    const node  = document.createElement('div'); node.className = 'timeline-node';
+    const pip   = document.createElement('div'); pip.className  = 'node-pip';
+    const label = document.createElement('div'); label.className = 'node-label'; label.textContent = sc.title;
+    const year  = document.createElement('div'); year.className  = 'node-year';  year.textContent  = sc.year;
+    node.appendChild(pip); node.appendChild(label); node.appendChild(year);
+    track.appendChild(node);
+    node.addEventListener('click', () => {
+      if (appState === 'diorama') goToScene(i);
+      else targetPos = i;
+    });
+    return node;
+  });
+}
+
+let timelineDense = false;
+let timelineZoom     = 1.0; // target zoom (set by user)
+let tlActualZoom     = 1.0; // animated zoom (lerps toward timelineZoom)
+let _tlScrollCenterFrac = 0.5; // anchor fraction of track to preserve during zoom
+let _tlAnchorOffset = 0;       // pixel offset from left of scroll viewport where anchor stays
+const TL_ZOOM_MIN  = 1.0;
+const TL_ZOOM_MAX  = 8.0;
+const TL_ZOOM_STEP = 1.5;
+const MIN_LABEL_PX = 110;
+
+function applyTimelineZoom(z, anchorFrac, anchorOffset) {
+  const scrollEl = document.getElementById('timeline-scroll');
+  if (anchorFrac !== undefined && anchorOffset !== undefined) {
+    // scrollLeft = anchorFrac * trackW - anchorOffset  →  keeps mouse point fixed
+    _tlScrollCenterFrac = anchorFrac;
+    _tlAnchorOffset = anchorOffset;
+  } else {
+    // Default: center on playhead
+    const playFrac = NUM_SCENES > 1 ? worldPos / (NUM_SCENES - 1) : 0.5;
+    _tlScrollCenterFrac = playFrac;
+    _tlAnchorOffset = scrollEl.clientWidth / 2 - 70;
+  }
+  timelineZoom = Math.max(TL_ZOOM_MIN, Math.min(TL_ZOOM_MAX, z));
+  _updateNodesLOD();
+  document.getElementById('tl-zoom-label').textContent = Math.round(timelineZoom * 100) + '%';
+}
+
+// Update only which nodes are visible (LOD) — uses target zoom for stable LOD
+function _updateNodesLOD() {
+  const scrollEl = document.getElementById('timeline-scroll');
+  const baseW    = Math.max(scrollEl.clientWidth - 140, 10);
+  const previewW = baseW * timelineZoom;
+  const n        = Math.max(1, NUM_SCENES - 1);
+  const pxPerScene = previewW / n;
+  const STEPS = [1, 2, 4, 8, 16, 32, 64, 128];
+  const step   = STEPS.find(s => pxPerScene * s >= MIN_LABEL_PX) || 128;
+  const showLabel = pxPerScene * step >= MIN_LABEL_PX;
+  timelineDense = step > 1;
+  document.getElementById('timeline-active-label').style.display = 'none';
+  const activeIdx = Math.max(0, prevSceneIdx);
+  nodes.forEach((node, i) => {
+    const onStep   = (i % step === 0) || i === NUM_SCENES - 1;
+    const isActive = i === activeIdx;
+    node.style.display = (onStep || isActive) ? '' : 'none';
+    const lbl = node.querySelector('.node-label');
+    const yr  = node.querySelector('.node-year');
+    const show = showLabel || isActive;
+    if (lbl) lbl.style.display = show ? '' : 'none';
+    if (yr)  yr.style.display  = show ? '' : 'none';
+  });
+}
+
+function layoutNodes() {
+  const scrollEl = document.getElementById('timeline-scroll');
+  const baseW    = Math.max(scrollEl.clientWidth - 140, 10);
+  tlActualZoom   = timelineZoom; // snap on init / resize
+  cachedTrackW   = Math.round(baseW * tlActualZoom);
+  track.style.width = cachedTrackW + 'px';
+  const n = Math.max(1, NUM_SCENES - 1);
+  nodes.forEach((node, i) => {
+    node.style.left = ((NUM_SCENES <= 1 ? 0 : i / n) * cachedTrackW).toFixed(1) + 'px';
+  });
+  _updateNodesLOD();
+}
+
+// ═══════════════════════════════════════════════
+//  STARS
+// ═══════════════════════════════════════════════
+
+const starData = [];
+const NUM_STARS = 80;
+let starCtx = null, starsFrame = 0, _starOp = -1;
+
+function initStars() {
+  starData.length = 0;
+  starCtx = starsCanvas.getContext('2d');
+  const { w, h } = getStageSize();
+  starsCanvas.width = w; starsCanvas.height = h;
+  for (let i = 0; i < NUM_STARS; i++)
+    starData.push({ x: Math.random(), y: Math.random() * 0.62,
+      r: Math.random() * 1.5 + 0.5, phase: Math.random() * Math.PI * 2,
+      freq: Math.random() * 0.8 + 0.3 });
+}
+
+function drawStars(t) {
+  if (!starCtx) return;
+  const w = starsCanvas.width, h = starsCanvas.height;
+  starCtx.clearRect(0, 0, w, h);
+  if (starsOpacity < 0.01) return;
+  starCtx.fillStyle = '#fff8dc';
+  for (let i = 0; i < NUM_STARS; i++) {
+    const s = starData[i];
+    starCtx.globalAlpha = starsOpacity * (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(s.phase + t * s.freq)));
+    starCtx.fillRect(s.x * w - s.r, s.y * h - s.r, s.r * 2, s.r * 2);
+  }
+  starCtx.globalAlpha = 1;
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER LOOP
+// ═══════════════════════════════════════════════
+
+let prevSceneIdx = -1;
+
+function render(time) {
+  requestAnimationFrame(render);
+
+  // In diorama mode, use continuous smooth scrolling
+  if (appState === 'diorama') {
+    const diff = dioramaTarget - dioramaPos;
+    if (Math.abs(diff) > 0.0001) dioramaPos += diff * 0.045;
+    else dioramaPos = dioramaTarget;
+    worldPos = dioramaPos;
+    targetPos = dioramaPos;
+  } else {
+    const diff = targetPos - worldPos;
+    if (Math.abs(diff) > 0.0001) worldPos += diff * 0.04;
+    else worldPos = targetPos;
+  }
+
+  const wp         = worldPos;
+  const fi         = Math.max(0, Math.min(NUM_SCENES - 1, Math.floor(wp)));
+  const ci         = Math.max(0, Math.min(NUM_SCENES - 1, Math.ceil(wp)));
+  const fr         = wp - Math.floor(wp);
+  const clampedIdx = Math.max(0, Math.min(NUM_SCENES - 1, Math.round(wp)));
+
+  const blend = 0;
+
+  if (appState === 'diorama') {
+    // Diorama mode: closer camera, smooth horizontal movement
+    camera.position.set(0, 0, DIORAMA_CAMERA_Z - wp * SCENE_Z);
+    camera.rotation.set(0, 0, 0);
+  } else {
+    camera.position.set(0, 0, CAMERA_LEAD - wp * SCENE_Z);
+    camera.rotation.set(0, 0, 0);
+  }
+
+  updateBgs(wp);
+
+  const sc0 = SCENES[fi], sc1 = SCENES[ci];
+  starsOpacity = (sc0 && sc0.night ? (1 - fr) : 0) + (sc1 && sc1.night ? fr : 0);
+  if (Math.abs(starsOpacity - _starOp) > 0.01) {
+    starsCanvas.style.opacity = starsOpacity.toFixed(3);
+    _starOp = starsOpacity;
+  }
+  starsFrame++;
+  if (starsOpacity > 0.01 && (starsFrame & 1) === 0) drawStars(time * 0.0005);
+
+  for (let i = 0; i < meshRecords.length; i++) {
+    const mesh  = meshRecords[i];
+    const depth = mesh._sceneIdx - wp;
+
+    // In diorama mode, show more elements at once (wider visibility range)
+    let opT;
+    if (appState === 'diorama') {
+      // Only show current scene elements — fade out quickly beyond ±0.5
+      if      (depth > 0.8 || depth < -0.8) opT = 0;
+      else if (depth >= 0) opT = depth < 0.3 ? 1 : Math.max(0, (0.8 - depth) / 0.5);
+      else                 opT = Math.max(0, 1 + depth / 0.8);
+    } else {
+      // Original tighter range
+      if      (depth > 1.5 || depth < -0.5) opT = 0;
+      else if (depth >= 0) opT = depth < 0.8 ? 1 : Math.max(0, (1.5 - depth) / 0.7);
+      else                 opT = Math.max(0, 1 + depth / 0.5);
+    }
+
+    const sceneWorldZ = -(mesh._sceneIdx * SCENE_Z);
+    const dist = camera.position.z - sceneWorldZ;
+    let opF;
+    if      (dist < -SCENE_Z * 2.0) opF = Math.max(0, 1 + (dist + SCENE_Z * 2.0) / (SCENE_Z * 0.6));
+    else if (dist > SCENE_Z * 1.5)  opF = Math.max(0, 1 - (dist - SCENE_Z * 1.5) / (SCENE_Z * 1.0));
+    else opF = 1;
+
+    mesh.material.opacity = opT + (opF - opT) * blend;
+
+    // Scale parallax driven by per-element def.parallax (0=none, 1=normal, 2=max)
+    // Linear (no abs): grows on approach, continues growing past camera → no direction flip
+    if (mesh._baseScale) {
+      const p = mesh._def.parallax != null ? mesh._def.parallax : 0;
+      const sf = p > 0 ? Math.max(0.1, 1.0 - depth * p * 0.38) : 1.0;
+      mesh.scale.set(mesh._baseScale.x * sf, mesh._baseScale.y * sf, 1);
+    }
+
+    // Soft edge: smoothstep proximity → no jitter when oscillating near depth=0
+    if (mesh._def.softEdge > 0) {
+      const t = Math.max(0, 1 - Math.abs(depth));
+      // smoothstep has zero derivative at t=1 → stable when at rest on scene
+      const proximity = t * t * (3 - 2 * t);
+      const softTarget = 100 * (1 - proximity) + mesh._def.softEdge * proximity;
+      mesh._softEdgeLive += (softTarget - mesh._softEdgeLive) * 0.03;
+      if (Math.abs(mesh._softEdgeLive - softTarget) < 0.2) mesh._softEdgeLive = softTarget;
+      const r = Math.max(1, Math.round(mesh._softEdgeLive));
+      if (r !== mesh._softEdgeRounded) {
+        mesh._softEdgeRounded = r;
+        mesh.material.alphaMap = getSoftEdgeTexture(r);
+        mesh.material.needsUpdate = true;
+      }
+    }
+
+    if (mesh._anim === 'float')
+      mesh.position.y = mesh._baseY + Math.sin(time * 0.0006 + mesh._floatPhase) * 0.28;
+
+    if (blend > 0.001) {
+      _billM4.lookAt(camera.position, mesh.position, _upV);
+      _billQ.setFromRotationMatrix(_billM4);
+      mesh.quaternion.slerpQuaternions(_identQ, _billQ, blend);
+    } else {
+      mesh.rotation.set(0, 0, 0);
+    }
+  }
+
+  if (clampedIdx !== prevSceneIdx) {
+    const sc = SCENES[clampedIdx];
+    if (sc) {
+      sceneTitle.textContent = sc.title;
+      sceneSub.textContent   = sc.subtitle;
+      sceneDate.textContent  = sc.date;
+      nodes.forEach((n, i) => n.classList.toggle('active', i === clampedIdx));
+      sceneCounter.textContent = (clampedIdx + 1) + ' / ' + NUM_SCENES;
+      stageHintL.style.color = clampedIdx > 0 ? 'rgba(200,160,80,0.18)' : 'transparent';
+      stageHintR.style.color = clampedIdx < NUM_SCENES - 1 ? 'rgba(200,160,80,0.18)' : 'transparent';
+      if (detailOpen) updateDetailContent(clampedIdx);
+
+      // Auto-scroll timeline to keep active node visible
+      const scrollEl = document.getElementById('timeline-scroll');
+      const nodeX = 70 + (NUM_SCENES <= 1 ? 0 : clampedIdx / (NUM_SCENES - 1)) * cachedTrackW;
+      const vis = scrollEl.clientWidth;
+      const sl  = scrollEl.scrollLeft;
+      if (nodeX < sl + 90 || nodeX > sl + vis - 90) {
+        scrollEl.scrollLeft = nodeX - vis / 2;
+      }
+
+      // Update floating active label
+      if (timelineDense) {
+        const activeLabel = document.getElementById('timeline-active-label');
+        activeLabel.textContent = (sc.year ? sc.year + ' · ' : '') + (sc.title || '');
+        activeLabel.style.left  = nodeX + 'px';
+      }
+    }
+    prevSceneIdx = clampedIdx;
+    // Clear mesh hover when scene changes
+    _setHoveredMesh(null);
+  }
+
+  // ── Smooth timeline zoom ────────────────────────
+  if (Math.abs(tlActualZoom - timelineZoom) > 0.0008) {
+    tlActualZoom += (timelineZoom - tlActualZoom) * 0.11;
+    if (Math.abs(tlActualZoom - timelineZoom) < 0.0008) tlActualZoom = timelineZoom;
+    const scrollEl = document.getElementById('timeline-scroll');
+    const baseW    = Math.max(scrollEl.clientWidth - 140, 10);
+    cachedTrackW   = Math.round(baseW * tlActualZoom);
+    track.style.width = cachedTrackW + 'px';
+    const n = Math.max(1, NUM_SCENES - 1);
+    nodes.forEach((node, i) => {
+      node.style.left = ((NUM_SCENES <= 1 ? 0 : i / n) * cachedTrackW).toFixed(1) + 'px';
+    });
+    // Keep anchor point fixed under mouse during zoom
+    const targetSL = _tlScrollCenterFrac * cachedTrackW - _tlAnchorOffset;
+    scrollEl.scrollLeft = targetSL;
+  }
+
+  // ── Smooth mesh hover scale ──────────────────────
+  if (_hovMesh && _hovMesh._baseScale) {
+    const bs = _hovMesh._baseScale;
+    _hovMesh.scale.x += (bs.x * 1.08 - _hovMesh.scale.x) * 0.13;
+    _hovMesh.scale.y += (bs.y * 1.08 - _hovMesh.scale.y) * 0.13;
+  }
+  if (_prevHovMesh && _prevHovMesh._baseScale) {
+    const bs = _prevHovMesh._baseScale;
+    _prevHovMesh.scale.x += (bs.x - _prevHovMesh.scale.x) * 0.13;
+    _prevHovMesh.scale.y += (bs.y - _prevHovMesh.scale.y) * 0.13;
+    if (Math.abs(_prevHovMesh.scale.x / bs.x - 1) < 0.001) {
+      _prevHovMesh.scale.copy(bs);
+      _prevHovMesh = null;
+    }
+  }
+
+  const pct = Math.max(0, Math.min(1, wp / Math.max(1, NUM_SCENES - 1)));
+  progressBar.style.width = (pct * 100).toFixed(2) + '%';
+  playhead.style.left     = (pct * cachedTrackW).toFixed(1) + 'px';
+
+  renderer.render(threeScene, camera);
+}
+
+// ═══════════════════════════════════════════════
+//  RESIZE
+// ═══════════════════════════════════════════════
+
+function onResize() {
+  const { w, h } = getStageSize();
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  starsCanvas.width = w; starsCanvas.height = h;
+  _starOp = -1;
+  layoutMeshes();
+  layoutNodes();
+}
+window.addEventListener('resize', onResize);
+
+// ═══════════════════════════════════════════════
+//  INPUT
+// ═══════════════════════════════════════════════
+
+function posFromEvent(e) {
+  const rect    = track.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) * (NUM_SCENES - 1);
+}
+
+playhead.addEventListener('mousedown', e => { isDragging = true; playhead.classList.add('dragging'); e.preventDefault(); });
+
+function startTimelineDrag(e) {
+  isDragging = true;
+  playhead.classList.add('dragging');
+  const newPos = Math.round(posFromEvent(e));
+  if (appState === 'diorama') { dioramaTarget = newPos; _wheelBase = newPos; }
+  else targetPos = newPos;
+  e.preventDefault();
+}
+
+track.addEventListener('mousedown', startTimelineDrag);
+
+document.getElementById('timeline-scroll').addEventListener('mousedown', e => {
+  if (e.target.closest('#playhead') || e.target.closest('.timeline-node')) return;
+  startTimelineDrag(e);
+});
+
+document.addEventListener('mousemove', e => {
+  if (isDragging) {
+    const newPos = posFromEvent(e);
+    if (appState === 'diorama') { dioramaTarget = newPos; _wheelBase = Math.round(newPos); }
+    else targetPos = newPos;
+    e.preventDefault();
+    return;
+  }
+  if (stageDragging) {
+    const dx = e.clientX - stageDragStartX;
+    if (Math.abs(dx) > 5) stageDragMoved = true;
+    const newPos = Math.max(0, Math.min(NUM_SCENES - 1, stageDragStartPos - dx / window.innerWidth * 2.5));
+    if (appState === 'diorama') { dioramaTarget = newPos; _wheelBase = Math.round(newPos); }
+    else targetPos = newPos;
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  if (isDragging) {
+    // Snap to nearest scene on release
+    const snapped = Math.round(appState === 'diorama' ? dioramaTarget : targetPos);
+    if (appState === 'diorama') { dioramaTarget = snapped; _wheelBase = snapped; }
+    else targetPos = snapped;
+  }
+  isDragging = false; playhead.classList.remove('dragging');
+  stageDragging = false;
+  stageEl.style.cursor = '';
+});
+
+function startTimelineDragTouch(e) {
+  isDragging = true;
+  playhead.classList.add('dragging');
+  const newPos = Math.round(posFromEvent(e));
+  if (appState === 'diorama') { dioramaTarget = newPos; _wheelBase = newPos; }
+  else targetPos = newPos;
+  e.preventDefault();
+}
+track.addEventListener('touchstart', startTimelineDragTouch, { passive: false });
+document.getElementById('timeline-scroll').addEventListener('touchstart', e => {
+  if (e.target.closest('#playhead') || e.target.closest('.timeline-node')) return;
+  startTimelineDragTouch(e);
+}, { passive: false });
+document.addEventListener('touchmove', e => {
+  if (isDragging) {
+    const newPos = posFromEvent(e);
+    if (appState === 'diorama') { dioramaTarget = newPos; _wheelBase = Math.round(newPos); }
+    else targetPos = newPos;
+    e.preventDefault();
+    return;
+  }
+  if (stageDragging) {
+    const dx = e.touches[0].clientX - stageDragStartX;
+    const newPos = Math.max(0, Math.min(NUM_SCENES - 1, stageDragStartPos - dx / window.innerWidth * 2.5));
+    if (appState === 'diorama') { dioramaTarget = newPos; _wheelBase = Math.round(newPos); }
+    else targetPos = newPos;
+    e.preventDefault();
+  }
+}, { passive: false });
+document.addEventListener('touchend', () => {
+  isDragging = false; stageDragging = false; stageEl.style.cursor = '';
+  if (appState === 'diorama') goToScene(Math.round(dioramaTarget)); // snap on release
+});
+
+stageEl.addEventListener('mousemove', e => {
+  if (stageDragging || appState !== 'diorama') {
+    _setHoveredMesh(null);
+    return;
+  }
+  const mesh = getMeshAtClick(e.clientX, e.clientY);
+  _setHoveredMesh(mesh || null);
+  stageEl.style.cursor = mesh ? 'pointer' : '';
+});
+
+stageEl.addEventListener('mouseleave', () => { _setHoveredMesh(null); });
+
+stageEl.addEventListener('mousedown', e => {
+  if (e.target.closest('#scene-info, #scene-counter, .stage-hint, #back-btn')) return;
+  stageDragging = true; stageDragMoved = false; stageDragStartX = e.clientX;
+  stageDragStartPos = appState === 'diorama' ? dioramaPos : targetPos;
+  stageEl.style.cursor = 'grabbing'; e.preventDefault();
+});
+
+stageEl.addEventListener('click', e => {
+  if (e.target.closest('#scene-info, #scene-counter, .stage-hint, #back-btn')) return;
+  if (stageDragMoved) return;
+  if (objPanelOpen) return;
+  const mesh = getMeshAtClick(e.clientX, e.clientY);
+  if (mesh && mesh._def && mesh._def.content) {
+    showObjPanel(mesh._def.content);
+    return;
+  }
+  openDetail();
+});
+
+stageEl.addEventListener('touchstart', e => {
+  if (e.target.closest('#scene-info, #scene-counter, .stage-hint')) return;
+  stageDragging = true; stageDragStartX = e.touches[0].clientX;
+  stageDragStartPos = appState === 'diorama' ? dioramaPos : targetPos;
+}, { passive: true });
+
+let _wheelAccum = 0;
+let _wheelResetTimer = null;
+let _wheelBase = 0;           // committed scene index (integer)
+
+function goToScene(idx) {
+  _wheelBase = Math.max(0, Math.min(NUM_SCENES - 1, Math.round(idx)));
+  _wheelAccum = 0;
+  clearTimeout(_wheelResetTimer);
+  dioramaTarget = _wheelBase;
+}
+const WHEEL_SNAP_THRESHOLD = 300;
+const WHEEL_DRIFT_MAX = 0.25;
+
+document.addEventListener('wheel', e => {
+  if (appState !== 'diorama') return;
+
+  // Timeline wheel events are fully handled by the timeline-container listener — skip here
+  if (e.target.closest('#timeline-container')) return;
+
+  // Otherwise: navigate scenes
+  e.preventDefault();
+  const raw = e.deltaX + e.deltaY;
+
+  clearTimeout(_wheelResetTimer);
+  _wheelAccum += raw;
+
+  if (Math.abs(_wheelAccum) >= WHEEL_SNAP_THRESHOLD) {
+    // Threshold reached — advance one scene from committed base
+    const dir = _wheelAccum > 0 ? 1 : -1;
+    _wheelBase = Math.max(0, Math.min(NUM_SCENES - 1, _wheelBase + dir));
+    dioramaTarget = _wheelBase;
+    _wheelAccum = 0;
+  } else {
+    // Still within scene — drift slightly for tactile feel
+    const drift = (_wheelAccum / WHEEL_SNAP_THRESHOLD) * WHEEL_DRIFT_MAX;
+    dioramaTarget = Math.max(0, Math.min(NUM_SCENES - 1, _wheelBase + drift));
+  }
+
+  // Spring back to committed scene if scrolling stops
+  _wheelResetTimer = setTimeout(() => {
+    dioramaTarget = _wheelBase;
+    _wheelAccum = 0;
+  }, 650);
+}, { passive: false });
+
+// Timeline zoom buttons
+document.getElementById('tl-zoom-in') .addEventListener('click', () => applyTimelineZoom(timelineZoom * TL_ZOOM_STEP));
+document.getElementById('tl-zoom-out').addEventListener('click', () => applyTimelineZoom(timelineZoom / TL_ZOOM_STEP));
+
+// Intercept ALL wheel events on the timeline — prevent native scroll completely,
+// handle zoom (vertical) and pan (horizontal) ourselves.
+document.getElementById('timeline-container').addEventListener('wheel', e => {
+  e.preventDefault();
+  const scrollEl = document.getElementById('timeline-scroll');
+
+  if (Math.abs(e.deltaY) >= Math.abs(e.deltaX)) {
+    // Vertical → zoom
+    const scrollRect = scrollEl.getBoundingClientRect();
+    const mouseX = e.clientX - scrollRect.left;
+    const trackOffset = 70;
+    const posInTrack = scrollEl.scrollLeft + mouseX - trackOffset;
+    const anchorFrac = cachedTrackW > 0 ? Math.max(0, Math.min(1, posInTrack / cachedTrackW)) : 0.5;
+    const factor = Math.pow(0.9985, e.deltaY);
+    applyTimelineZoom(timelineZoom * factor, anchorFrac, mouseX - trackOffset);
+  } else {
+    // Horizontal → pan
+    scrollEl.scrollLeft += e.deltaX;
+  }
+}, { passive: false });
+
+document.addEventListener('keydown', e => {
+  if (appState !== 'diorama') return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown')
+    goToScene(_wheelBase + 1);
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp')
+    goToScene(_wheelBase - 1);
+});
+
+navPrev.addEventListener('click', () => {
+  if (appState === 'diorama') goToScene(_wheelBase - 1);
+  else targetPos = Math.max(0, Math.round(targetPos) - 1);
+});
+navNext.addEventListener('click', () => {
+  if (appState === 'diorama') goToScene(_wheelBase + 1);
+  else targetPos = Math.min(NUM_SCENES - 1, Math.round(targetPos) + 1);
+});
+
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+
+function init() {
+  buildPanorama();
+  buildNodes();
+  buildBgImgs();
+  initRenderer();
+  buildElementMeshes();
+  initStars();
+  layoutNodes();
+
+  if (SCENES[0]) {
+    sceneTitle.textContent = SCENES[0].title;
+    sceneSub.textContent   = SCENES[0].subtitle;
+    sceneDate.textContent  = SCENES[0].date;
+    if (nodes[0]) nodes[0].classList.add('active');
+    sceneCounter.textContent = '1 / ' + NUM_SCENES;
+  }
+
+  requestAnimationFrame(render);
+}
+
+// ═══════════════════════════════════════════════
+//  LOADER
+// ═══════════════════════════════════════════════
+
+(function initLoaderStars() {
+  const canvas = document.getElementById('loader-stars');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const stars = Array.from({ length: 140 }, () => ({
+    x: Math.random(), y: Math.random(),
+    r: Math.random() * 1.3 + 0.3,
+    phase: Math.random() * Math.PI * 2,
+    freq:  Math.random() * 0.4 + 0.15,
+  }));
+
+  let alive = true;
+  function draw(t) {
+    if (!alive) return;
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#fff8dc';
+    for (const s of stars) {
+      ctx.globalAlpha = 0.1 + 0.5 * (0.5 + 0.5 * Math.sin(s.phase + t * s.freq * 0.001));
+      ctx.fillRect(s.x * w - s.r, s.y * h - s.r, s.r * 2, s.r * 2);
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+  window._stopLoaderStars = () => { alive = false; };
+})();
+
+// ── Loader progress: RAF-driven smooth bar ───────────
+let _lTarget  = 0;   // logical target (0-100)
+let _lActual  = 0;   // visually displayed value
+let _lRaf     = null;
+let _lDone    = false;
+
+function _lTick() {
+  _lRaf = null;
+  if (_lDone) return;
+  // Advance: minimum 0.4% per frame + proportional component
+  const gap   = _lTarget - _lActual;
+  const step  = Math.max(0.4, gap * 0.09);
+  _lActual    = Math.min(_lTarget, _lActual + step);
+
+  const bar = document.getElementById('loader-bar');
+  const pct = document.getElementById('loader-pct');
+  if (bar) bar.style.width  = _lActual.toFixed(2) + '%';
+  if (pct) pct.textContent  = Math.round(_lActual) + '%';
+
+  if (_lActual < _lTarget - 0.05) {
+    _lRaf = requestAnimationFrame(_lTick);
+  }
+}
+
+function setLoaderProgress(p) {
+  _lTarget = Math.max(_lTarget, Math.min(100, p));
+  if (!_lRaf) _lRaf = requestAnimationFrame(_lTick);
+}
+
+// Wait until the visual bar actually reaches `target` value
+function waitLoaderReaches(target) {
+  return new Promise(resolve => {
+    function check() {
+      if (_lActual >= target - 0.05) { resolve(); return; }
+      requestAnimationFrame(check);
+    }
+    check();
+  });
+}
+
+function preloadImageBatch(urls, onProgress) {
+  let done = 0;
+  const total = urls.length;
+  if (!total) { onProgress(1); return Promise.resolve(); }
+  return Promise.all(urls.map(src => new Promise(res => {
+    if (!src) { onProgress(++done / total); res(); return; }
+    const img = new Image();
+    img.onload = img.onerror = () => { onProgress(++done / total); res(); };
+    img.src = src;
+  })));
+}
+
+async function boot() {
+  setLoaderProgress(4);
+
+  await fetchScenes();
+  setLoaderProgress(14);
+
+  // Phase 1: load panorama images only — show it ASAP
+  const panoUrls = new Set();
+  if (PANORAMA.bg) panoUrls.add(PANORAMA.bg);
+  (PANORAMA.elements || []).forEach(el => { if (el.src && el.type !== 'zone') panoUrls.add(el.src); });
+
+  await preloadImageBatch([...panoUrls], frac => setLoaderProgress(14 + frac * 56));
+
+  setLoaderProgress(72);
+  init();
+  setLoaderProgress(85);
+
+  await waitLoaderReaches(84);
+
+  _lDone = true;
+  const loaderEl = document.getElementById('loader');
+  loaderEl.classList.add('fade-out');
+  if (window._stopLoaderStars) window._stopLoaderStars();
+  setTimeout(() => { loaderEl.style.display = 'none'; }, 1050);
+
+  // Phase 2: load scene images lazily in background while user browses panorama
+  const sceneUrls = new Set();
+  SCENES.forEach(sc => {
+    if (sc.bg) sceneUrls.add(sc.bg);
+    (sc.elements || []).forEach(el => { if (el.src) sceneUrls.add(el.src); });
+  });
+  // Load in small batches to avoid blocking
+  const sceneArr = [...sceneUrls];
+  const BATCH = 4;
+  for (let i = 0; i < sceneArr.length; i += BATCH) {
+    await preloadImageBatch(sceneArr.slice(i, i + BATCH), () => {});
+    await new Promise(r => setTimeout(r, 60)); // yield to browser
+  }
+}
+
+// Re-fetch data when user switches back to this tab (e.g. after changing preset in admin)
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible') return;
+  if (appState !== 'panorama') return; // only refresh when on panorama screen
+  await fetchScenes();
+  buildPanorama();
+  buildNodes();
+  layoutNodes();
+});
+
+if (document.readyState === 'loading')
+  document.addEventListener('DOMContentLoaded', boot);
+else
+  boot();
+
+// ═══════════════════════════════════════════════
+//  I18N
+// ═══════════════════════════════════════════════
+
+const TRANSLATIONS = {
+  en: {
+    siteTitle:      'Prophetic Timeline',
+    siteSubtitle:   'The Story of Humanity from Creation to Eternity',
+    loaderTitle:    'Prophetic Timeline',
+    loaderSub:      'loading',
+    panoHint:       'Tap an object to zoom in',
+    panoEmpty:      'Add objects to the panorama via Admin',
+    backBtn:        '← Panorama',
+    detailBtn:      '▼ Learn more',
+    detailBtnLabel: 'Details',
+    detailClose:    '▲ Collapse',
+    objClose:       '✕ Close',
+    hint:           'Drag the handle or scroll to navigate',
+    hintZoomIn:     'Zoom in',
+    hintZoomOut:    'Zoom out',
+  },
+  ua: {
+    siteTitle:      'Пророчий Таймлайн',
+    siteSubtitle:   'Історія Людства від Створення до Вічності',
+    loaderTitle:    'Пророчий Таймлайн',
+    loaderSub:      'завантаження',
+    panoHint:       'Натисніть на обʼєкт для наближення',
+    panoEmpty:      'Додайте обʼєкти на панораму через Адмінку',
+    backBtn:        '← Панорама',
+    detailBtn:      '▼ Докладніше',
+    detailBtnLabel: 'Докладніше',
+    detailClose:    '▲ Згорнути',
+    objClose:       '✕ Закрити',
+    hint:           'Перетягніть повзунок або прокрутіть колесо',
+    hintZoomIn:     'Збільшити',
+    hintZoomOut:    'Зменшити',
+  },
+};
+
+let currentLang = localStorage.getItem('pt-lang') || 'en';
+
+function applyLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('pt-lang', lang);
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  document.documentElement.lang = lang;
+  document.title = t.siteTitle;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('loader-title',         t.loaderTitle);
+  set('loader-sub',           t.loaderSub);
+  set('panorama-main-title',  t.siteTitle);
+  set('panorama-subtitle',    t.siteSubtitle);
+  set('panorama-hint',        t.panoHint);
+  set('panorama-empty-msg',   t.panoEmpty);
+  set('back-btn',             t.backBtn);
+  set('detail-btn-label',     t.detailBtnLabel || t.detailBtn);
+  set('detail-close',         t.detailClose);
+  set('obj-panel-close',      t.objClose + ' ');
+  set('hint',                 t.hint);
+  document.querySelectorAll('[data-lang-btn]').forEach(b => {
+    b.classList.toggle('active', b.dataset.langBtn === lang);
+  });
+}
+
+// Language switcher UI (injected once DOM is ready)
+(function buildLangSwitcher() {
+  const sw = document.createElement('div');
+  sw.id = 'lang-switcher';
+  sw.innerHTML =
+    '<button data-lang-btn="en">EN</button>' +
+    '<button data-lang-btn="ua">UA</button>';
+  sw.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => applyLang(btn.dataset.langBtn));
+  });
+  document.getElementById('panorama-view').appendChild(sw);
+  applyLang(currentLang);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+{
+  "name": "История человечества",
+  "background": "/uploads/вариации_2K_202603191339-3.jpg",
+  "elements": [
+    {
+      "id": "elem-stone",
+      "src": "/uploads/0004.png",
+      "x": 7,
+      "y": 28,
+      "width": 11,
+      "height": null,
+      "sceneId": 0,
+      "anim": null
+    },
+    {
+      "id": "elem-civ",
+      "src": "/uploads/0003.png",
+      "x": 20,
+      "y": 22,
+      "width": 11,
+      "height": null,
+      "sceneId": 1,
+      "anim": null
+    },
+    {
+      "id": "elem-egypt",
+      "src": "/uploads/0006.png",
+      "x": 33,
+      "y": 18,
+      "width": 12,
+      "height": null,
+      "sceneId": 2,
+      "anim": null
+    },
+    {
+      "id": "elem-greece",
+      "src": "/uploads/0014.png",
+      "x": 46,
+      "y": 20,
+      "width": 11,
+      "height": null,
+      "sceneId": 3,
+      "anim": null
+    },
+    {
+      "id": "elem-rome",
+      "src": "/uploads/0018.png",
+      "x": 57,
+      "y": 16,
+      "width": 13,
+      "height": null,
+      "sceneId": 4,
+      "anim": null
+    },
+    {
+      "id": "elem-middle",
+      "src": "/uploads/0006.png",
+      "x": 68,
+      "y": 20,
+      "width": 11,
+      "height": null,
+      "sceneId": 5,
+      "anim": null
+    },
+    {
+      "id": "elem-renaissance",
+      "src": "/uploads/0002.png",
+      "x": 78,
+      "y": 18,
+      "width": 10,
+      "height": null,
+      "sceneId": 6,
+      "anim": "zoom"
+    },
+    {
+      "id": "elem-modern",
+      "src": "/uploads/0020.png",
+      "x": 90,
+      "y": 22,
+      "width": 10,
+      "height": null,
+      "sceneId": 9,
+      "anim": "zoom"
+    },
+    {
+      "id": "elem-flower-l",
+      "src": "/uploads/3D Glass Flowers (12).png",
+      "x": 2,
+      "y": 60,
+      "width": 7,
+      "height": null,
+      "sceneId": null,
+      "anim": "float"
+    },
+    {
+      "id": "elem-flower-r",
+      "src": "/uploads/3D Glass Flowers (15).png",
+      "x": 95,
+      "y": 58,
+      "width": 7,
+      "height": null,
+      "sceneId": null,
+      "anim": "float"
+    }
+  ],
+  "clickAreas": [
+    {
+      "sceneId": 0,
+      "x": 2,
+      "y": 8,
+      "width": 14,
+      "height": 50,
+      "label": "Каменный век"
+    },
+    {
+      "sceneId": 1,
+      "x": 14,
+      "y": 8,
+      "width": 14,
+      "height": 50,
+      "label": "Зарождение цивилизации"
+    },
+    {
+      "sceneId": 2,
+      "x": 26,
+      "y": 8,
+      "width": 14,
+      "height": 50,
+      "label": "Древний Египет"
+    },
+    {
+      "sceneId": 3,
+      "x": 40,
+      "y": 8,
+      "width": 13,
+      "height": 50,
+      "label": "Древняя Греция"
+    },
+    {
+      "sceneId": 4,
+      "x": 51,
+      "y": 8,
+      "width": 14,
+      "height": 50,
+      "label": "Римская Империя"
+    },
+    {
+      "sceneId": 5,
+      "x": 63,
+      "y": 8,
+      "width": 13,
+      "height": 50,
+      "label": "Средние Века"
+    },
+    {
+      "sceneId": 6,
+      "x": 74,
+      "y": 8,
+      "width": 12,
+      "height": 50,
+      "label": "Эпоха Возрождения"
+    },
+    {
+      "sceneId": 7,
+      "x": 74,
+      "y": 55,
+      "width": 12,
+      "height": 35,
+      "label": "Эпоха Великих Открытий"
+    },
+    {
+      "sceneId": 8,
+      "x": 84,
+      "y": 55,
+      "width": 13,
+      "height": 35,
+      "label": "Промышленная Революция"
+    },
+    {
+      "sceneId": 9,
+      "x": 84,
+      "y": 8,
+      "width": 14,
+      "height": 50,
+      "label": "Современная Эпоха"
+    }
+  ]
+}
