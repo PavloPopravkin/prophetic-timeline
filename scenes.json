@@ -9,7 +9,8 @@
       "year": "Вечность",
       "bg": "/uploads/вариации_2K_202603191339-2.jpg",
       "night": true,
-      "elements": []
+      "elements": [],
+      "bg_video": "https://www.youtube.com/watch?v=hZtnY9Air60"
     },
     {
       "id": 1,
@@ -273,7 +274,8 @@
           "bottom": 0,
           "anim": "float"
         }
-      ]
+      ],
+      "bg_video": "https://www.youtube.com/watch?v=hZtnY9Air60"
     },
     {
       "id": 8,
@@ -310,7 +312,8 @@
           "h": 42,
           "bottom": 0
         }
-      ]
+      ],
+      "bg_video": "https://www.youtube.com/watch?v=hZtnY9Air60"
     },
     {
       "id": 9,
@@ -350,7 +353,8 @@
           "bottom": 0,
           "anim": "float"
         }
-      ]
+      ],
+      "bg_video": "https://www.youtube.com/watch?v=hZtnY9Air60"
     },
     {
       "id": 10,
