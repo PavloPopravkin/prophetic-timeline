@@ -1,0 +1,19 @@
+services:
+  timeline:
+    build: .
+    container_name: timeline-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3010:3000"
+    volumes:
+      - ./scenes.json:/app/scenes.json
+      - ./panorama.json:/app/panorama.json
+      - ./scenes.abstract.json:/app/scenes.abstract.json
+      - ./panorama.abstract.json:/app/panorama.abstract.json
+      - ./scenes.christmas.json:/app/scenes.christmas.json
+      - ./panorama.christmas.json:/app/panorama.christmas.json
+      - ./scenes.humanity.json:/app/scenes.humanity.json
+      - ./panorama.humanity.json:/app/panorama.humanity.json
+      - ./scenes.spiritual.json:/app/scenes.spiritual.json
+      - ./panorama.spiritual.json:/app/panorama.spiritual.json
+      - ./uploads:/app/uploads

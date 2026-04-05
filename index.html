@@ -47,7 +47,8 @@ body {
 .pano-elem-wrap {
   position: absolute; cursor: pointer; z-index: 3;
   transform: translate(-50%, -50%);
-  transition: filter 0.3s, transform 0.3s;
+  transition: opacity 0.7s ease, filter 0.3s, transform 0.3s;
+  opacity: 0;
 }
 .pano-elem-wrap img {
   display: block; user-select: none; pointer-events: none;
@@ -150,7 +151,6 @@ body {
   object-fit: cover;
   opacity: 0;
   transform-origin: center center;
-  will-change: transform, opacity;
 }
 
 #stars-canvas {
@@ -229,7 +229,7 @@ body {
 
 #scene-counter {
   position: absolute;
-  top: 28px; right: 32px;
+  bottom: 18px; left: 20px;
   color: rgba(200,160,80,0.5);
   font-size: 12px;
   letter-spacing: 0.15em;
@@ -459,7 +459,7 @@ body {
   position: absolute;
   bottom: 0; right: 0;
   z-index: 50;
-  width: 110px; height: 110px;
+  width: 75px; height: 75px;
   background: transparent;
   border: none;
   padding: 0;
@@ -472,15 +472,15 @@ body {
   bottom: 0; right: 0;
   width: 0; height: 0;
   border-style: solid;
-  border-width: 0 0 110px 110px;
+  border-width: 0 0 75px 75px;
   border-color: transparent transparent rgba(200,160,80,0.13) transparent;
   transition: border-color 0.25s;
 }
 #detail-btn::after {
   content: '›';
   position: absolute;
-  bottom: 6px; right: 8px;
-  font-size: 22px;
+  bottom: 4px; right: 6px;
+  font-size: 17px;
   color: rgba(200,160,80,0.5);
   line-height: 1;
   pointer-events: none;
@@ -492,7 +492,7 @@ body {
   top: 62%; left: 62%;
   transform: translate(-50%, -50%) rotate(-45deg);
   font-family: Georgia, serif;
-  font-size: 10px;
+  font-size: 8px;
   letter-spacing: 0.1em;
   color: rgba(200,160,80,0.55);
   text-align: center;
@@ -555,27 +555,43 @@ body {
 }
 
 #detail-close {
-  position: sticky;
-  top: 24px;
-  float: right;
-  z-index: 160;
-  background: rgba(10,5,30,0.8);
-  border: 1px solid rgba(200,160,80,0.4);
-  border-radius: 20px;
-  color: rgba(200,160,80,0.8);
-  font-size: 11px;
-  font-family: Georgia, serif;
-  letter-spacing: 0.14em;
-  padding: 7px 20px;
+  position: fixed;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  width: 120px; height: 60px;
+  background: transparent;
+  border: none;
+  padding: 0;
   cursor: pointer;
-  transition: all 0.25s;
-  margin: 24px 32px 0 0;
+  overflow: hidden;
+  display: none;
 }
-#detail-close:hover {
-  border-color: rgba(240,208,128,0.7);
-  color: rgba(240,208,128,1);
-  background: rgba(20,10,50,0.95);
+#detail-close::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 60px 60px 0 60px;
+  border-color: rgba(200,160,80,0.13) transparent transparent transparent;
+  transition: border-color 0.25s;
 }
+#detail-close::after {
+  content: 'Collapse';
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  font-family: Georgia, serif;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: rgba(200,160,80,0.55);
+  white-space: nowrap;
+  pointer-events: none;
+  transition: color 0.25s;
+}
+#detail-close:hover::before { border-color: rgba(240,208,128,0.28) transparent transparent transparent; }
+#detail-close:hover::after  { color: rgba(240,208,128,1); }
 
 #detail-year-label {
   font-size: 11px;
@@ -732,6 +748,40 @@ body {
   min-width: 4ch; text-align: center;
   transition: opacity 0.2s;
 }
+#loader-quote {
+  position: absolute;
+  bottom: clamp(28px, 5vh, 56px);
+  left: 50%; transform: translateX(-50%);
+  width: min(560px, 88vw);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  pointer-events: none;
+}
+#loader-quote-date {
+  font-family: Georgia, serif;
+  font-size: clamp(9px, 1vw, 11px);
+  color: rgba(200,160,80,0.4);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+#loader-quote-title {
+  font-family: Georgia, serif;
+  font-size: clamp(15px, 2.2vw, 24px);
+  color: rgba(240,208,128,0.72);
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+}
+#loader-quote-sub {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: clamp(11px, 1.2vw, 14px);
+  color: rgba(200,160,80,0.42);
+  letter-spacing: 0.06em;
+  margin-top: 8px;
+  line-height: 1.5;
+}
 
 /* ══════════════════════════════════════════════════
    LANGUAGE SWITCHER
@@ -765,8 +815,8 @@ body {
 @media (max-width: 600px) {
   #timeline-container { height: 100px; }
   #stage { height: calc(100vh - 100px); }
-  #detail-btn { width: 80px; height: 80px; }
-  #detail-btn::before { border-width: 0 0 80px 80px; }
+  #detail-btn { width: 60px; height: 60px; }
+  #detail-btn::before { border-width: 0 0 60px 60px; }
   #detail-btn-label { font-size: 7px; }
   #back-btn { top: 16px; left: 14px; padding: 6px 12px; font-size: 10px; }
   #scene-info { top: 16px; width: 90%; }
@@ -796,6 +846,150 @@ body {
   #timeline-container { height: 94px; }
   #stage { height: calc(100vh - 94px); }
 }
+
+/* ══════════════════════════════════════════════════
+   PANORAMA GUIDE HINT
+══════════════════════════════════════════════════ */
+#pano-guide {
+  position: absolute;
+  bottom: 18%; left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+#pano-guide.visible { opacity: 1; }
+#pano-guide.hiding  { opacity: 0; }
+
+/* Rings */
+#pano-guide-rings {
+  position: relative;
+  width: 80px; height: 80px;
+  display: flex; align-items: center; justify-content: center;
+}
+.pano-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(200,160,80,0.6);
+  animation: pano-ring-expand 2.4s ease-out infinite;
+}
+.pano-ring:nth-child(1) { animation-delay: 0s; }
+.pano-ring:nth-child(2) { animation-delay: 0.7s; }
+.pano-ring:nth-child(3) { animation-delay: 1.4s; }
+@keyframes pano-ring-expand {
+  0%   { width: 14px; height: 14px; opacity: 0.9; border-color: rgba(240,208,128,0.8); }
+  80%  { width: 78px; height: 78px; opacity: 0;   border-color: rgba(200,160,80,0);   }
+  100% { width: 78px; height: 78px; opacity: 0;   }
+}
+
+
+/* Text */
+#pano-guide-text {
+  margin-top: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  text-align: center;
+}
+#pano-guide-line1 {
+  font-family: Georgia, serif;
+  font-size: clamp(12px, 1.4vw, 16px);
+  color: rgba(240,208,128,0.82);
+  letter-spacing: 0.18em;
+  animation: pano-text-breathe 3s ease-in-out infinite;
+}
+#pano-guide-line2 {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: clamp(10px, 1.1vw, 13px);
+  color: rgba(200,160,80,0.55);
+  letter-spacing: 0.12em;
+  animation: pano-text-breathe 3s ease-in-out infinite 0.4s;
+}
+@keyframes pano-text-breathe {
+  0%,100% { opacity: 0.7; }
+  50%     { opacity: 1;   }
+}
+
+/* ══════════════════════════════════════════════════
+   MUSIC BUTTON
+══════════════════════════════════════════════════ */
+#music-tap {
+  position: fixed;
+  top: 20px; right: 68px;
+  z-index: 1001;
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  opacity: 1;
+  transition: opacity 0.7s ease;
+  pointer-events: none;
+}
+#music-tap-inner {
+  display: flex; align-items: center; gap: 8px;
+  height: 38px;
+  background: rgba(10,5,30,0.65);
+  border: 1px solid rgba(200,160,80,0.22);
+  border-radius: 20px;
+  padding: 0 14px;
+  color: rgba(200,160,80,0.75);
+  font-family: Georgia, serif;
+  font-size: clamp(10px, 1vw, 12px);
+  letter-spacing: 0.15em;
+  white-space: nowrap;
+  animation: music-tap-pulse 2.5s ease-in-out infinite;
+}
+#music-tap-inner svg { width: 14px; height: 14px; flex-shrink: 0; }
+@keyframes music-tap-pulse {
+  0%,100% { opacity: 0.6; }
+  50%      { opacity: 1;   }
+}
+
+#music-btn {
+  position: fixed;
+  top: 20px; right: 20px;
+  z-index: 1000;
+  width: 38px; height: 38px;
+  background: rgba(10,5,30,0.6);
+  border: 1px solid rgba(200,160,80,0.25);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(200,160,80,0.65);
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+#music-btn:hover {
+  background: rgba(20,10,50,0.85);
+  border-color: rgba(240,208,128,0.55);
+  color: rgba(240,208,128,0.95);
+}
+#music-btn svg { width: 18px; height: 18px; pointer-events: none; }
+
+#music-vol-wrap {
+  position: absolute;
+  top: calc(100% + 6px); right: 0;
+  background: rgba(10,5,30,0.88);
+  border: 1px solid rgba(200,160,80,0.22);
+  border-radius: 12px;
+  padding: 12px 13px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#music-vol {
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 4px;
+  height: 72px;
+  cursor: pointer;
+  accent-color: rgba(200,160,80,0.85);
+  background: transparent;
+}
 </style>
 </head>
 <body>
@@ -809,6 +1003,11 @@ body {
     <div id="loader-track"><div id="loader-bar"></div></div>
     <div id="loader-pct">0%</div>
   </div>
+  <div id="loader-quote">
+    <div id="loader-quote-date"></div>
+    <div id="loader-quote-title"></div>
+    <div id="loader-quote-sub"></div>
+  </div>
 </div>
 
 <!-- PANORAMA VIEW -->
@@ -821,6 +1020,17 @@ body {
     <div id="panorama-subtitle">The Story of Humanity from Creation to Eternity</div>
   </div>
   <div id="panorama-hint">Tap an object to zoom in</div>
+  <div id="pano-guide">
+    <div id="pano-guide-rings">
+      <div class="pano-ring"></div>
+      <div class="pano-ring"></div>
+      <div class="pano-ring"></div>
+    </div>
+    <div id="pano-guide-text">
+      <span id="pano-guide-line1">Touch any moment in history</span>
+      <span id="pano-guide-line2">to step inside</span>
+    </div>
+  </div>
   <div id="panorama-empty-msg" style="display:none">Add objects to the panorama via Admin</div>
 </div>
 
@@ -875,7 +1085,7 @@ body {
     <div id="detail-panel">
       <div id="detail-panel-bg"></div>
       <div id="detail-panel-gradient"></div>
-      <button id="detail-close">&#9650; Collapse</button>
+      <button id="detail-close"></button>
       <div id="detail-panel-inner">
         <!-- Scene metadata (shown by openDetail) -->
         <div id="detail-scene-content">
@@ -898,6 +1108,8 @@ import * as THREE from 'three';
 // ═══════════════════════════════════════════════
 //  3D CONSTANTS
 // ═══════════════════════════════════════════════
+
+const IS_MOBILE   = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
 const FOV         = 65;
 const CAMERA_LEAD = 6;
@@ -1112,6 +1324,11 @@ function buildPanorama() {
     }
     img.draggable = false;
 
+    // fade in after decode — prevents chunky progressive rendering
+    const showWrap = () => { wrap.style.opacity = '1'; };
+    (img.decode ? img.decode().then(showWrap).catch(showWrap)
+                : (img.onload = showWrap, img.onerror = showWrap));
+
     wrap.appendChild(img);
 
     // Click handler
@@ -1141,7 +1358,30 @@ function findPanoWrapForScene(sceneId) {
 //  ZOOM ANIMATIONS
 // ═══════════════════════════════════════════════
 
+// ── Panorama guide hint ──────────────────────────
+const panoGuide = document.getElementById('pano-guide');
+let _guideTimer = null;
+
+function showPanoGuide() {
+  if (!panoGuide) return;
+  clearTimeout(_guideTimer);
+  panoGuide.classList.remove('hiding');
+  panoGuide.classList.add('visible');
+  _guideTimer = setTimeout(hidePanoGuide, 6000);
+}
+
+function hidePanoGuide() {
+  if (!panoGuide) return;
+  clearTimeout(_guideTimer);
+  panoGuide.classList.add('hiding');
+  setTimeout(() => panoGuide.classList.remove('visible', 'hiding'), 800);
+}
+
 function zoomIntoScene(sceneId, fromEl) {
+  hidePanoGuide();
+  // Hide music tap hint as soon as user enters a scene
+  const tapHint = document.getElementById('music-tap');
+  if (tapHint) tapHint.style.display = 'none';
   if (sceneId < 0 || sceneId >= NUM_SCENES) return;
 
   // Prepare app state immediately (render runs behind the transition)
@@ -1204,7 +1444,7 @@ function zoomOutToPanorama() {
   if (objPanelOpen) { objPanelOpen = false; detailPanel.classList.remove('visible'); detailOpen = false; }
 
   const idx = Math.max(0, Math.min(NUM_SCENES - 1, Math.round(worldPos)));
-  appState = 'panorama';
+  // appState stays 'diorama' during animation — prevents camera jump (Z 8→6)
 
   // Prepare panorama (hidden, scale slightly small)
   const pv = panoramaView;
@@ -1241,6 +1481,8 @@ function zoomOutToPanorama() {
     pv.style.filter     = '';
     pv.style.opacity    = '';
     pv.style.transition = '';
+    appState = 'panorama'; // switch only after appView is hidden
+    showPanoGuide();
   }, DUR + 80);
 }
 
@@ -1309,18 +1551,16 @@ function openDetail() {
   if (detailOpen) return;
   updateDetailContent(Math.max(0, Math.min(NUM_SCENES - 1, Math.round(worldPos))));
   _openDetailPanel();
+  detailClose.style.display = 'flex';
 }
 
 function closeDetail() {
   if (!detailOpen) return;
   detailOpen = false;
-  // Scroll back to top first
+  detailClose.style.display = 'none';
   const appViewEl = document.getElementById('app-view');
   appViewEl.scrollTo({ top: 0, behavior: 'smooth' });
-  // Hide panel after scroll
-  setTimeout(() => {
-    detailPanel.classList.remove('visible');
-  }, 400);
+  setTimeout(() => { detailPanel.classList.remove('visible'); }, 400);
 }
 
 detailBtn.addEventListener('click',      openDetail);
@@ -1330,34 +1570,57 @@ detailClose.addEventListener('click', () => {
   else closeDetail();
 });
 
+// Close detail when mouse approaches top of screen
+document.addEventListener('mousemove', (e) => {
+  if (detailOpen && e.clientY < 56) {
+    if (objPanelOpen) closeObjPanel();
+    else closeDetail();
+  }
+});
+
 // ═══════════════════════════════════════════════
 //  CSS BACKGROUNDS
 // ═══════════════════════════════════════════════
 
-let bgImgs = [];
-const _bg = new Float32Array(50), _bgSc = new Float32Array(50);
+// 2-element pool: only ever 2 GPU layers regardless of scene count
+const _bgPool = [null, null];
+const _bgPoolSrc = [null, null];
 
 function buildBgImgs() {
-  bgImgs.forEach(img => img.remove());
-  bgImgs = SCENES.map(sc => {
+  _bgPool.forEach(img => img && img.remove());
+  for (let p = 0; p < 2; p++) {
     const img = document.createElement('img');
-    img.src = sc.bg; img.className = 'bg-img'; img.draggable = false;
+    img.className = 'bg-img'; img.draggable = false;
     layerBg.appendChild(img);
-    return img;
-  });
+    _bgPool[p] = img;
+    _bgPoolSrc[p] = null;
+  }
 }
 
 function updateBgs(wp) {
   const FOCAL_BG = 1.2;
-  for (let i = 0; i < bgImgs.length; i++) {
-    const depth = i - wp;
-    const opR = Math.round(Math.max(0, 1 - Math.abs(depth)) * 100) / 100;
-    let sc = depth >= 0
+  const lo = Math.max(0, Math.min(SCENES.length - 1, Math.floor(wp)));
+  const hi = Math.max(0, Math.min(SCENES.length - 1, lo + 1));
+
+  const slots = [
+    { idx: lo, depth: lo - wp },
+    { idx: hi, depth: hi - wp },
+  ];
+
+  for (let p = 0; p < 2; p++) {
+    const { idx, depth } = slots[p];
+    const img  = _bgPool[p];
+    const src  = (SCENES[idx] || {}).bg || '';
+
+    if (_bgPoolSrc[p] !== src) { img.src = src; _bgPoolSrc[p] = src; }
+
+    const op = Math.max(0, 1 - Math.abs(depth));
+    const sc = depth >= 0
       ? 0.65 + 0.35 * (FOCAL_BG / (depth + FOCAL_BG))
       : 1.0 + (-depth) * 0.55;
-    const scR = Math.round(sc * 1000) / 1000;
-    if (Math.abs(_bg[i]  - opR) > 0.005) { bgImgs[i].style.opacity   = opR; _bg[i]  = opR; }
-    if (Math.abs(_bgSc[i] - scR) > 0.002) { bgImgs[i].style.transform = `scale(${scR})`; _bgSc[i] = scR; }
+
+    img.style.opacity   = op;
+    img.style.transform = `scale(${sc})`;
   }
 }
 
@@ -1373,8 +1636,8 @@ function initRenderer() {
   camera = new THREE.PerspectiveCamera(FOV, w / h, 0.1, 600);
   camera.position.set(0, 0, CAMERA_LEAD);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer = new THREE.WebGLRenderer({ antialias: !IS_MOBILE, alpha: true });
+  renderer.setPixelRatio(IS_MOBILE ? 1 : Math.min(devicePixelRatio, 2));
   renderer.setSize(w, h);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1544,20 +1807,24 @@ function buildElementMeshes() {
       meshRecords.push(mesh);
 
       if (def.src) {
-        loadTex(def.src).then(tex => {
-          if (!tex) return;
-          mat.map = tex; mat.needsUpdate = true;
-          const ar = tex.image.width / tex.image.height || 1;
-          mesh._imgAspect = ar;
-          const [pw, meshH] = meshContainSize(def, ar, getWorldWidth());
-          const ms = (hFrac >= 1 && (def.w || 0) >= 100) ? 1.0 : MOBILE_SCALE;
-          mesh.scale.set(pw * ms, meshH * ms, 1);
-          mesh._baseScale = mesh.scale.clone();
-          if (hFrac === 0) {
-            const newY = -WORLD_H / 2 + bottomFrac * WORLD_H + meshH * ms / 2;
-            mesh.position.y = newY; mesh._baseY = newY;
-          }
-        });
+        if (IS_MOBILE) {
+          mesh._needsTex = true; // load on-demand in render loop
+        } else {
+          loadTex(def.src).then(tex => {
+            if (!tex) return;
+            mat.map = tex; mat.needsUpdate = true;
+            const ar = tex.image.width / tex.image.height || 1;
+            mesh._imgAspect = ar;
+            const [pw, meshH] = meshContainSize(def, ar, getWorldWidth());
+            const ms = (hFrac >= 1 && (def.w || 0) >= 100) ? 1.0 : MOBILE_SCALE;
+            mesh.scale.set(pw * ms, meshH * ms, 1);
+            mesh._baseScale = mesh.scale.clone();
+            if (hFrac === 0) {
+              const newY = -WORLD_H / 2 + bottomFrac * WORLD_H + meshH * ms / 2;
+              mesh.position.y = newY; mesh._baseY = newY;
+            }
+          });
+        }
       }
     });
   });
@@ -1676,18 +1943,26 @@ function layoutNodes() {
 // ═══════════════════════════════════════════════
 
 const starData = [];
-const NUM_STARS = 80;
-let starCtx = null, starsFrame = 0, _starOp = -1;
+const NUM_STARS = IS_MOBILE ? 30 : 100;
+let starCtx = null, starsFrame = 0, _starOp = -1, _starPrevMs = null;
 
 function initStars() {
   starData.length = 0;
+  _starPrevMs = null;
   starCtx = starsCanvas.getContext('2d');
   const { w, h } = getStageSize();
   starsCanvas.width = w; starsCanvas.height = h;
   for (let i = 0; i < NUM_STARS; i++)
-    starData.push({ x: Math.random(), y: Math.random() * 0.62,
-      r: Math.random() * 1.5 + 0.5, phase: Math.random() * Math.PI * 2,
-      freq: Math.random() * 0.8 + 0.3 });
+    starData.push({
+      x:     Math.random(),
+      y:     Math.random() * 0.65,
+      r:     Math.random() * 1.5 + 0.4,
+      phase: Math.random() * Math.PI * 2,
+      freq:  Math.random() * 0.8 + 0.2,
+      dx:    (Math.random() - 0.5) * 0.000014,
+      dy:    (Math.random() - 0.5) * 0.000005,
+      bright: i < 14,
+    });
 }
 
 function drawStars(t) {
@@ -1695,11 +1970,39 @@ function drawStars(t) {
   const w = starsCanvas.width, h = starsCanvas.height;
   starCtx.clearRect(0, 0, w, h);
   if (starsOpacity < 0.01) return;
-  starCtx.fillStyle = '#fff8dc';
+
+  // recover raw ms from scaled t (render passes time * 0.0005)
+  const rawMs = t / 0.0005;
+  const dt = _starPrevMs === null ? 32 : Math.min(rawMs - _starPrevMs, 80);
+  _starPrevMs = rawMs;
+
   for (let i = 0; i < NUM_STARS; i++) {
     const s = starData[i];
-    starCtx.globalAlpha = starsOpacity * (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(s.phase + t * s.freq)));
-    starCtx.fillRect(s.x * w - s.r, s.y * h - s.r, s.r * 2, s.r * 2);
+    s.x = (s.x + s.dx * dt + 1) % 1;
+    s.y = (s.y + s.dy * dt + 1) % 1;
+
+    const pulse = 0.5 + 0.5 * Math.sin(s.phase + t * s.freq);
+
+    if (s.bright) {
+      const alpha = starsOpacity * (0.45 + 0.55 * pulse);
+      const sx = s.x * w, sy = s.y * h;
+      const grd = starCtx.createRadialGradient(sx, sy, 0, sx, sy, s.r * 5);
+      grd.addColorStop(0,   `rgba(255,248,210,${(alpha * 0.95).toFixed(3)})`);
+      grd.addColorStop(0.35,`rgba(240,208,128,${(alpha * 0.28).toFixed(3)})`);
+      grd.addColorStop(1,   'rgba(240,200,100,0)');
+      starCtx.fillStyle = grd;
+      starCtx.globalAlpha = 1;
+      starCtx.beginPath();
+      starCtx.arc(sx, sy, s.r * 5, 0, Math.PI * 2);
+      starCtx.fill();
+      starCtx.fillStyle = '#fffbea';
+      starCtx.globalAlpha = alpha;
+      starCtx.fillRect(sx - s.r * 0.7, sy - s.r * 0.7, s.r * 1.4, s.r * 1.4);
+    } else {
+      starCtx.fillStyle = '#fff8dc';
+      starCtx.globalAlpha = starsOpacity * (0.3 + 0.7 * pulse);
+      starCtx.fillRect(s.x * w - s.r, s.y * h - s.r, s.r * 2, s.r * 2);
+    }
   }
   starCtx.globalAlpha = 1;
 }
@@ -1709,6 +2012,41 @@ function drawStars(t) {
 // ═══════════════════════════════════════════════
 
 let prevSceneIdx = -1;
+let _mobileTexFrame = 0; // throttle mobile texture management
+
+function applyTexToMesh(mesh, tex) {
+  if (!tex) return;
+  mesh.material.map = tex; mesh.material.needsUpdate = true;
+  mesh._texFade = 0; // start fade-in from 0
+  const ar = tex.image.width / tex.image.height || 1;
+  mesh._imgAspect = ar;
+  const [pw, meshH] = meshContainSize(mesh._def, ar, getWorldWidth());
+  const hFrac = mesh._hFrac;
+  const ms = (hFrac >= 1 && (mesh._def.w || 0) >= 100) ? 1.0 : MOBILE_SCALE;
+  mesh.scale.set(pw * ms, meshH * ms, 1);
+  mesh._baseScale = mesh.scale.clone();
+  if (hFrac === 0) {
+    const newY = -WORLD_H / 2 + (mesh._def.bottom || 0) * WORLD_H + meshH * ms / 2;
+    mesh.position.y = newY; mesh._baseY = newY;
+  }
+}
+
+function manageMobileTextures(nearIdx) {
+  for (const mesh of meshRecords) {
+    const dist = Math.abs(mesh._sceneIdx - nearIdx);
+    if (dist <= 1 && mesh._needsTex && mesh._def.src) {
+      mesh._needsTex = false;
+      loadTex(mesh._def.src).then(tex => applyTexToMesh(mesh, tex));
+    } else if (dist > 2 && mesh.material.map) {
+      // Dispose texture and free GPU memory
+      const src = mesh._def.src;
+      mesh.material.map = null;
+      mesh.material.needsUpdate = true;
+      mesh._needsTex = true;
+      if (texCache[src]) { texCache[src].dispose(); delete texCache[src]; }
+    }
+  }
+}
 
 function render(time) {
   requestAnimationFrame(render);
@@ -1754,6 +2092,12 @@ function render(time) {
   starsFrame++;
   if (starsOpacity > 0.01 && (starsFrame & 1) === 0) drawStars(time * 0.0005);
 
+  // Mobile: lazy-load/evict textures based on proximity (every 30 frames)
+  if (IS_MOBILE && appState === 'diorama') {
+    _mobileTexFrame++;
+    if (_mobileTexFrame % 30 === 0) manageMobileTextures(clampedIdx);
+  }
+
   for (let i = 0; i < meshRecords.length; i++) {
     const mesh  = meshRecords[i];
     const depth = mesh._sceneIdx - wp;
@@ -1779,7 +2123,14 @@ function render(time) {
     else if (dist > SCENE_Z * 1.5)  opF = Math.max(0, 1 - (dist - SCENE_Z * 1.5) / (SCENE_Z * 1.0));
     else opF = 1;
 
-    mesh.material.opacity = opT + (opF - opT) * blend;
+    // On mobile: hide until texture loaded, then fade in
+    let texMul = 1;
+    if (IS_MOBILE) {
+      if (!mesh.material.map) { mesh.material.opacity = 0; continue; }
+      if (mesh._texFade < 1) mesh._texFade = Math.min(1, (mesh._texFade || 0) + 0.04);
+      texMul = mesh._texFade;
+    }
+    mesh.material.opacity = (opT + (opF - opT) * blend) * texMul;
 
     // Scale parallax driven by per-element def.parallax (0=none, 1=normal, 2=max)
     // Linear (no abs): grows on approach, continues growing past camera → no direction flip
@@ -2159,23 +2510,75 @@ function init() {
   resize();
   window.addEventListener('resize', resize);
 
-  const stars = Array.from({ length: 140 }, () => ({
-    x: Math.random(), y: Math.random(),
-    r: Math.random() * 1.3 + 0.3,
+  // Regular small stars — slow drift + twinkle
+  const stars = Array.from({ length: 220 }, () => ({
+    x:     Math.random(),
+    y:     Math.random(),
+    r:     Math.random() * 1.1 + 0.2,
     phase: Math.random() * Math.PI * 2,
-    freq:  Math.random() * 0.4 + 0.15,
+    freq:  Math.random() * 0.6 + 0.1,
+    dx:    (Math.random() - 0.5) * 0.000018,  // horizontal drift speed (fraction/ms)
+    dy:    (Math.random() - 0.5) * 0.000008,
+    bright: false,
   }));
 
+  // A handful of bright, slowly-pulsing stars
+  const brightStars = Array.from({ length: 18 }, () => ({
+    x:     Math.random(),
+    y:     Math.random(),
+    r:     Math.random() * 1.8 + 1.0,
+    phase: Math.random() * Math.PI * 2,
+    freq:  Math.random() * 0.25 + 0.07,
+    dx:    (Math.random() - 0.5) * 0.000012,
+    dy:    (Math.random() - 0.5) * 0.000006,
+  }));
+
+  let prev = null;
   let alive = true;
+
   function draw(t) {
     if (!alive) return;
+    const dt = prev === null ? 16 : Math.min(t - prev, 50);
+    prev = t;
+
     const w = canvas.width, h = canvas.height;
     ctx.clearRect(0, 0, w, h);
+
+    // Regular stars
     ctx.fillStyle = '#fff8dc';
     for (const s of stars) {
-      ctx.globalAlpha = 0.1 + 0.5 * (0.5 + 0.5 * Math.sin(s.phase + t * s.freq * 0.001));
+      s.x = (s.x + s.dx * dt + 1) % 1;
+      s.y = (s.y + s.dy * dt + 1) % 1;
+      const alpha = 0.08 + 0.42 * (0.5 + 0.5 * Math.sin(s.phase + t * s.freq * 0.001));
+      ctx.globalAlpha = alpha;
       ctx.fillRect(s.x * w - s.r, s.y * h - s.r, s.r * 2, s.r * 2);
     }
+
+    // Bright stars — drawn as small glows
+    for (const s of brightStars) {
+      s.x = (s.x + s.dx * dt + 1) % 1;
+      s.y = (s.y + s.dy * dt + 1) % 1;
+      const pulse = 0.5 + 0.5 * Math.sin(s.phase + t * s.freq * 0.001);
+      const alpha = 0.3 + 0.55 * pulse;
+      const sx = s.x * w, sy = s.y * h;
+
+      // Soft glow
+      const grd = ctx.createRadialGradient(sx, sy, 0, sx, sy, s.r * 4);
+      grd.addColorStop(0,   `rgba(255,248,210,${(alpha * 0.9).toFixed(3)})`);
+      grd.addColorStop(0.4, `rgba(240,208,128,${(alpha * 0.3).toFixed(3)})`);
+      grd.addColorStop(1,   'rgba(240,200,100,0)');
+      ctx.fillStyle = grd;
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(sx, sy, s.r * 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Core dot
+      ctx.fillStyle = '#fffbea';
+      ctx.globalAlpha = alpha;
+      ctx.fillRect(sx - s.r * 0.6, sy - s.r * 0.6, s.r * 1.2, s.r * 1.2);
+    }
+
     ctx.globalAlpha = 1;
     requestAnimationFrame(draw);
   }
@@ -2227,52 +2630,112 @@ function preloadImageBatch(urls, onProgress) {
   let done = 0;
   const total = urls.length;
   if (!total) { onProgress(1); return Promise.resolve(); }
+
+  if (IS_MOBILE) {
+    // On mobile: load sequentially in small batches to avoid OOM crash
+    const BATCH = 3;
+    const arr = [...urls];
+    let i = 0;
+    const next = () => {
+      if (i >= arr.length) { onProgress(1); return Promise.resolve(); }
+      const chunk = arr.slice(i, i + BATCH).map(src => new Promise(res => {
+        if (!src) { onProgress(++done / total); res(); return; }
+        const img = new Image();
+        img.onload = img.onerror = () => { onProgress(++done / total); res(); };
+        img.src = src;
+      }));
+      i += BATCH;
+      return Promise.all(chunk).then(next);
+    };
+    return next();
+  }
+
+  // Desktop: load all in parallel + decode
   return Promise.all(urls.map(src => new Promise(res => {
     if (!src) { onProgress(++done / total); res(); return; }
     const img = new Image();
-    img.onload = img.onerror = () => { onProgress(++done / total); res(); };
+    const finish = () => { onProgress(++done / total); res(); };
+    img.onerror = finish;
+    img.onload = () => (img.decode ? img.decode().then(finish).catch(finish) : finish());
     img.src = src;
   })));
+}
+
+function startLoaderQuotes() {
+  if (!SCENES.length) return;
+  const wrap  = document.getElementById('loader-quote');
+  const dateEl  = document.getElementById('loader-quote-date');
+  const titleEl = document.getElementById('loader-quote-title');
+  const subEl   = document.getElementById('loader-quote-sub');
+
+  // pick scenes that have at least a title
+  const pool = SCENES.filter(sc => sc.title);
+  if (!pool.length) return;
+
+  let idx = 0;
+
+  function show(i) {
+    const sc = pool[i % pool.length];
+    wrap.style.opacity = '0';
+    setTimeout(() => {
+      dateEl.textContent  = sc.date || sc.year || '';
+      titleEl.textContent = sc.title || '';
+      subEl.textContent   = sc.subtitle || '';
+      wrap.style.opacity  = '1';
+    }, 900);
+  }
+
+  show(0);
+  return setInterval(() => { idx = (idx + 1) % pool.length; show(idx); }, 5000);
 }
 
 async function boot() {
   setLoaderProgress(4);
 
   await fetchScenes();
-  setLoaderProgress(14);
+  setLoaderProgress(10);
 
-  // Phase 1: load panorama images only — show it ASAP
-  const panoUrls = new Set();
-  if (PANORAMA.bg) panoUrls.add(PANORAMA.bg);
-  (PANORAMA.elements || []).forEach(el => { if (el.src && el.type !== 'zone') panoUrls.add(el.src); });
+  // Start cycling scene quotes while images load
+  const quoteTimer = startLoaderQuotes();
 
-  await preloadImageBatch([...panoUrls], frac => setLoaderProgress(14 + frac * 56));
+  if (IS_MOBILE) {
+    // Mobile: only preload panorama to save RAM, scenes load lazily
+    const panoUrls = new Set();
+    if (PANORAMA.bg) panoUrls.add(PANORAMA.bg);
+    (PANORAMA.elements || []).forEach(el => { if (el.src && el.type !== 'zone') panoUrls.add(el.src); });
+    await preloadImageBatch([...panoUrls], frac => setLoaderProgress(10 + frac * 75));
+  } else {
+    // Desktop: preload everything for smooth experience
+    const allUrls = new Set();
+    if (PANORAMA.bg) allUrls.add(PANORAMA.bg);
+    (PANORAMA.elements || []).forEach(el => { if (el.src && el.type !== 'zone') allUrls.add(el.src); });
+    SCENES.forEach(sc => {
+      if (sc.bg) allUrls.add(sc.bg);
+      (sc.elements || []).forEach(el => { if (el.src) allUrls.add(el.src); });
+    });
+    await preloadImageBatch([...allUrls], frac => setLoaderProgress(10 + frac * 60));
 
-  setLoaderProgress(72);
+    // Pre-load Three.js textures into GPU cache
+    const texUrls = new Set();
+    SCENES.forEach(sc => (sc.elements || []).forEach(el => { if (el.src) texUrls.add(el.src); }));
+    const texArr = [...texUrls];
+    await Promise.all(texArr.map((src, i) =>
+      loadTex(src).then(() => setLoaderProgress(70 + (i + 1) / (texArr.length || 1) * 17))
+    ));
+  }
+
+  setLoaderProgress(89);
   init();
-  setLoaderProgress(85);
+  setLoaderProgress(95);
 
-  await waitLoaderReaches(84);
+  await waitLoaderReaches(94);
 
+  clearInterval(quoteTimer);
   _lDone = true;
   const loaderEl = document.getElementById('loader');
   loaderEl.classList.add('fade-out');
   if (window._stopLoaderStars) window._stopLoaderStars();
-  setTimeout(() => { loaderEl.style.display = 'none'; }, 1050);
-
-  // Phase 2: load scene images lazily in background while user browses panorama
-  const sceneUrls = new Set();
-  SCENES.forEach(sc => {
-    if (sc.bg) sceneUrls.add(sc.bg);
-    (sc.elements || []).forEach(el => { if (el.src) sceneUrls.add(el.src); });
-  });
-  // Load in small batches to avoid blocking
-  const sceneArr = [...sceneUrls];
-  const BATCH = 4;
-  for (let i = 0; i < sceneArr.length; i += BATCH) {
-    await preloadImageBatch(sceneArr.slice(i, i + BATCH), () => {});
-    await new Promise(r => setTimeout(r, 60)); // yield to browser
-  }
+  setTimeout(() => { loaderEl.style.display = 'none'; showPanoGuide(); }, 1050);
 }
 
 // Re-fetch data when user switches back to this tab (e.g. after changing preset in admin)
@@ -2346,7 +2809,6 @@ function applyLang(lang) {
   set('panorama-empty-msg',   t.panoEmpty);
   set('back-btn',             t.backBtn);
   set('detail-btn-label',     t.detailBtnLabel || t.detailBtn);
-  set('detail-close',         t.detailClose);
   set('obj-panel-close',      t.objClose + ' ');
   set('hint',                 t.hint);
   document.querySelectorAll('[data-lang-btn]').forEach(b => {
@@ -2368,5 +2830,116 @@ function applyLang(lang) {
   applyLang(currentLang);
 })();
 </script>
+
+<!-- MUSIC PLAYER -->
+<audio id="bg-music" loop preload="auto">
+  <source src="/uploads/Full Version.mp3" type="audio/mpeg">
+</audio>
+
+<!-- tap-to-start hint -->
+<div id="music-tap">
+  <div id="music-tap-inner">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.3"/><circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.3"/></svg>
+    <span>Tap to play music</span>
+  </div>
+</div>
+
+<div id="music-btn" title="Music">
+  <svg id="music-icon-on" viewBox="0 0 24 24" fill="none">
+    <path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.5"/>
+  </svg>
+  <svg id="music-icon-off" viewBox="0 0 24 24" fill="none" style="display:none">
+    <path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.5"/>
+    <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.5"/>
+    <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  <div id="music-vol-wrap">
+    <input id="music-vol" type="range" min="0" max="100" value="60" orient="vertical">
+  </div>
+</div>
+
+<script>
+(function() {
+  const audio     = document.getElementById('bg-music');
+  const btn       = document.getElementById('music-btn');
+  const volWrap   = document.getElementById('music-vol-wrap');
+  const iconOn    = document.getElementById('music-icon-on');
+  const iconOff   = document.getElementById('music-icon-off');
+  const volSlider = document.getElementById('music-vol');
+  const tapHint   = document.getElementById('music-tap');
+
+  audio.volume = 0.6;
+  let muted = false;
+  let hideTimer = null;
+
+  function setMuted(val) {
+    muted = val;
+    audio.muted = val;
+    iconOn.style.display  = val ? 'none' : '';
+    iconOff.style.display = val ? ''     : 'none';
+  }
+
+  function showVol() {
+    clearTimeout(hideTimer);
+    volWrap.style.display = 'flex';
+  }
+  function scheduleHide() {
+    hideTimer = setTimeout(() => { volWrap.style.display = 'none'; }, 300);
+  }
+
+  btn.addEventListener('mouseenter', showVol);
+  btn.addEventListener('mouseleave', scheduleHide);
+  volWrap.addEventListener('mouseenter', showVol);
+  volWrap.addEventListener('mouseleave', scheduleHide);
+
+  // Toggle mute on button click (not slider)
+  btn.addEventListener('click', (e) => {
+    if (e.target === volSlider) return;
+    setMuted(!muted);
+    if (!muted && audio.paused) audio.play();
+  });
+
+  volSlider.addEventListener('input', () => {
+    const v = volSlider.value / 100;
+    audio.volume = v;
+    if (v > 0 && muted) setMuted(false);
+    if (v === 0) setMuted(true);
+  });
+  volSlider.addEventListener('click', e => e.stopPropagation());
+
+  // Tap-to-start overlay
+  function hideTapHint() {
+    tapHint.style.opacity = '0';
+    setTimeout(() => { tapHint.style.display = 'none'; }, 700);
+  }
+
+  function startMusic() {
+    audio.play().then(() => {
+      hideTapHint();
+    }).catch(() => {});
+  }
+
+  // Try autoplay first
+  audio.play().then(() => {
+    hideTapHint();
+  }).catch(() => {
+    // Show tap hint, start on first interaction
+    tapHint.style.display = 'flex';
+    const onInteract = () => {
+      startMusic();
+      document.removeEventListener('click',      onInteract);
+      document.removeEventListener('touchstart', onInteract);
+      document.removeEventListener('keydown',    onInteract);
+    };
+    document.addEventListener('click',      onInteract, { once: true });
+    document.addEventListener('touchstart', onInteract, { once: true });
+    document.addEventListener('keydown',    onInteract, { once: true });
+  });
+})();
+</script>
+
 </body>
 </html>

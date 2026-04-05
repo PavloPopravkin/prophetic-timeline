@@ -200,7 +200,7 @@
           "anim": "zoom",
           "speed": 0.7,
           "softEdge": 13,
-          "w": 95,
+          "w": 0,
           "parallax": 1
         }
       ]

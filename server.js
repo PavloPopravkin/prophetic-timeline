@@ -6,6 +6,21 @@ const path    = require('path');
 const app  = express();
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
+
+const ADMIN_USER = process.env.ADMIN_USER || 'timelineAdmin';
+const ADMIN_PASS = process.env.ADMIN_PASS || 'hwbUNWHqR9N4mT';
+
+function basicAuth(req, res, next) {
+  const header = req.headers['authorization'];
+  if (!header || !header.startsWith('Basic ')) {
+    res.set('WWW-Authenticate', 'Basic realm="Timeline Admin"');
+    return res.status(401).send('Unauthorized');
+  }
+  const [user, pass] = Buffer.from(header.slice(6), 'base64').toString().split(':');
+  if (user === ADMIN_USER && pass === ADMIN_PASS) return next();
+  res.set('WWW-Authenticate', 'Basic realm="Timeline Admin"');
+  return res.status(401).send('Unauthorized');
+}
 const SCENES_FILE = path.join(ROOT, 'scenes.json');
 const PANORAMA_FILE = path.join(ROOT, 'panorama.json');
 const UPLOADS_DIR = path.join(ROOT, 'uploads');
@@ -36,7 +51,7 @@ app.get('/api/scenes', (_req, res) => {
   }
 });
 
-app.put('/api/scenes', (req, res) => {
+app.put('/api/scenes', basicAuth, (req, res) => {
   try {
     fs.writeFileSync(SCENES_FILE, JSON.stringify(req.body, null, 2), 'utf8');
     res.json({ ok: true });
@@ -54,7 +69,7 @@ app.get('/api/panorama', (_req, res) => {
   }
 });
 
-app.put('/api/panorama', (req, res) => {
+app.put('/api/panorama', basicAuth, (req, res) => {
   try {
     fs.writeFileSync(PANORAMA_FILE, JSON.stringify(req.body, null, 2), 'utf8');
     res.json({ ok: true });
@@ -64,7 +79,7 @@ app.put('/api/panorama', (req, res) => {
 });
 
 // ── API: upload image ───────────────────────────────────────
-app.post('/api/upload', upload.single('file'), (req, res) => {
+app.post('/api/upload', basicAuth, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file' });
   res.json({ path: '/uploads/' + req.file.filename, name: req.file.originalname });
 });
@@ -130,7 +145,7 @@ app.get('/api/presets', (_req, res) => {
   res.json(files);
 });
 
-app.post('/api/presets/:name/load', (req, res) => {
+app.post('/api/presets/:name/load', basicAuth, (req, res) => {
   const scenesFile = path.join(ROOT, `scenes.${req.params.name}.json`);
   if (!fs.existsSync(scenesFile)) return res.status(404).json({ error: 'Not found' });
   try {
@@ -144,7 +159,7 @@ app.post('/api/presets/:name/load', (req, res) => {
   }
 });
 
-app.post('/api/presets/:name/save', (req, res) => {
+app.post('/api/presets/:name/save', basicAuth, (req, res) => {
   const scenesFile = path.join(ROOT, `scenes.${req.params.name}.json`);
   try {
     fs.copyFileSync(SCENES_FILE, scenesFile);
@@ -157,7 +172,7 @@ app.post('/api/presets/:name/save', (req, res) => {
 });
 
 // ── Admin panel shortcut ────────────────────────────────────
-app.get('/admin', (_req, res) => {
+app.get('/admin', basicAuth, (_req, res) => {
   res.sendFile(path.join(ROOT, 'admin.html'));
 });
 
