@@ -155,9 +155,9 @@ body {
 
 .yt-bg-container {
   position: absolute;
-  inset: -5%;
-  width: 110%;
-  height: 110%;
+  inset: -25%;
+  width: 150%;
+  height: 150%;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.8s ease;
@@ -2828,6 +2828,13 @@ if (document.readyState === 'loading')
   document.addEventListener('DOMContentLoaded', boot);
 else
   boot();
+
+// ── Background scale parallax on vertical scroll ──
+appView.addEventListener('scroll', () => {
+  const scrollY = appView.scrollTop;
+  const scale = 1 + scrollY * 0.00012; // gentle zoom-in as user scrolls
+  layerBg.style.transform = `scale(${scale})`;
+}, { passive: true });
 
 // ═══════════════════════════════════════════════
 //  YOUTUBE PLAYER API
