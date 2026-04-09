@@ -310,9 +310,9 @@ app.post('/api/name-image', basicAuth, async (req, res) => {
   const { imageBase64 } = req.body;
   if (!imageBase64) return res.status(400).json({ error: 'No image' });
 
-  const AZURE_KEY      = process.env.OPENAI_API_KEY  || 'REDACTED_AZURE_KEY';
-  const AZURE_BASE     = process.env.OPENAI_BASE_URL  || 'https://adventugorg.openai.azure.com/openai/v1';
-  const AZURE_MODEL    = process.env.OPENAI_MODEL     || 'gpt-5.3-chat';
+  const AZURE_KEY      = process.env.AZURE_API_KEY;
+  const AZURE_BASE     = process.env.AZURE_BASE_URL;
+  const AZURE_MODEL    = process.env.AZURE_MODEL;
 
   const payload = JSON.stringify({
     model: AZURE_MODEL,
