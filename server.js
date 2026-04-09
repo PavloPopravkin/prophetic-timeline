@@ -1,7 +1,19 @@
-const express = require('express');
-const multer  = require('multer');
-const fs      = require('fs');
-const path    = require('path');
+const express  = require('express');
+const multer   = require('multer');
+const fs       = require('fs');
+const path     = require('path');
+const https    = require('https');
+const http     = require('http');
+const { spawn } = require('child_process');
+
+// Load .env if present (no dotenv dependency needed)
+try {
+  fs.readFileSync(path.join(__dirname, '.env'), 'utf8')
+    .split('\n').forEach(line => {
+      const m = line.match(/^([A-Z_]+)\s*=\s*(.+)$/);
+      if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim();
+    });
+} catch (_) {}
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -174,6 +186,230 @@ app.post('/api/presets/:name/save', basicAuth, (req, res) => {
 // ── Admin panel shortcut ────────────────────────────────────
 app.get('/admin', basicAuth, (_req, res) => {
   res.sendFile(path.join(ROOT, 'admin.html'));
+});
+
+// ── API: remove background (AI) ────────────────────────────
+app.post('/api/remove-bg', basicAuth, (req, res) => {
+  const { src, model = 'u2net', points, rect } = req.body;
+  if (!src) return res.status(400).json({ error: 'src required' });
+
+  const inputPath = path.join(ROOT, src.replace(/^\//, ''));
+  if (!fs.existsSync(inputPath)) return res.status(404).json({ error: 'File not found: ' + src });
+
+  const base    = path.basename(inputPath, path.extname(inputPath)).replace(/_no_bg.*$/, '');
+  const outName = base + '_no_bg_' + Date.now() + '.webp';
+  const outPath = path.join(UPLOADS_DIR, outName);
+
+  const args = [path.join(ROOT, 'remove_bg.py'), inputPath, '--output', outPath, '--model', model];
+  if (points) points.split(';').filter(Boolean).forEach(p => args.push('--point', p.trim()));
+  if (rect)   args.push('--rect', rect.trim());
+
+  let stderr = '';
+  const proc = spawn('python3', args, { cwd: ROOT });
+  proc.stderr.on('data', d => { stderr += d; });
+  proc.on('close', code => {
+    if (code !== 0 || !fs.existsSync(outPath))
+      return res.status(500).json({ error: stderr.split('\n').filter(Boolean).pop() || 'Failed' });
+    res.json({ ok: true, path: '/uploads/' + outName });
+  });
+});
+
+// ── API: image search (Pexels / Pixabay proxy) ─────────────
+app.get('/api/image-search', (_req, res) => {
+  const q      = (_req.query.q || '').trim();
+  const source = (_req.query.source || 'pexels').toLowerCase();
+  const limit  = Math.min(parseInt(_req.query.limit) || 80, 80);
+  const page   = Math.max(parseInt(_req.query.page)  || 1, 1);
+  if (!q) return res.status(400).json({ error: 'q required' });
+
+  if (source === 'pixabay') {
+    const key = process.env.PIXABAY_API_KEY;
+    if (!key) return res.status(503).json({ error: 'PIXABAY_API_KEY not set' });
+    const url = `https://pixabay.com/api/?key=${key}&q=${encodeURIComponent(q)}&image_type=photo&per_page=${limit}&page=${page}&safesearch=true`;
+    _httpsGet(url, {}, (err, data) => {
+      if (err) return res.status(502).json({ error: err });
+      const hits = (data.hits || []).map(h => ({
+        id: h.id, url: h.largeImageURL, thumb: h.webformatURL,
+        width: h.imageWidth, height: h.imageHeight,
+        description: h.tags, author: h.user, source: 'pixabay', page_url: h.pageURL,
+      }));
+      res.json({ source: 'pixabay', query: q, results: hits });
+    });
+
+  } else {
+    const key = process.env.PEXELS_API_KEY;
+    if (!key) return res.status(503).json({ error: 'PEXELS_API_KEY not set' });
+    const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(q)}&per_page=${limit}&page=${page}`;
+    _httpsGet(url, { Authorization: key }, (err, data) => {
+      if (err) return res.status(502).json({ error: err });
+      const photos = (data.photos || []).map(p => ({
+        id: p.id, url: p.src.large2x || p.src.large || p.src.original,
+        thumb: p.src.medium, width: p.width, height: p.height,
+        description: p.alt || '', author: p.photographer,
+        source: 'pexels', page_url: p.url,
+      }));
+      res.json({ source: 'pexels', query: q, results: photos });
+    });
+  }
+});
+
+function _httpsGet(url, headers, cb) {
+  const mod = url.startsWith('https') ? https : http;
+  const opts = Object.assign(require('url').parse(url), { headers });
+  let raw = '';
+  mod.get(opts, r => {
+    r.on('data', c => raw += c);
+    r.on('end', () => {
+      try { cb(null, JSON.parse(raw)); }
+      catch(e) { cb('Invalid JSON from upstream'); }
+    });
+  }).on('error', e => cb(e.message));
+}
+
+// ── API: fetch remote image → uploads ──────────────────────
+app.post('/api/image-fetch', basicAuth, async (req, res) => {
+  const { url, filename } = req.body;
+  if (!url) return res.status(400).json({ error: 'url required' });
+
+  const ext  = (url.split('?')[0].match(/\.(jpg|jpeg|png|webp|gif)$/i) || ['', '.jpg'])[1].toLowerCase();
+  const safe = (filename || path.basename(url.split('?')[0])).replace(/[^\w.\-]/g, '_').replace(/\.[^.]+$/, '');
+  const outName = Date.now() + '_' + safe + ext;
+  const outPath = path.join(UPLOADS_DIR, outName);
+
+  const mod = url.startsWith('https') ? https : http;
+  const file = fs.createWriteStream(outPath);
+
+  const doFetch = (fetchUrl, redirects = 0) => {
+    if (redirects > 5) { file.destroy(); return res.status(502).json({ error: 'Too many redirects' }); }
+    const parsedUrl = require('url').parse(fetchUrl);
+    const fetchMod  = fetchUrl.startsWith('https') ? https : http;
+    fetchMod.get(parsedUrl, r => {
+      if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
+        return doFetch(r.headers.location, redirects + 1);
+      }
+      if (r.statusCode !== 200) {
+        file.destroy();
+        return res.status(502).json({ error: `Upstream returned ${r.statusCode}` });
+      }
+      r.pipe(file);
+      file.on('finish', () => {
+        file.close();
+        res.json({ ok: true, path: '/uploads/' + outName });
+      });
+    }).on('error', e => {
+      file.destroy();
+      fs.unlink(outPath, () => {});
+      res.status(502).json({ error: e.message });
+    });
+  };
+  doFetch(url);
+});
+
+// ── API: name image with Azure OpenAI vision ────────────────
+app.post('/api/name-image', basicAuth, async (req, res) => {
+  const { imageBase64 } = req.body;
+  if (!imageBase64) return res.status(400).json({ error: 'No image' });
+
+  const AZURE_KEY      = process.env.OPENAI_API_KEY  || 'REDACTED_AZURE_KEY';
+  const AZURE_BASE     = process.env.OPENAI_BASE_URL  || 'https://adventugorg.openai.azure.com/openai/v1';
+  const AZURE_MODEL    = process.env.OPENAI_MODEL     || 'gpt-5.3-chat';
+
+  const payload = JSON.stringify({
+    model: AZURE_MODEL,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'text', text: 'Describe this image in 3-5 English words suitable as a filename. Only output the words, lowercase, separated by underscores. No punctuation. Examples: angel_in_light, warrior_with_sword, nativity_scene_star.' },
+        { type: 'image_url', image_url: { url: imageBase64 } }
+      ]
+    }],
+    max_tokens: 30
+  });
+
+  try {
+    const url = new URL(AZURE_BASE + '/chat/completions');
+    const result = await new Promise((resolve, reject) => {
+      const options = {
+        hostname: url.hostname,
+        path:     url.pathname + url.search,
+        method:   'POST',
+        headers:  {
+          'Content-Type':   'application/json',
+          'api-key':        AZURE_KEY,
+          'Authorization':  'Bearer ' + AZURE_KEY,
+          'Content-Length': Buffer.byteLength(payload),
+        },
+      };
+      const r = https.request(options, resp => {
+        let body = '';
+        resp.on('data', c => body += c);
+        resp.on('end', () => resolve({ status: resp.statusCode, body }));
+      });
+      r.on('error', reject);
+      r.write(payload);
+      r.end();
+    });
+    const data = JSON.parse(result.body);
+    const raw  = (data.choices?.[0]?.message?.content || '').trim();
+    const name = raw.replace(/[^a-z0-9_]/gi, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').toLowerCase() || 'edited_image';
+    res.json({ name });
+  } catch (e) {
+    res.json({ name: 'edited_image' });
+  }
+});
+
+// ── API: AI Image Generation (MAI-Image-2 via Azure) ────────
+app.post('/api/generate-image', basicAuth, async (req, res) => {
+  const { prompt, size = '1024x1024', n = 1 } = req.body;
+  if (!prompt) return res.status(400).json({ error: 'prompt required' });
+
+  const apiKey = process.env.AZURE_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'AZURE_API_KEY not set' });
+
+  const body = JSON.stringify({ prompt, size, n, style: 'vivid', quality: 'standard' });
+
+  const options = {
+    hostname: 'dmytropopravkin-0944-resource.cognitiveservices.azure.com',
+    path: '/openai/deployments/MAI-Image-2/images/generations?api-version=2025-04-01-preview',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'api-key': apiKey,
+      'Content-Length': Buffer.byteLength(body),
+    },
+  };
+
+  const request = https.request(options, (response) => {
+    let data = '';
+    response.on('data', chunk => data += chunk);
+    response.on('end', () => {
+      try {
+        const json = JSON.parse(data);
+        if (json.error) return res.status(502).json({ error: json.error.message });
+
+        const item = json.data?.[0];
+        if (!item) return res.status(502).json({ error: 'No image in response' });
+
+        if (item.b64_json) {
+          // Save to uploads and return URL
+          const filename = `ai_${Date.now()}.png`;
+          const filepath = path.join(UPLOADS_DIR, filename);
+          fs.writeFileSync(filepath, Buffer.from(item.b64_json, 'base64'));
+          res.json({ url: `/uploads/${filename}`, filename });
+        } else if (item.url) {
+          res.json({ url: item.url });
+        } else {
+          res.status(502).json({ error: 'Unknown response format', raw: json });
+        }
+      } catch (e) {
+        res.status(502).json({ error: 'Parse error', raw: data.slice(0, 200) });
+      }
+    });
+  });
+
+  request.on('error', e => res.status(502).json({ error: e.message }));
+  request.write(body);
+  request.end();
 });
 
 app.listen(PORT, () => {

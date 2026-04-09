@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Scene 2 – Небо, вода и суша</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1440px; height: 810px; overflow: hidden;
+    background: #05080f;
+    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  #bg {
+    position: absolute; inset: 0;
+    background: url('/uploads/storm_ocean_sky_bg.jpg') center center / cover no-repeat;
+  }
+  #overlay-left {
+    position: absolute; top: 0; left: 0; width: 500px; height: 100%;
+    background: linear-gradient(to right, rgba(2,5,14,.90) 0%, rgba(2,5,14,.60) 60%, transparent 100%);
+    z-index: 1;
+  }
+  #overlay-right {
+    position: absolute; top: 0; right: 0; width: 440px; height: 100%;
+    background: linear-gradient(to left, rgba(2,5,14,.88) 0%, rgba(2,5,14,.55) 60%, transparent 100%);
+    z-index: 1;
+  }
+  #overlay-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 160px;
+    background: linear-gradient(to bottom, rgba(2,5,14,.50) 0%, transparent 100%);
+    z-index: 1;
+  }
+  #overlay-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 220px;
+    background: linear-gradient(to top, rgba(2,5,14,.65) 0%, transparent 100%);
+    z-index: 1;
+  }
+
+  /* ── Arch – main center element ── */
+  #arch {
+    position: absolute; z-index: 5;
+    bottom: 0;
+    left: 50%; transform: translateX(-50%);
+    height: 88%;
+    object-fit: contain;
+    filter: drop-shadow(0 30px 80px rgba(0,5,20,.8)) drop-shadow(0 0 60px rgba(255,200,100,.06));
+  }
+
+  /* ── Figure inside arch ── */
+  #figure {
+    position: absolute; z-index: 6;
+    bottom: 1%;
+    left: 50%; transform: translateX(-50%);
+    height: 28%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 30px rgba(0,5,20,.9));
+    opacity: .88;
+  }
+
+  /* ── Glow under arch ── */
+  #arch-glow {
+    position: absolute; z-index: 4;
+    bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 140px;
+    background: radial-gradient(ellipse, rgba(255,180,80,.08) 0%, transparent 70%);
+  }
+
+  /* ── LEFT TEXT ── */
+  #left {
+    position: absolute; z-index: 10;
+    left: 76px; top: 50%; transform: translateY(-52%);
+    width: 360px;
+  }
+  #eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .28em;
+    color: rgba(100,160,220,.7);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  #title {
+    font-size: 80px; font-weight: 900; line-height: .97;
+    color: #fff;
+    letter-spacing: -.03em;
+    margin-bottom: 44px;
+    text-shadow: 0 2px 20px rgba(0,0,0,.9), 0 0 60px rgba(0,0,0,.5);
+  }
+  #counter {
+    font-size: 13px; font-weight: 500; letter-spacing: .1em;
+    color: rgba(100,160,220,.4);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #counter strong { color: rgba(100,160,220,.8); font-size: 17px; font-weight: 700; }
+  #rule { width: 38px; height: 2px; background: rgba(100,160,220,.25); margin-top: 15px; }
+
+  /* ── RIGHT TEXT ── */
+  #right {
+    position: absolute; z-index: 10;
+    right: 72px; top: 50%; transform: translateY(-50%);
+    width: 310px;
+    display: flex; flex-direction: column; gap: 28px;
+  }
+  #quote {
+    font-size: 18px; font-weight: 300; line-height: 1.7;
+    color: rgba(200,220,255,.78);
+    text-shadow: 0 1px 16px rgba(0,0,0,.7);
+  }
+  #ref {
+    display: block; margin-top: 13px;
+    font-size: 12px; font-style: italic;
+    color: rgba(100,150,210,.55);
+    letter-spacing: .05em;
+  }
+  #cta {
+    display: inline-block;
+    padding: 14px 30px;
+    background: rgba(255,255,255,.06);
+    border: 1.5px solid rgba(100,160,220,.35);
+    border-radius: 50px;
+    color: rgba(180,210,255,.85);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .2em; text-transform: uppercase;
+    width: fit-content;
+  }
+
+  /* ── Brand ── */
+  #brand {
+    position: absolute; z-index: 10;
+    top: 26px; left: 76px;
+    font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
+    color: rgba(100,150,210,.35); font-weight: 500;
+  }
+
+  /* ── Progress ── */
+  #progress {
+    position: absolute; z-index: 10;
+    right: 26px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 9px; align-items: center;
+  }
+  .pdot { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,.15); }
+  .pdot.a { width: 4px; height: 22px; border-radius: 3px; background: rgba(100,160,220,.8); }
+
+  /* ── Scroll ── */
+  #scroll {
+    position: absolute; z-index: 10;
+    bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+  }
+  #scroll span { font-size: 9px; letter-spacing: .25em; text-transform: uppercase; color: rgba(100,150,210,.35); }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<div id="overlay-left"></div>
+<div id="overlay-right"></div>
+<div id="overlay-top"></div>
+<div id="overlay-bottom"></div>
+
+<div id="arch-glow"></div>
+<img id="arch"   src="/uploads/stone_arch_desert_no_bg_1775736862378.webp" alt="">
+<img id="figure" src="/uploads/figure_cloak_hill_no_bg_1775736927200.webp" alt="">
+
+<div id="brand">Духовная история человечества</div>
+
+<div id="left">
+  <div id="eyebrow">День второй и третий</div>
+  <h1 id="title">Небо,<br>вода<br>и суша</h1>
+  <div id="counter"><strong>02</strong> / 10</div>
+  <div id="rule"></div>
+</div>
+
+<div id="right">
+  <p id="quote">
+    «Он распростёр север<br>над пустотою, повесил<br>землю ни на чём»
+    <span id="ref">— Иов 26:7</span>
+  </p>
+  <div id="cta">Открыть сцену</div>
+</div>
+
+<div id="progress">
+  <div class="pdot"></div>
+  <div class="pdot a"></div>
+  <div class="pdot"></div>
+  <div class="pdot"></div>
+  <div class="pdot"></div>
+</div>
+
+<div id="scroll">
+  <span>далее</span>
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M7 2v10M3 8l4 4 4-4" stroke="rgba(100,160,220,.5)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>
+
+</body>
+</html>

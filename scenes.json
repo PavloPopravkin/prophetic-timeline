@@ -9,7 +9,24 @@
       "year": "Вечность",
       "bg": "/uploads/вариации_2K_202603191339-2.jpg",
       "night": true,
-      "elements": [],
+      "elements": [
+        {
+          "src": "/uploads/1775340501620_Layer_2.png",
+          "x": 0.819,
+          "h": 24,
+          "bottom": 0,
+          "anim": "fade",
+          "w": 17
+        },
+        {
+          "src": "/uploads/1775733253373_co-1775675332086-k9e67qt4w28_brush_1775733253371.png",
+          "x": 0.239,
+          "h": 83,
+          "bottom": 0,
+          "anim": "fade",
+          "w": 32
+        }
+      ],
       "bg_video": "https://www.youtube.com/watch?v=hZtnY9Air60"
     },
     {
@@ -23,18 +40,18 @@
       "elements": [
         {
           "src": "/uploads/0002.png",
-          "x": 0.45,
+          "x": 0.443,
           "h": 90,
-          "bottom": 0.04,
+          "bottom": 0.044,
           "anim": "zoom",
           "label": "Первый свет",
           "content": "<h3>Да будет свет</h3><p>Первое слово Творца — и тьма разошлась. Свет — не просто физическое явление, но образ Самого Бога. «Бог есть свет, и нет в Нём никакой тьмы» — 1 Ин 1:5.</p>"
         },
         {
           "src": "/uploads/0007.png",
-          "x": 0.72,
+          "x": 0.741,
           "h": 40,
-          "bottom": 0.15,
+          "bottom": 0.094,
           "anim": "float"
         },
         {
@@ -59,38 +76,27 @@
       "subtitle": "«Он распростёр север над пустотою, повесил землю ни на чём» — Иов 26:7",
       "date": "День второй и третий",
       "year": "День 2–3",
-      "bg": "/uploads/вариации_2K_202603191339-3.jpg",
-      "night": false,
+      "bg": "/uploads/storm_ocean_sky_bg.jpg",
+      "night": true,
       "elements": [
         {
-          "src": "/uploads/0005.png",
-          "x": 0.22,
-          "h": 70,
-          "bottom": 0.12,
-          "anim": "float"
-        },
-        {
-          "src": "/uploads/0003.png",
-          "x": 0.65,
-          "h": 55,
-          "bottom": 0.02
-        },
-        {
-          "src": "/uploads/3D Glass Flowers (12).png",
-          "x": 0.02,
-          "h": 40,
+          "src": "/uploads/stone_arch_desert_no_bg_1775736862378.webp",
+          "x": 0.5,
+          "h": 88,
           "bottom": 0,
-          "anim": "float"
+          "anim": "fade",
+          "label": "Разделение вод",
+          "content": "<h3>Небо, вода и суша</h3><p>«И сказал Бог: да будет твердь посреди воды, и да отделяет она воду от воды» — Бытие 1:6</p>"
         },
         {
-          "src": "/uploads/3D Glass Flowers (15).png",
-          "x": 0.78,
-          "h": 50,
-          "bottom": 0,
+          "src": "/uploads/figure_cloak_hill_no_bg_1775736927200.webp",
+          "x": 0.5,
+          "h": 32,
+          "bottom": 0.02,
           "anim": "float"
         }
       ],
-      "bg_video": "https://www.youtube.com/watch?v=v3XlzU9ddnE"
+      "bg_video": null
     },
     {
       "id": 3,

@@ -1,0 +1,2 @@
+[console_scripts]
+uuk-timeline = cli_anything.uuk_timeline.uuk_timeline_cli:main
