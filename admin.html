@@ -895,7 +895,7 @@ body {
 .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); }
 
 .tab-pane { display: none; flex-direction: column; }
-.tab-pane.active { display: flex; }
+.tab-pane.active { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 
 #lib-search-wrap { padding: 10px 18px; border-bottom: 1px solid var(--border); }
 #lib-search {
@@ -4791,8 +4791,9 @@ async function illusPickItem(div, item) {
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Download failed');
     modalSelected = d.path;
-    status.textContent = '✓ Ready — click Select';
+    status.textContent = '✓ Adding…';
     await loadLibrary();
+    confirmModal();
   } catch (e) {
     status.textContent = '✗ ' + e.message;
   }
@@ -4855,8 +4856,9 @@ async function aiGenerate() {
       modalSelected = localPath;
     });
     modalSelected = localPath;
-    status.textContent = '✓ Generated — click Select to use';
+    status.textContent = '✓ Generated — adding…';
     await loadLibrary();
+    confirmModal();
   } catch (e) {
     spinnerCard.remove();
     status.textContent = '✗ ' + e.message;
