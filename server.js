@@ -84,7 +84,7 @@ function pregenAllThumbs() {
     }); } catch {}
   }
   walk(LIBRARY_ROOT);
-  try { fs.readdirSync(UPLOADS_DIR).filter(f => /\.(png|jpg|jpeg|webp)$/i.test(f))
+  try { fs.readdirSync(UPLOADS_DIR).filter(f => /\.(png|jpg|jpeg|webp)$/i.test(f)) // skip svg
     .forEach(f => files.push(path.join(UPLOADS_DIR, f))); } catch {}
 
   let i = 0;
@@ -189,7 +189,7 @@ app.get('/api/library', (_req, res) => {
   // Also include uploaded files
   try {
     const uploads = fs.readdirSync(UPLOADS_DIR)
-      .filter(f => /\.(png|jpg|jpeg|gif|webp)$/i.test(f))
+      .filter(f => /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(f))
       .map(f => ({ name: f, path: '/uploads/' + f, category: 'Загруженные', subcat: '' }));
     results.push(...uploads);
   } catch {}
@@ -475,6 +475,21 @@ app.post('/api/generate-image', basicAuth, async (req, res) => {
   request.on('error', e => res.status(502).json({ error: e.message }));
   request.write(body);
   request.end();
+});
+
+// ── API: save recolored SVG ─────────────────────────────
+app.post('/api/save-svg', basicAuth, (req, res) => {
+  const { content, originalPath } = req.body;
+  if (!content) return res.status(400).json({ error: 'content required' });
+  const base = path.basename((originalPath || 'image').replace(/\.[^.]+$/, ''));
+  const filename = base + '_recolored_' + Date.now() + '.svg';
+  const filepath = path.join(UPLOADS_DIR, filename);
+  try {
+    fs.writeFileSync(filepath, content, 'utf8');
+    res.json({ path: '/uploads/' + filename });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.listen(PORT, () => {

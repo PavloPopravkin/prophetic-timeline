@@ -984,6 +984,78 @@ body {
   font-size: 10px; color: var(--muted); overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap; text-align: center;
 }
+.lib-item-wrap { position: relative; }
+.lib-svg-paint {
+  position: absolute; top: 3px; right: 3px;
+  width: 18px; height: 18px; border-radius: 4px;
+  background: rgba(0,0,0,.55); border: none; cursor: pointer;
+  font-size: 11px; display: none; align-items: center; justify-content: center;
+  color: rgba(255,255,255,.8); transition: background .12s;
+  z-index: 2;
+}
+.lib-item-wrap:hover .lib-svg-paint { display: flex; }
+.lib-svg-paint:hover { background: rgba(232,160,32,.7); }
+
+/* SVG Color Editor overlay */
+#svg-color-editor {
+  display: none; position: fixed; inset: 0; z-index: 1500;
+  background: rgba(0,0,0,.75);
+  align-items: center; justify-content: center;
+}
+#svg-color-editor.open { display: flex; }
+#svgce-panel {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 10px; width: 480px; max-width: 95vw;
+  max-height: 90vh; display: flex; flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+}
+#svgce-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  font-size: 13px; font-weight: 600;
+}
+#svgce-header span { flex: 1; }
+#svgce-header button { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; font-family: inherit; }
+#svgce-body {
+  display: flex; gap: 0; flex: 1; min-height: 0;
+}
+#svgce-preview {
+  width: 180px; flex-shrink: 0;
+  background: repeating-conic-gradient(#222 0% 25%, #1a1a1d 0% 50%) 0 0 / 16px 16px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px; border-right: 1px solid var(--border);
+}
+#svgce-preview img { max-width: 100%; max-height: 200px; object-fit: contain; }
+#svgce-colors {
+  flex: 1; overflow-y: auto; padding: 12px; display: flex;
+  flex-direction: column; gap: 8px;
+}
+.svgce-hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.svgce-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.svgce-swatch {
+  width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,.1);
+}
+.svgce-pick {
+  width: 36px; height: 26px; padding: 1px 2px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg3); cursor: pointer;
+}
+.svgce-label { font-size: 11px; color: var(--muted); font-family: monospace; flex: 1; }
+.svgce-quick {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px;
+}
+.svgce-quick button {
+  width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(255,255,255,.15);
+  cursor: pointer; transition: transform .1s;
+}
+.svgce-quick button:hover { transform: scale(1.2); }
+#svgce-footer {
+  padding: 10px 16px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 8px;
+}
 
 #upload-zone {
   margin: 16px; border: 2px dashed var(--border); border-radius: var(--radius);
@@ -1962,6 +2034,24 @@ select option { background: #0d0d24; color: var(--text); }
 
   </div><!-- /panel-right -->
 
+</div>
+
+<!-- SVG COLOR EDITOR -->
+<div id="svg-color-editor">
+  <div id="svgce-panel">
+    <div id="svgce-header">
+      <span>🎨 SVG Color Editor</span>
+      <button onclick="closeSvgEditor()">✕</button>
+    </div>
+    <div id="svgce-body">
+      <div id="svgce-preview"><img id="svgce-img" src="" alt=""></div>
+      <div id="svgce-colors"></div>
+    </div>
+    <div id="svgce-footer">
+      <button class="btn" onclick="closeSvgEditor()">Cancel</button>
+      <button class="btn primary" onclick="applySvgColors()">✓ Apply &amp; Add to Library</button>
+    </div>
+  </div>
 </div>
 
 <!-- PANORAMA EDITOR -->
@@ -4630,10 +4720,11 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 // ── Library ─────────────────────────────────────────────
 function renderLibrary() {
-  const cats = ['all', ...new Set(library.map(i => i.category).filter(Boolean))];
+  // Exclude 'all' and 'Загруженные' — those are implicit defaults
+  const cats = [...new Set(library.map(i => i.category).filter(c => c && c !== 'Загруженные'))];
   const catEl = document.getElementById('lib-categories');
   catEl.innerHTML = cats.map(c =>
-    `<button class="cat-btn ${c === libCategory ? 'active' : ''}" onclick="setCategory('${esc(c)}')">${c === 'all' ? 'All' : esc(c)}</button>`
+    `<button class="cat-btn ${c === libCategory ? 'active' : ''}" onclick="setCategory('${esc(c)}')">${esc(c)}</button>`
   ).join('');
   filterLibrary();
 }
@@ -4651,13 +4742,16 @@ function filterLibrary() {
     const matchSearch = !libFilter || item.name.toLowerCase().includes(libFilter);
     return matchCat && matchSearch;
   });
+  const isSvg = p => /\.svg$/i.test(p);
   grid.innerHTML = filtered.map(item => `
-    <div class="lib-item ${modalSelected === item.path ? 'selected' : ''}"
-         draggable="true"
-         ondragstart="event.dataTransfer.setData('text/plain','${esc(item.path)}')"
-         onclick="selectLibItem('${esc(item.path)}', this)">
-      <img class="lib-thumb" src="${esc(item.thumb || encodePath(item.path))}" alt="${esc(item.name)}" loading="lazy" decoding="async">
-      <div class="lib-name">${esc(item.name.replace(/\.[^.]+$/, ''))}</div>
+    <div class="lib-item-wrap">
+      <div class="lib-item ${modalSelected === item.path ? 'selected' : ''}"
+           draggable="true"
+           ondragstart="event.dataTransfer.setData('text/plain','${esc(item.path)}')"
+           onclick="selectLibItem('${esc(item.path)}', this)">
+        <img class="lib-thumb" src="${esc(isSvg(item.path) ? encodePath(item.path) : (item.thumb || encodePath(item.path)))}" alt="${esc(item.name)}" loading="lazy" decoding="async">
+        <div class="lib-name">${esc(item.name.replace(/\.[^.]+$/, ''))}</div>
+      </div>${isSvg(item.path) ? `<button class="lib-svg-paint" title="Edit colors" onclick="openSvgEditor(event,'${esc(item.path)}')">🎨</button>` : ''}
     </div>
   `).join('') || '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;grid-column:1/-1">Nothing found</div>';
 }
@@ -4666,6 +4760,175 @@ function selectLibItem(path, el) {
   modalSelected = path;
   document.querySelectorAll('.lib-item').forEach(i => i.classList.remove('selected'));
   el.classList.add('selected');
+}
+
+// ── SVG Color Editor ─────────────────────────────────────
+let _svgPath = null;
+let _svgOriginal = null;
+
+const QUICK_COLORS = ['#c9a84c','#e8e0c8','#8b4513','#2c5f2e','#1a237e','#b71c1c','#f5f5dc','#4a4a4a','#ffffff','#000000'];
+
+function extractSvgColors(svg) {
+  const found = new Set();
+  // hex colors in attributes and style blocks
+  const re = /#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g;
+  let m;
+  while ((m = re.exec(svg)) !== null) {
+    const hex = m[0].toLowerCase();
+    if (hex !== '#fff' && hex !== '#ffffff' && hex !== '#000' && hex !== '#000000') found.add(hex);
+  }
+  // also capture black and white if used as fill
+  if (/fill\s*[=:]\s*["']?(#000000|#000|black)["']?/i.test(svg)) found.add('#000000');
+  if (/fill\s*[=:]\s*["']?(#ffffff|#fff|white)["']?/i.test(svg)) found.add('#ffffff');
+  return [...found];
+}
+
+function normHex(c) {
+  // expand 3-digit hex to 6-digit
+  return c.replace(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i, '#$1$1$2$2$3$3').toLowerCase();
+}
+
+function buildPreviewSvg(colorMap) {
+  let svg = _svgOriginal;
+  for (const [orig, neo] of Object.entries(colorMap)) {
+    if (orig === neo) continue;
+    const re = new RegExp(orig.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    svg = svg.replace(re, neo);
+  }
+  return svg;
+}
+
+function svgBlobUrl(svgText) {
+  const blob = new Blob([svgText], { type: 'image/svg+xml' });
+  return URL.createObjectURL(blob);
+}
+
+async function openSvgEditor(e, path) {
+  e.stopPropagation();
+  _svgPath = path;
+  const r = await fetch(encodePath(path) + '?_t=' + Date.now());
+  _svgOriginal = await r.text();
+
+  const colors = extractSvgColors(_svgOriginal);
+  const colorsEl = document.getElementById('svgce-colors');
+
+  if (colors.length === 0) {
+    // No hex colors — show a global fill replacer
+    colorsEl.innerHTML = `
+      <div class="svgce-hint">No hex colors found. Use the fill override to tint the entire SVG:</div>
+      <div class="svgce-row" style="margin-top:8px;">
+        <div class="svgce-swatch" style="background:#000000" id="svgce-sw-0"></div>
+        <input type="color" class="svgce-pick" value="#000000" oninput="svgPreviewGlobal(this)">
+        <span class="svgce-label">Global fill</span>
+      </div>
+      <div class="svgce-hint" style="margin-top:8px;">Quick palette:</div>
+      <div class="svgce-quick">${QUICK_COLORS.map(c =>
+        `<button style="background:${c}" title="${c}" onclick="svgApplyGlobal('${c}')"></button>`
+      ).join('')}</div>`;
+  } else {
+    colorsEl.innerHTML = `
+      <div class="svgce-hint">Found ${colors.length} color${colors.length>1?'s':''}. Click a swatch to change it:</div>
+      ${colors.map((c, i) => `
+      <div class="svgce-row">
+        <div class="svgce-swatch" id="svgce-sw-${i}" style="background:${normHex(c)}"></div>
+        <input type="color" class="svgce-pick" data-orig="${c}" value="${normHex(c)}"
+               oninput="svgPreviewOne(this,${i})">
+        <span class="svgce-label">${c}</span>
+      </div>`).join('')}
+      <div class="svgce-hint" style="margin-top:8px;">Quick palette:</div>
+      <div class="svgce-quick">${QUICK_COLORS.map(c =>
+        `<button style="background:${c}" title="${c}" onclick="svgApplyAll('${c}')"></button>`
+      ).join('')}</div>`;
+  }
+
+  const img = document.getElementById('svgce-img');
+  const url = svgBlobUrl(_svgOriginal);
+  if (img._blobUrl) URL.revokeObjectURL(img._blobUrl);
+  img._blobUrl = url;
+  img.src = url;
+
+  document.getElementById('svg-color-editor').classList.add('open');
+}
+
+function svgGetColorMap() {
+  const map = {};
+  document.querySelectorAll('#svgce-colors .svgce-pick[data-orig]').forEach(inp => {
+    map[inp.dataset.orig] = inp.value;
+  });
+  return map;
+}
+
+function svgRefreshPreview(svgText) {
+  const img = document.getElementById('svgce-img');
+  const url = svgBlobUrl(svgText);
+  if (img._blobUrl) URL.revokeObjectURL(img._blobUrl);
+  img._blobUrl = url;
+  img.src = url;
+}
+
+function svgPreviewOne(input, i) {
+  document.getElementById('svgce-sw-' + i).style.background = input.value;
+  svgRefreshPreview(buildPreviewSvg(svgGetColorMap()));
+}
+
+function svgPreviewGlobal(input) {
+  document.getElementById('svgce-sw-0').style.background = input.value;
+}
+
+function svgApplyGlobal(color) {
+  const inp = document.querySelector('#svgce-colors .svgce-pick');
+  if (inp) { inp.value = color; svgPreviewGlobal(inp); }
+}
+
+function svgApplyAll(color) {
+  document.querySelectorAll('#svgce-colors .svgce-pick[data-orig]').forEach((inp, i) => {
+    inp.value = color;
+    const sw = document.getElementById('svgce-sw-' + i);
+    if (sw) sw.style.background = color;
+  });
+  svgRefreshPreview(buildPreviewSvg(svgGetColorMap()));
+}
+
+async function applySvgColors() {
+  let modified = _svgOriginal;
+
+  // Check if it's the global fill mode (no data-orig pickers)
+  const globalPick = document.querySelector('#svgce-colors .svgce-pick:not([data-orig])');
+  if (globalPick) {
+    const color = globalPick.value;
+    // Replace root fill attribute or inject one
+    if (/fill\s*=/i.test(modified)) {
+      modified = modified.replace(/(<svg[^>]+fill\s*=\s*["'])[^"']+/i, '$1' + color);
+    } else {
+      modified = modified.replace(/<svg/, `<svg fill="${color}"`);
+    }
+  } else {
+    modified = buildPreviewSvg(svgGetColorMap());
+  }
+
+  try {
+    const r = await fetch('/api/save-svg', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: modified, originalPath: _svgPath }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Save failed');
+    await loadLibrary();
+    modalSelected = d.path;
+    renderLibrary();
+    closeSvgEditor();
+    showToast('SVG saved ✓', 'ok');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+function closeSvgEditor() {
+  document.getElementById('svg-color-editor').classList.remove('open');
+  const img = document.getElementById('svgce-img');
+  if (img._blobUrl) { URL.revokeObjectURL(img._blobUrl); img._blobUrl = null; }
+  _svgPath = null; _svgOriginal = null;
 }
 
 // ── Pexels tab ──────────────────────────────────────────
