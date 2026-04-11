@@ -1152,6 +1152,60 @@ select option { background: #0d0d24; color: var(--text); }
   box-sizing: border-box;
 }
 
+/* ── FLOATING IMAGE TOOLBAR (on canvas) ──────────── */
+#img-action-bar {
+  position: absolute;
+  display: none;
+  align-items: center;
+  gap: 3px;
+  background: rgba(14,14,16,0.92);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 4px 6px;
+  z-index: 300;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  pointer-events: all;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.img-act-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: rgba(240,230,210,0.75);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.img-act-btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.1);
+  color: #fff;
+}
+.img-act-btn.primary-act {
+  background: rgba(232,160,32,0.15);
+  border-color: rgba(232,160,32,0.3);
+  color: var(--accent2);
+}
+.img-act-btn.primary-act:hover {
+  background: rgba(232,160,32,0.25);
+  border-color: rgba(232,160,32,0.5);
+}
+.img-act-sep {
+  width: 1px; height: 18px;
+  background: rgba(255,255,255,0.1);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
 /* ── DRAG COORDS TOOLTIP ──────────────────────────── */
 #drag-tooltip {
   position: absolute;
@@ -1298,6 +1352,28 @@ select option { background: #0d0d24; color: var(--text); }
       <div id="stage" style="display:none;">
         <div id="stage-bg"></div>
         <!-- elements rendered here by JS -->
+
+        <!-- Floating image action bar (shown when image element is selected) -->
+        <div id="img-action-bar">
+          <button class="img-act-btn primary-act" onclick="openModal('replace-element')" title="Replace image">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 6.5C2 4 4 2 6.5 2s4.5 2 4.5 4.5"/><path d="M11 6.5C11 9 9 11 6.5 11S2 9 2 6.5"/><path d="M9.5 1.5l1.5 1-1.5 1"/><path d="M3.5 11.5l-1.5-1 1.5-1"/></svg>
+            Replace
+          </button>
+          <div class="img-act-sep"></div>
+          <button class="img-act-btn" onclick="stageElCutOut()" title="AI background removal">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l7-7M3 3l7 7"/><circle cx="2.5" cy="10.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="10.5" cy="2.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+            Cut Out
+          </button>
+          <button class="img-act-btn" onclick="stageElBrushEdit()" title="Edit with brush (erase/paint)">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 11c0-1.5 1-2 2-2 1.5 0 2-1.5 1-3L8.5 2.5a1.5 1.5 0 0 1 2 2L7 8c1.5 1 0 2.5-1.5 1-1-1-2.5-.5-2.5 1a.5.5 0 0 1-1 0z"/></svg>
+            Brush Edit
+          </button>
+          <div class="img-act-sep"></div>
+          <button class="img-act-btn" onclick="stageElFlip()" title="Flip horizontal">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6.5 2v9M2 4.5l4.5-2.5M2 8.5l4.5 2.5M11 4.5L6.5 2M11 8.5l-4.5 2.5"/></svg>
+            Flip
+          </button>
+        </div>
       </div>
     </div>
 
@@ -2155,6 +2231,90 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#ctx-menu')) hideCtxMenu();
 });
 
+// ── FLOATING IMAGE ACTION BAR ─────────────────────
+function updateImgActionBar() {
+  const bar = document.getElementById('img-action-bar');
+  if (!bar || !selEl || activeIdx === null) { if (bar) bar.style.display = 'none'; return; }
+  const el = (scenes[activeIdx].elements || [])[selEl.idx];
+  if (!el || el.type === 'text' || el.type === 'label') { bar.style.display = 'none'; return; }
+
+  const wrap = document.querySelector(`.stage-el[data-idx="${selEl.idx}"]`);
+  if (!wrap) { bar.style.display = 'none'; return; }
+
+  const stage = document.getElementById('stage');
+  const stageRect = stage.getBoundingClientRect();
+  const wrapRect  = wrap.getBoundingClientRect();
+
+  const centerX  = wrapRect.left - stageRect.left + wrapRect.width  / 2;
+  const topY     = wrapRect.top  - stageRect.top  - 50; // 50px above element
+  const bottomY  = wrapRect.top  - stageRect.top  + wrapRect.height + 10;
+
+  bar.style.display = 'flex';
+  bar.style.left = centerX + 'px';
+
+  // Prefer above; if no room, place below
+  if (topY > 10) {
+    bar.style.top    = topY + 'px';
+    bar.style.bottom = 'auto';
+  } else {
+    bar.style.top    = bottomY + 'px';
+    bar.style.bottom = 'auto';
+  }
+}
+
+function hideImgActionBar() {
+  const bar = document.getElementById('img-action-bar');
+  if (bar) bar.style.display = 'none';
+}
+
+// Flip the selected image element
+function stageElFlip() {
+  if (!selEl || activeIdx === null) return;
+  const el = (scenes[activeIdx].elements || [])[selEl.idx];
+  if (!el) return;
+  el.flip = !el.flip;
+  pushHistoryNow();
+  renderStage();
+}
+
+// Open AI cutout with the selected element's image pre-loaded
+function stageElCutOut() {
+  if (!selEl || activeIdx === null) return;
+  const el = (scenes[activeIdx].elements || [])[selEl.idx];
+  if (!el || !el.src) return;
+  // Store which element to update when done
+  _cutoutTargetElIdx = selEl.idx;
+  _cutoutTargetSceneIdx = activeIdx;
+  openCutout('stage-el');
+  // Fetch the image into the cutout panel
+  setTimeout(() => cutoutLoadFromSrc(el.src), 200);
+}
+
+let _cutoutTargetElIdx   = null;
+let _cutoutTargetSceneIdx = null;
+
+async function cutoutLoadFromSrc(src) {
+  try {
+    const resp = await fetch(src);
+    const blob = await resp.blob();
+    const fileName = src.split('/').pop() || 'image.png';
+    const file = new File([blob], fileName, { type: blob.type || 'image/png' });
+    cutoutAddCard(file);
+  } catch (e) {
+    showToast('Could not load image: ' + e.message, 'error');
+  }
+}
+
+// Open brush editor directly for the selected stage element
+function stageElBrushEdit() {
+  if (!selEl || activeIdx === null) return;
+  const el = (scenes[activeIdx].elements || [])[selEl.idx];
+  if (!el || !el.src) return;
+  _beDirectElIdx    = selEl.idx;
+  _beDirectSceneIdx = activeIdx;
+  openBrushEditorDirect(el.src);
+}
+
 // ── INLINE TEXT EDITING ────────────────────────────
 let _inlineEditorEl  = null;  // the data element being edited
 let _inlineEditorDom = null;  // the textarea DOM node
@@ -2744,12 +2904,14 @@ function renderStageEl(el, idx) {
       }
       updatePropFields();
       showDragTooltip(el.x, el.bottom);
+      hideImgActionBar(); // hide during drag, reshow on mouseup
     }
     function onUp() {
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
       hideDragTooltip();
       pushHistoryNow();
+      requestAnimationFrame(updateImgActionBar);
     }
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
@@ -2776,10 +2938,13 @@ function renderStageEl(el, idx) {
 }
 
 // Click empty stage = deselect
-document.getElementById('stage').addEventListener('click', () => {
+document.getElementById('stage').addEventListener('click', e => {
+  // Don't deselect if clicking the action bar itself
+  if (e.target.closest('#img-action-bar')) return;
   selEl = null;
   updateSelectionBorder();
   showPropsEmpty();
+  hideImgActionBar();
 });
 
 // Right-click empty stage = context menu (paste only)
@@ -2870,6 +3035,7 @@ function startResize(e, wrap, def, idx, handle) {
     wrap.querySelectorAll('.resize-handle').forEach(h => h.remove());
     if (selEl && selEl.idx === idx) addResizeHandles(wrap, def, idx);
     pushHistoryNow();
+    requestAnimationFrame(updateImgActionBar);
   }
 
   document.addEventListener('mousemove', onMove);
@@ -3196,6 +3362,8 @@ function selectElement(idx) {
   renderElemList();
   fillPropsPanel();
   document.getElementById('align-bar')?.classList.add('visible');
+  // Small delay so the DOM layout settles after render
+  requestAnimationFrame(updateImgActionBar);
 }
 
 function fillPropsPanel() {
@@ -3464,6 +3632,7 @@ function showPropsEmpty() {
   updateSelectionBorder();
   renderElemList();
   document.getElementById('align-bar')?.classList.remove('visible');
+  hideImgActionBar();
 }
 
 // ── Label bubble props ───────────────────────────────
@@ -5354,7 +5523,9 @@ function cutoutUseThis(id) {
 
 <script>
 // ── BRUSH EDITOR ────────────────────────────────────────────
-let _beCardId    = null;
+let _beCardId        = null;
+let _beDirectElIdx   = null;   // set when opened directly from stage element
+let _beDirectSceneIdx = null;
 let _beMode      = 'erase';   // 'erase' | 'paint'
 let _beModeBase  = 'erase';   // saved mode before cmd override
 let _beScale     = 1;
@@ -5413,9 +5584,37 @@ function openBrushEditor(cardId) {
   editImg.src = editSrc + (editSrc.includes('?') ? '&' : '?') + '_t=' + Date.now();
 }
 
+// Open brush editor directly from a src path (no cutout card needed)
+function openBrushEditorDirect(src) {
+  _beCardId         = null;
+  // _beDirectElIdx / _beDirectSceneIdx already set by caller
+
+  document.getElementById('be-title').textContent = src.split('/').pop();
+  document.getElementById('brush-editor').classList.add('open');
+  beSetMode('erase');
+  beUpdateBrush();
+  beUpdateStrVal();
+
+  const canvas = document.getElementById('be-canvas');
+  const ctx    = canvas.getContext('2d');
+  const img    = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    canvas.width  = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    _beOrigData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    _beHistory  = [];
+    beFit();
+  };
+  img.src = src + (src.includes('?') ? '&' : '?') + '_t=' + Date.now();
+}
+
 function beCancel() {
   document.getElementById('brush-editor').classList.remove('open');
   _beCardId = null; _beOrigData = null; _beHistory = [];
+  _beDirectElIdx = null; _beDirectSceneIdx = null;
 }
 
 function beSetMode(mode) {
@@ -5730,6 +5929,22 @@ async function beSave() {
       const r = await fetch('/api/upload', { method: 'POST', body: fd });
       if (!r.ok) throw new Error('Upload failed');
       const { path } = await r.json();
+
+      if (_beDirectElIdx !== null && _beDirectSceneIdx !== null) {
+        // Direct edit mode: update stage element src immediately
+        const sc = scenes[_beDirectSceneIdx];
+        const el = sc && (sc.elements || [])[_beDirectElIdx];
+        if (el) {
+          el.src = path;
+          pushHistoryNow();
+          renderStage();
+          selectElement(_beDirectElIdx);
+          showToast('Image updated ✓', 'ok');
+        }
+        beCancel();
+        if (typeof loadLibrary === 'function') loadLibrary();
+        return;
+      }
 
       if (_beCardId) {
         const card = document.getElementById(_beCardId);
