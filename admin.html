@@ -4987,17 +4987,31 @@ document.addEventListener('keydown', e => {
   if (cmd && (e.key === '-' || e.key === '_')) { e.preventDefault(); zoomOut();   return; }
   if (cmd && e.key === '0')                    { e.preventDefault(); resetZoom(); return; }
 
-  if (isEditingText()) return;  // don't intercept while typing
+  // ── Clipboard — intercept BEFORE isEditingText check ──
+  // Copy/Cut: intercept only when a stage element is selected
+  if (cmd && (e.key === 'c' || e.key === 'C') && selEl && activeIdx !== null) {
+    e.preventDefault(); copyElement(); return;
+  }
+  if (cmd && (e.key === 'x' || e.key === 'X') && selEl && activeIdx !== null) {
+    e.preventDefault(); cutElement(); return;
+  }
+  // Paste: intercept if we have clipboard data AND the user isn't actively typing in a text field
+  // (allow paste when focused on a panel input that isn't the inline stage editor)
+  if (cmd && (e.key === 'v' || e.key === 'V') && clipboard) {
+    // If the inline canvas editor is active — let it receive paste as text
+    if (_inlineEditorDom && _inlineEditorDom.style.display !== 'none') { /* let through */ }
+    else { e.preventDefault(); pasteElement(); return; }
+  }
+  // Duplicate: intercept only when element selected
+  if (cmd && (e.key === 'd' || e.key === 'D') && selEl && activeIdx !== null) {
+    e.preventDefault(); duplicateElement(); return;
+  }
+
+  if (isEditingText()) return;  // don't intercept remaining shortcuts while typing
 
   // ── Undo / Redo ───────────────────────────────────
   if (cmd && !e.shiftKey && e.key === 'z') { e.preventDefault(); undo(); return; }
   if (cmd && (e.shiftKey && e.key === 'z' || e.key === 'y')) { e.preventDefault(); redo(); return; }
-
-  // ── Clipboard ─────────────────────────────────────
-  if (cmd && e.key === 'c') { e.preventDefault(); copyElement(); return; }
-  if (cmd && e.key === 'x') { e.preventDefault(); cutElement();  return; }
-  if (cmd && e.key === 'v') { e.preventDefault(); pasteElement(); return; }
-  if (cmd && e.key === 'd') { e.preventDefault(); duplicateElement(); return; }
 
   // ── Delete ────────────────────────────────────────
   if (e.key === 'Delete' || e.key === 'Backspace') {
