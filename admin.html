@@ -405,15 +405,7 @@ body {
 .stage-label-preview.label-glass.label-left::before,  .label-bubble.label-glass.label-left::before  { border-left-color: rgba(255,255,255,0.09); }
 
 /* Scene info row */
-#scene-info-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  background: var(--bg2);
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
+/* scene-info-row is removed — settings are now in the right panel Scene tab */
 .info-field {
   display: flex;
   flex-direction: column;
@@ -467,15 +459,60 @@ body {
   overflow: hidden;
 }
 
-#props-header {
-  padding: 10px 14px 8px;
+/* Props tab bar */
+#props-tabs {
+  display: flex;
   border-bottom: 1px solid var(--border);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  font-weight: 600;
   flex-shrink: 0;
+  background: var(--bg2);
+}
+.props-tab-btn {
+  flex: 1;
+  padding: 9px 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+}
+.props-tab-btn.active {
+  color: var(--accent2);
+  border-bottom-color: var(--accent);
+}
+.props-tab-btn:hover:not(.active) { color: var(--text); }
+
+/* Tab panes inside right panel */
+.props-tab-pane { display: none; flex: 1; min-height: 0; overflow: hidden; }
+.props-tab-pane.active { display: flex; flex-direction: column; }
+
+/* Scene settings tab */
+#props-tab-scene {
+  overflow-y: auto;
+  padding: 12px;
+  gap: 10px;
+}
+#props-tab-scene .info-field { flex: none; }
+#props-tab-scene .info-field input,
+#props-tab-scene .info-field textarea {
+  width: 100%; box-sizing: border-box;
+}
+#props-tab-scene .scene-field-row {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+#props-tab-scene .scene-section-title {
+  font-size: 10px; font-weight: 600; letter-spacing: .08em;
+  color: var(--muted); text-transform: uppercase;
+  margin-bottom: 6px; margin-top: 4px;
+}
+.props-divider {
+  height: 1px; background: var(--border); margin: 4px 0;
 }
 
 #elem-inspector {
@@ -1436,49 +1473,25 @@ select option { background: #0d0d24; color: var(--text); }
       </div>
     </div>
 
-    <!-- Scene info row -->
-    <div id="scene-info-row" style="display:none;">
-      <div class="info-field" style="flex:2;">
-        <label>Title</label>
-        <input type="text" id="f-title" oninput="onSceneField('title', this.value)">
-      </div>
-      <div class="info-field" style="flex:2;">
-        <label>Subtitle</label>
-        <input type="text" id="f-subtitle" oninput="onSceneField('subtitle', this.value)">
-      </div>
-      <div class="info-field">
-        <label>Date</label>
-        <input type="text" id="f-date" oninput="onSceneField('date', this.value)">
-      </div>
-      <div class="info-field" style="flex:0 0 70px;">
-        <label>Year</label>
-        <input type="text" id="f-year" oninput="onSceneField('year', this.value)">
-      </div>
-      <div class="night-toggle">
-        <label class="top">Night</label>
-        <label class="toggle">
-          <input type="checkbox" id="f-night" onchange="onSceneField('night', this.checked)">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="info-field" style="flex:2;min-width:140px;">
-        <label>Video BG (YouTube URL)</label>
-        <input type="text" id="f-bg-video" placeholder="https://youtube.com/watch?v=..." oninput="onBgVideoInput(this.value)">
-      </div>
-      <button class="btn small" onclick="openModal('bg')">Change BG</button>
-    </div>
 
   </div>
 
   <!-- RIGHT: properties -->
   <div id="panel-right">
-    <div id="props-header">Properties</div>
-    <div id="elem-inspector">
-      <div id="elem-inspector-title">Elements</div>
-      <div id="elem-list"></div>
+    <!-- Tab bar -->
+    <div id="props-tabs">
+      <button class="props-tab-btn active" id="ptab-element" onclick="switchPropsTab('element')">Element</button>
+      <button class="props-tab-btn" id="ptab-scene" onclick="switchPropsTab('scene')">Scene</button>
     </div>
-    <div id="props-empty">Select an element above<br>or drag an image onto the stage</div>
-    <div id="props-body" style="display:none;">
+
+    <!-- Element tab -->
+    <div id="props-tab-element" class="props-tab-pane active">
+      <div id="elem-inspector">
+        <div id="elem-inspector-title">Elements</div>
+        <div id="elem-list"></div>
+      </div>
+      <div id="props-empty">Select an element above<br>or drag an image onto the stage</div>
+      <div id="props-body" style="display:none;">
       <!-- Image-only section -->
       <div id="props-image-section">
         <div style="position:relative;">
@@ -1908,7 +1921,46 @@ select option { background: #0d0d24; color: var(--text); }
         Delete element
       </button>
     </div>
-  </div>
+    </div><!-- /props-tab-element -->
+
+    <!-- Scene tab -->
+    <div id="props-tab-scene" class="props-tab-pane">
+      <div class="scene-section-title">Scene</div>
+      <div class="info-field">
+        <label>Title</label>
+        <input type="text" id="f-title" oninput="onSceneField('title', this.value)" placeholder="Scene title…">
+      </div>
+      <div class="info-field">
+        <label>Subtitle</label>
+        <input type="text" id="f-subtitle" oninput="onSceneField('subtitle', this.value)" placeholder="Subtitle…">
+      </div>
+      <div class="scene-field-row">
+        <div class="info-field" style="flex:2">
+          <label>Date</label>
+          <input type="text" id="f-date" oninput="onSceneField('date', this.value)" placeholder="e.g. 30 AD">
+        </div>
+        <div class="info-field" style="flex:1">
+          <label>Year</label>
+          <input type="text" id="f-year" oninput="onSceneField('year', this.value)" placeholder="Year">
+        </div>
+        <div class="night-toggle">
+          <label class="top">Night</label>
+          <label class="toggle">
+            <input type="checkbox" id="f-night" onchange="onSceneField('night', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="props-divider"></div>
+      <div class="scene-section-title">Background</div>
+      <div class="info-field">
+        <label>YouTube Video URL</label>
+        <input type="text" id="f-bg-video" placeholder="https://youtube.com/watch?v=…" oninput="onBgVideoInput(this.value)">
+      </div>
+      <button class="btn small" onclick="openModal('bg')" style="width:100%;justify-content:center;margin-top:2px;">&#128247; Change Background Image</button>
+    </div><!-- /props-tab-scene -->
+
+  </div><!-- /panel-right -->
 
 </div>
 
@@ -2787,7 +2839,6 @@ function deleteScene(e, idx) {
     renderSidebar();
     document.getElementById('stage').style.display = 'none';
     document.getElementById('no-scene-msg').style.display = '';
-    document.getElementById('scene-info-row').style.display = 'none';
     showPropsEmpty();
     return;
   }
@@ -2816,7 +2867,6 @@ function renderStage() {
 
   noScene.style.display = 'none';
   stage.style.display = 'block';
-  document.getElementById('scene-info-row').style.display = '';
 
   // Compute size (base fits the wrapper, then apply zoom)
   const wrapW = stageWrap.clientWidth  - 24;
@@ -3439,8 +3489,16 @@ function renderElemList() {
   });
 }
 
+function switchPropsTab(tab) {
+  document.getElementById('ptab-element').classList.toggle('active', tab === 'element');
+  document.getElementById('ptab-scene').classList.toggle('active',   tab === 'scene');
+  document.getElementById('props-tab-element').classList.toggle('active', tab === 'element');
+  document.getElementById('props-tab-scene').classList.toggle('active',   tab === 'scene');
+}
+
 function selectElement(idx) {
   selEl = { idx };
+  switchPropsTab('element');
   updateSelectionBorder();
   renderElemList();
   fillPropsPanel();
@@ -3716,6 +3774,8 @@ function showPropsEmpty() {
   renderElemList();
   document.getElementById('align-bar')?.classList.remove('visible');
   hideImgActionBar();
+  // Switch to Scene tab when nothing is selected and a scene is open
+  if (activeIdx !== null) switchPropsTab('scene');
 }
 
 // ── Label bubble props ───────────────────────────────
