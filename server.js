@@ -36,13 +36,69 @@ function basicAuth(req, res, next) {
 const SCENES_FILE = path.join(ROOT, 'scenes.json');
 const PANORAMA_FILE = path.join(ROOT, 'panorama.json');
 const UPLOADS_DIR = path.join(ROOT, 'uploads');
+const THUMBS_DIR  = path.join(ROOT, 'thumbs');
 
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+if (!fs.existsSync(THUMBS_DIR))  fs.mkdirSync(THUMBS_DIR);
 
 // ── Middleware ──────────────────────────────────────────────
 app.use(express.json({ limit: '20mb' }));
 app.use(express.static(ROOT));
 app.use('/uploads', express.static(UPLOADS_DIR));
+app.use('/thumbs',  express.static(THUMBS_DIR));
+
+// ── Thumbnail generation (Pillow) ───────────────────────────
+const THUMB_PY = `
+import sys, os
+from PIL import Image
+src, dst, size = sys.argv[1], sys.argv[2], int(sys.argv[3])
+try:
+    img = Image.open(src)
+    img.thumbnail((size, size * 4), Image.LANCZOS)
+    img.save(dst, 'WEBP', quality=72, method=4)
+except Exception as e:
+    sys.exit(1)
+`;
+
+function thumbName(filePath) {
+  return filePath.replace(/[^a-zA-Z0-9._-]/g, '_') + '.webp';
+}
+
+function makeThumb(absPath, cb) {
+  const tName = thumbName(absPath);
+  const tPath = path.join(THUMBS_DIR, tName);
+  if (fs.existsSync(tPath)) return cb(null, '/thumbs/' + tName);
+  const proc = spawn('python3', ['-c', THUMB_PY, absPath, tPath, '140']);
+  proc.on('close', code => cb(code === 0 ? null : new Error('thumb failed'), '/thumbs/' + tName));
+}
+
+// Pre-generate missing thumbnails in background after startup
+function pregenAllThumbs() {
+  const LIBRARY_ROOT = path.join(ROOT, 'christmas-nativity-vector-illustrations');
+  const files = [];
+  function walk(dir) {
+    try { fs.readdirSync(dir).forEach(e => {
+      const full = path.join(dir, e);
+      if (fs.statSync(full).isDirectory()) walk(full);
+      else if (e.toLowerCase().endsWith('.png') && full.includes('/PNG/')) files.push(full);
+    }); } catch {}
+  }
+  walk(LIBRARY_ROOT);
+  try { fs.readdirSync(UPLOADS_DIR).filter(f => /\.(png|jpg|jpeg|webp)$/i.test(f))
+    .forEach(f => files.push(path.join(UPLOADS_DIR, f))); } catch {}
+
+  let i = 0;
+  function next() {
+    if (i >= files.length) return;
+    const f = files[i++];
+    const tPath = path.join(THUMBS_DIR, thumbName(f));
+    if (fs.existsSync(tPath)) { next(); return; }
+    makeThumb(f, () => next());
+  }
+  // Run 4 workers in parallel
+  for (let w = 0; w < 4; w++) next();
+}
+setTimeout(pregenAllThumbs, 3000);
 
 // ── Multer (file uploads) ───────────────────────────────────
 const storage = multer.diskStorage({
@@ -138,7 +194,15 @@ app.get('/api/library', (_req, res) => {
     results.push(...uploads);
   } catch {}
 
-  res.json(results);
+  // Attach thumb paths (use pre-generated if available)
+  const withThumbs = results.map(item => {
+    const absPath = path.join(ROOT, item.path.replace(/^\//, ''));
+    const tFile   = thumbName(absPath);
+    const thumb   = fs.existsSync(path.join(THUMBS_DIR, tFile)) ? '/thumbs/' + tFile : null;
+    return { ...item, thumb };
+  });
+
+  res.json(withThumbs);
 });
 
 // ── API: presets (scenes.*.json files) ──────────────────────
