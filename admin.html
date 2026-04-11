@@ -6360,7 +6360,21 @@ async function beSave() {
         if (status) { status.className = 'co-status done'; status.textContent = '✓ ' + path.split('/').pop(); }
       }
 
-      showToast('Saved → ' + path.split('/').pop(), 'success');
+      // Always update the stage element if we have a target (direct edit OR cutout flow)
+      const tElIdx    = _beDirectElIdx    !== null ? _beDirectElIdx    : _cutoutTargetElIdx;
+      const tSceneIdx = _beDirectSceneIdx !== null ? _beDirectSceneIdx : _cutoutTargetSceneIdx;
+      if (tElIdx !== null && tSceneIdx !== null) {
+        const sc = scenes[tSceneIdx];
+        const el = sc && (sc.elements || [])[tElIdx];
+        if (el) {
+          el.src = path;
+          pushHistoryNow();
+          renderStage();
+          selectElement(tElIdx);
+        }
+      }
+
+      showToast('Saved ✓', 'ok');
       beCancel();
       if (typeof loadLibrary === 'function') loadLibrary();
     } catch (err) {
