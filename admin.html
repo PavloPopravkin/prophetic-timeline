@@ -1040,6 +1040,49 @@ select option { background: #0d0d24; color: var(--text); }
   color: var(--muted); font-size: 13px; letter-spacing: 0.04em;
 }
 
+/* ── ILLUSTRATION / AI-GEN GRID ──────────────────── */
+.illus-item, .aigen-item {
+  border-radius: var(--radius-s);
+  border: 2px solid transparent;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--bg3);
+  transition: border-color 0.12s;
+  aspect-ratio: 1;
+  position: relative;
+}
+.illus-item img, .aigen-item img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: opacity 0.2s;
+}
+.illus-item:hover, .aigen-item:hover { border-color: rgba(232,160,32,0.4); }
+.illus-item.selected, .aigen-item.selected { border-color: var(--accent2); }
+.illus-author {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  font-size: 9px; color: rgba(255,255,255,0.55);
+  padding: 2px 5px; background: rgba(0,0,0,0.5);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.aigen-item-label {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  font-size: 9px; color: rgba(255,255,255,0.7);
+  padding: 3px 6px; background: linear-gradient(transparent, rgba(0,0,0,0.6));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.aigen-item.generating {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg3); border: 1px dashed rgba(232,160,32,0.3);
+  animation: pulse-border 1.5s ease-in-out infinite;
+}
+@keyframes pulse-border {
+  0%,100% { border-color: rgba(232,160,32,0.2); }
+  50% { border-color: rgba(232,160,32,0.6); }
+}
+.aigen-spinner {
+  font-size: 24px; animation: spin 1s linear infinite; color: var(--accent2);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ── CONTEXT MENU ─────────────────────────────────── */
 #ctx-menu {
   position: fixed;
@@ -1984,7 +2027,9 @@ select option { background: #0d0d24; color: var(--text); }
 
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="library">Library</button>
-      <button class="tab-btn" data-tab="pexels">Pexels</button>
+      <button class="tab-btn" data-tab="pexels">Photos</button>
+      <button class="tab-btn" data-tab="illus">Illustrations</button>
+      <button class="tab-btn" data-tab="aigen">✦ AI Generate</button>
       <button class="tab-btn" data-tab="upload" onclick="closeModal();openCutout(modalCtx)">Upload &amp; Cut Out</button>
     </div>
 
@@ -1998,12 +2043,57 @@ select option { background: #0d0d24; color: var(--text); }
 
     <div class="tab-pane" id="tab-pexels">
       <div id="pexels-search-bar">
-        <input id="pexels-search-input" type="text" placeholder="Search Pexels… (English works best)"
+        <input id="pexels-search-input" type="text" placeholder="Search photos… (English works best)"
                onkeydown="if(event.key==='Enter')pexelsSearch()">
         <button class="btn primary pexels-search-btn" onclick="pexelsSearch()">Search</button>
       </div>
       <div id="pexels-status"></div>
       <div id="pexels-grid"></div>
+    </div>
+
+    <!-- Illustrations tab: Pixabay vector/illustration search -->
+    <div class="tab-pane" id="tab-illus">
+      <div id="illus-search-bar" style="display:flex;gap:6px;padding:10px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;">
+        <input id="illus-search-input" type="text"
+               placeholder="Search illustrations… (English: angel, tree, scroll…)"
+               onkeydown="if(event.key==='Enter')illusSearch()"
+               style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-s);color:var(--text);padding:6px 10px;font-size:12px;font-family:inherit;outline:none;transition:border-color .15s;">
+        <select id="illus-type" class="btn" style="padding:5px 8px;cursor:pointer;">
+          <option value="all">All types</option>
+          <option value="illustration" selected>Illustration</option>
+          <option value="vector">Vector</option>
+          <option value="photo">Photo</option>
+        </select>
+        <button class="btn primary" onclick="illusSearch()">Search</button>
+      </div>
+      <div id="illus-status" style="padding:6px 14px;font-size:11px;color:var(--muted);flex-shrink:0;"></div>
+      <div id="illus-grid" style="flex:1;overflow-y:auto;padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;align-content:start;"></div>
+      <div id="illus-key-notice" style="padding:10px 14px;font-size:11px;color:var(--muted);text-align:center;display:none;">
+        Pixabay API key not configured. Add <code style="background:var(--bg3);padding:1px 4px;border-radius:3px;">PIXABAY_API_KEY</code> to .env and restart the server.<br>
+        Get a free key at <span style="color:var(--accent2);">pixabay.com/api/</span>
+      </div>
+    </div>
+
+    <!-- AI Generate tab -->
+    <div class="tab-pane" id="tab-aigen">
+      <div style="padding:14px;display:flex;flex-direction:column;gap:10px;height:100%;box-sizing:border-box;">
+        <div style="font-size:11px;color:var(--muted);">Generate an image with Azure AI (MAI-Image-2). Describe what you want in English.</div>
+        <textarea id="aigen-prompt" rows="4" placeholder="Example: biblical angel descending from golden clouds, dramatic lighting, oil painting style, highly detailed"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-s);color:var(--text);padding:8px 10px;font-size:12px;font-family:inherit;outline:none;resize:vertical;transition:border-color .15s;line-height:1.5;"
+          onkeydown="if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){event.preventDefault();aiGenerate();}"></textarea>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="aigen-size" class="btn" style="padding:5px 8px;cursor:pointer;">
+            <option value="1024x1024">1024×1024</option>
+            <option value="1792x1024">1792×1024 (wide)</option>
+            <option value="1024x1792">1024×1792 (tall)</option>
+          </select>
+          <button class="btn primary" onclick="aiGenerate()" id="aigen-btn" style="flex:1;justify-content:center;">
+            ✦ Generate
+          </button>
+        </div>
+        <div id="aigen-status" style="font-size:11px;color:var(--muted);text-align:center;min-height:16px;"></div>
+        <div id="aigen-results" style="flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-content:start;min-height:0;"></div>
+      </div>
     </div>
 
     <div class="tab-pane" id="tab-upload">
@@ -4610,6 +4700,170 @@ async function pexelsPickPhoto(div, photo) {
   } catch (e) {
     div.classList.remove('px-loading');
     document.getElementById('pexels-status').textContent = '✗ ' + e.message;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  ILLUSTRATIONS SEARCH (Pixabay)
+// ═══════════════════════════════════════════════════════
+let _illusQuery = '';
+let _illusPage  = 1;
+
+async function illusSearch(nextPage = false) {
+  const input = document.getElementById('illus-search-input');
+  const typeEl = document.getElementById('illus-type');
+  const q = input.value.trim();
+  if (!q) { showToast('Enter a search query', 'error'); return; }
+
+  if (!nextPage) {
+    _illusQuery = q;
+    _illusPage  = 1;
+    document.getElementById('illus-grid').innerHTML = '';
+  } else {
+    _illusPage++;
+  }
+
+  const status  = document.getElementById('illus-status');
+  const notice  = document.getElementById('illus-key-notice');
+  const imgType = typeEl ? typeEl.value : 'illustration';
+  status.textContent = 'Searching…';
+  notice.style.display = 'none';
+
+  // Remove old load-more button
+  const oldMore = document.querySelector('.illus-load-more');
+  if (oldMore) oldMore.remove();
+
+  try {
+    const url = `/api/image-search?q=${encodeURIComponent(_illusQuery)}&source=pixabay&limit=80&page=${_illusPage}&image_type=${imgType}`;
+    const r = await fetch(url);
+    const data = await r.json();
+
+    if (data.error === 'PIXABAY_API_KEY not set') {
+      status.textContent = '';
+      notice.style.display = '';
+      return;
+    }
+    if (!r.ok) throw new Error(data.error || 'Search failed');
+
+    const results = data.results || [];
+    const grid = document.getElementById('illus-grid');
+    status.textContent = results.length ? `${results.length} results` : 'No results';
+
+    results.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'illus-item';
+      div.dataset.id = item.id;
+      div.innerHTML = `
+        <img src="${esc(item.thumb)}" loading="lazy" referrerpolicy="no-referrer"
+             alt="${esc(item.description || '')}" onerror="this.style.opacity='.15'">
+        <div class="illus-author">${esc(item.author || '')}</div>`;
+      div.addEventListener('click', () => illusPickItem(div, item));
+      grid.appendChild(div);
+    });
+
+    if (results.length === 80) {
+      const btn = document.createElement('div');
+      btn.className = 'illus-load-more';
+      btn.style.cssText = 'grid-column:1/-1;text-align:center;padding:8px;';
+      btn.innerHTML = `<button class="btn" onclick="illusSearch(true)">Load more</button>`;
+      grid.appendChild(btn);
+    }
+  } catch (e) {
+    status.textContent = '✗ ' + e.message;
+  }
+}
+
+async function illusPickItem(div, item) {
+  // Deselect others
+  document.querySelectorAll('.illus-item.selected').forEach(el => el.classList.remove('selected'));
+  div.classList.add('selected');
+
+  const status = document.getElementById('illus-status');
+  status.textContent = 'Downloading…';
+
+  try {
+    // Download high-res version to uploads
+    const r = await fetch('/api/image-fetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: item.src, filename: (item.description || 'illus').slice(0,40).replace(/\W+/g,'_') + '_pixabay_' + item.id + '.jpg' }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Download failed');
+    modalSelected = d.path;
+    status.textContent = '✓ Ready — click Select';
+    await loadLibrary();
+  } catch (e) {
+    status.textContent = '✗ ' + e.message;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  AI IMAGE GENERATION
+// ═══════════════════════════════════════════════════════
+async function aiGenerate() {
+  const prompt  = (document.getElementById('aigen-prompt').value || '').trim();
+  const size    = document.getElementById('aigen-size').value || '1024x1024';
+  const btn     = document.getElementById('aigen-btn');
+  const status  = document.getElementById('aigen-status');
+  const results = document.getElementById('aigen-results');
+
+  if (!prompt) { showToast('Enter a prompt', 'error'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '… Generating';
+  status.textContent = 'This may take 15–30 seconds…';
+
+  // Show spinner card
+  const spinnerCard = document.createElement('div');
+  spinnerCard.className = 'aigen-item generating';
+  spinnerCard.innerHTML = '<div class="aigen-spinner">✦</div>';
+  results.prepend(spinnerCard);
+
+  try {
+    const r = await fetch('/api/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, size, n: 1 }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Generation failed');
+
+    const imgUrl = d.url || d.path;
+    if (!imgUrl) throw new Error('No image URL in response');
+
+    // If it's a remote URL, fetch to uploads first
+    let localPath = imgUrl;
+    if (imgUrl.startsWith('http')) {
+      const fetchR = await fetch('/api/image-fetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: imgUrl, filename: `ai_gen_${Date.now()}.png` }),
+      });
+      const fetchD = await fetchR.json();
+      if (fetchD.path) localPath = fetchD.path;
+    }
+
+    // Replace spinner with result
+    spinnerCard.className = 'aigen-item selected';
+    spinnerCard.innerHTML = `
+      <img src="${esc(localPath)}" loading="lazy" alt="${esc(prompt.slice(0,40))}">
+      <div class="aigen-item-label">${esc(prompt.slice(0,50))}</div>`;
+    spinnerCard.addEventListener('click', () => {
+      document.querySelectorAll('.aigen-item').forEach(el => el.classList.remove('selected'));
+      spinnerCard.classList.add('selected');
+      modalSelected = localPath;
+    });
+    modalSelected = localPath;
+    status.textContent = '✓ Generated — click Select to use';
+    await loadLibrary();
+  } catch (e) {
+    spinnerCard.remove();
+    status.textContent = '✗ ' + e.message;
+    showToast('AI Generate error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ Generate';
   }
 }
 

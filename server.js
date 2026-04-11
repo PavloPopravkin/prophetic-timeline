@@ -225,11 +225,12 @@ app.get('/api/image-search', (_req, res) => {
   if (source === 'pixabay') {
     const key = process.env.PIXABAY_API_KEY;
     if (!key) return res.status(503).json({ error: 'PIXABAY_API_KEY not set' });
-    const url = `https://pixabay.com/api/?key=${key}&q=${encodeURIComponent(q)}&image_type=photo&per_page=${limit}&page=${page}&safesearch=true`;
+    const imgType = ['all','photo','illustration','vector'].includes(_req.query.image_type) ? _req.query.image_type : 'all';
+    const url = `https://pixabay.com/api/?key=${key}&q=${encodeURIComponent(q)}&image_type=${imgType}&per_page=${limit}&page=${page}&safesearch=true`;
     _httpsGet(url, {}, (err, data) => {
       if (err) return res.status(502).json({ error: err });
       const hits = (data.hits || []).map(h => ({
-        id: h.id, url: h.largeImageURL, thumb: h.webformatURL,
+        id: h.id, src: h.largeImageURL, url: h.largeImageURL, thumb: h.webformatURL,
         width: h.imageWidth, height: h.imageHeight,
         description: h.tags, author: h.user, source: 'pixabay', page_url: h.pageURL,
       }));
