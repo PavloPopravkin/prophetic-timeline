@@ -5677,51 +5677,47 @@ function cutoutUseThis(id) {
 /* Save spinner */
 #be-save-btn.saving { opacity: .6; pointer-events: none; }
 
-/* AI Edit section */
-#be-ai-prompt {
-  width: 100%; box-sizing: border-box;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 6px;
-  color: rgba(255,255,255,.8);
-  font-size: 11px; font-family: inherit;
-  padding: 7px 9px; resize: vertical;
-  outline: none; line-height: 1.5;
-  min-height: 64px;
-  transition: border-color .15s;
-}
-#be-ai-prompt:focus { border-color: rgba(232,160,32,.5); }
-#be-ai-btn {
-  width: 100%; margin-top: 8px;
+/* AI Cut Out section */
+#be-co-btn {
+  width: 100%; margin-top: 4px;
   padding: 8px; border-radius: 6px; font-size: 12px;
   background: rgba(232,160,32,.18); color: #e8a020;
   border: 1px solid rgba(232,160,32,.4); cursor: pointer;
   font-family: inherit; transition: all .15s;
   display: flex; align-items: center; justify-content: center; gap: 5px;
 }
-#be-ai-btn:hover:not(:disabled) { background: rgba(232,160,32,.28); }
-#be-ai-btn:disabled { opacity: .45; cursor: default; }
-#be-ai-status {
+#be-co-btn:hover:not(:disabled) { background: rgba(232,160,32,.28); }
+#be-co-btn:disabled { opacity: .45; cursor: default; }
+#be-co-status {
   margin-top: 6px; font-size: 10px;
   color: rgba(255,255,255,.4); text-align: center; min-height: 14px;
 }
-#be-ai-result {
+#be-co-result {
   margin-top: 8px; border-radius: 6px; overflow: hidden;
-  display: none; position: relative;
+  display: none;
   border: 1px solid rgba(232,160,32,.3);
+  background: repeating-conic-gradient(#222 0% 25%, #2a2a2a 0% 50%) 0 0 / 12px 12px;
 }
-#be-ai-result img { width: 100%; display: block; }
-#be-ai-result-btns {
+#be-co-result img { width: 100%; display: block; }
+#be-co-result-btns {
   display: flex; gap: 5px; padding: 5px;
   background: rgba(0,0,0,.6);
 }
-#be-ai-result-btns button {
+#be-co-result-btns button {
   flex: 1; padding: 5px 0; border-radius: 5px; font-size: 11px;
   border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.07);
   color: rgba(255,255,255,.7); cursor: pointer; font-family: inherit;
 }
-#be-ai-result-btns button.primary { background: rgba(232,160,32,.2); color: #e8a020; border-color: rgba(232,160,32,.4); }
-#be-ai-result-btns button:hover { opacity: .85; }
+#be-co-result-btns button.primary { background: rgba(232,160,32,.2); color: #e8a020; border-color: rgba(232,160,32,.4); }
+#be-co-result-btns button:hover { opacity: .85; }
+.be-model-row { display: flex; gap: 5px; margin-bottom: 8px; }
+.be-model-btn {
+  flex: 1; padding: 5px 0; border-radius: 5px; font-size: 11px; text-align: center;
+  border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.4); cursor: pointer; font-family: inherit; transition: all .12s;
+}
+.be-model-btn.active { background: rgba(232,160,32,.15); color: #e8a020; border-color: rgba(232,160,32,.4); }
+.be-model-btn:hover:not(.active) { background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); }
 </style>
 
 <div id="brush-editor">
@@ -5798,23 +5794,20 @@ function cutoutUseThis(id) {
         </div>
       </div>
 
-      <!-- AI Edit -->
+      <!-- AI Cut Out -->
       <div class="be-section">
-        <div class="be-section-title">✦ AI Edit</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.3);line-height:1.5;margin-bottom:8px;">
-          Erase the area to replace, then describe what should appear there.
+        <div class="be-section-title">✦ AI Cut Out</div>
+        <div class="be-model-row">
+          <button class="be-model-btn active" id="be-co-fast" onclick="beCoSetModel('u2net')">Fast</button>
+          <button class="be-model-btn"        id="be-co-sharp" onclick="beCoSetModel('isnet-general-use')">Sharp</button>
         </div>
-        <textarea id="be-ai-prompt" rows="3"
-          placeholder="biblical angel, golden light, oil painting…"
-          onkeydown="if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){event.preventDefault();beAIGenerate();}"></textarea>
-        <button id="be-ai-btn" onclick="beAIGenerate()">✦ Generate</button>
-        <div id="be-ai-status"></div>
-        <div id="be-ai-result">
-          <img id="be-ai-result-img" src="" alt="">
-          <div id="be-ai-result-btns">
-            <button class="primary" onclick="beAIAccept()">✓ Use</button>
-            <button onclick="beAIRetry()">↻ Retry</button>
-            <button onclick="document.getElementById('be-ai-result').style.display='none'">✕</button>
+        <button id="be-co-btn" onclick="beAICutout()">✦ Auto Cut Out</button>
+        <div id="be-co-status"></div>
+        <div id="be-co-result">
+          <img id="be-co-result-img" src="" alt="">
+          <div id="be-co-result-btns">
+            <button class="primary" onclick="beCoAccept()">✓ Use</button>
+            <button onclick="document.getElementById('be-co-result').style.display='none'">✕</button>
           </div>
         </div>
       </div>
@@ -5859,6 +5852,7 @@ function openBrushEditor(cardId) {
   const editSrc  = card.dataset.result || card.dataset.src;  // what we paint on
   const origSrc  = card.dataset.src;                          // always the original for restore
 
+  _beSrc = origSrc;
   document.getElementById('be-title').textContent = editSrc.split('/').pop();
   document.getElementById('brush-editor').classList.add('open');
   beSetMode('erase');
@@ -5901,6 +5895,7 @@ function openBrushEditor(cardId) {
 // Open brush editor directly from a src path (no cutout card needed)
 function openBrushEditorDirect(src) {
   _beCardId         = null;
+  _beSrc            = src;
   // _beDirectElIdx / _beDirectSceneIdx already set by caller
 
   document.getElementById('be-title').textContent = src.split('/').pop();
@@ -5929,6 +5924,9 @@ function beCancel() {
   document.getElementById('brush-editor').classList.remove('open');
   _beCardId = null; _beOrigData = null; _beHistory = [];
   _beDirectElIdx = null; _beDirectSceneIdx = null;
+  _beSrc = null; _beCoResultPath = null;
+  document.getElementById('be-co-result').style.display = 'none';
+  document.getElementById('be-co-status').textContent = '';
 }
 
 function beSetMode(mode) {
@@ -6211,83 +6209,70 @@ function beUndo() {
   canvas.getContext('2d').putImageData(_beHistory.pop(), 0, 0);
 }
 
-// ── AI Edit (inpainting) ──────────────────────────────────────
-let _beAIResultUrl = null;
+// ── AI Cut Out ────────────────────────────────────────────────
+let _beSrc      = null;   // source path stored when editor opens
+let _beCoModel  = 'u2net';
+let _beCoResultPath = null;
 
-async function beAIGenerate() {
-  const prompt = (document.getElementById('be-ai-prompt').value || '').trim();
-  if (!prompt) { showToast('Enter a prompt', 'error'); return; }
+function beCoSetModel(model) {
+  _beCoModel = model;
+  document.getElementById('be-co-fast').classList.toggle('active',  model === 'u2net');
+  document.getElementById('be-co-sharp').classList.toggle('active', model === 'isnet-general-use');
+}
 
-  const canvas = document.getElementById('be-canvas');
-  const ctx    = canvas.getContext('2d');
+async function beAICutout() {
+  if (!_beSrc) { showToast('No source image', 'error'); return; }
 
-  // Check there are transparent (erased) areas to use as mask
-  const iData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  let hasTransparent = false;
-  for (let i = 3; i < iData.data.length; i += 4) {
-    if (iData.data[i] < 128) { hasTransparent = true; break; }
-  }
-  if (!hasTransparent) {
-    showToast('Erase the area you want to replace first', 'error'); return;
-  }
-
-  const btn    = document.getElementById('be-ai-btn');
-  const status = document.getElementById('be-ai-status');
-  const result = document.getElementById('be-ai-result');
+  const btn    = document.getElementById('be-co-btn');
+  const status = document.getElementById('be-co-status');
+  const result = document.getElementById('be-co-result');
 
   btn.disabled = true;
-  btn.textContent = '⟳ Generating…';
-  status.textContent = 'Sending to AI…';
+  btn.textContent = '⟳ Processing…';
+  status.textContent = 'Removing background…';
   result.style.display = 'none';
 
   try {
-    // Resize to 1024×1024 (Azure API requirement)
-    const tmp = document.createElement('canvas');
-    tmp.width = tmp.height = 1024;
-    tmp.getContext('2d').drawImage(canvas, 0, 0, 1024, 1024);
-    const imageBase64 = tmp.toDataURL('image/png').split(',')[1];
-
-    const r = await fetch('/api/edit-image', {
+    const r = await fetch('/api/remove-bg', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageBase64, prompt, size: '1024x1024' }),
+      body: JSON.stringify({ src: _beSrc, model: _beCoModel, points: '', rect: '' }),
     });
     const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'Edit failed');
+    if (!r.ok || !data.path) throw new Error(data.error || 'Failed');
 
-    _beAIResultUrl = data.url;
-    const img = document.getElementById('be-ai-result-img');
-    img.src = data.url;
+    _beCoResultPath = data.path;
+    const img = document.getElementById('be-co-result-img');
+    img.src = data.path + '?t=' + Date.now();
     result.style.display = '';
-    status.textContent = '✓ Done — click "Use" to apply';
+    status.textContent = '✓ Done — click "Use" to load into editor';
   } catch (e) {
     status.textContent = '✗ ' + e.message;
-    showToast('AI Edit error: ' + e.message, 'error');
+    showToast('Cut Out error: ' + e.message, 'error');
   } finally {
     btn.disabled = false;
-    btn.textContent = '✦ Generate';
+    btn.textContent = '✦ Auto Cut Out';
   }
 }
 
-function beAIAccept() {
-  if (!_beAIResultUrl) return;
+function beCoAccept() {
+  if (!_beCoResultPath) return;
   const canvas = document.getElementById('be-canvas');
   const ctx    = canvas.getContext('2d');
   const img    = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = () => {
     bePushHistory();
+    canvas.width  = img.naturalWidth;
+    canvas.height = img.naturalHeight;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    document.getElementById('be-ai-result').style.display = 'none';
-    document.getElementById('be-ai-status').textContent = 'Applied ✓';
+    ctx.drawImage(img, 0, 0);
+    _beSrc = _beCoResultPath;  // update src so re-run uses the cutout result
+    document.getElementById('be-co-result').style.display = 'none';
+    document.getElementById('be-co-status').textContent = 'Loaded ✓ — refine with brush';
+    beFit();
   };
-  img.src = _beAIResultUrl + '?_t=' + Date.now();
-}
-
-function beAIRetry() {
-  document.getElementById('be-ai-result').style.display = 'none';
-  beAIGenerate();
+  img.src = _beCoResultPath + '?t=' + Date.now();
 }
 
 // ── Save with Azure AI naming ────────────────────────────────
