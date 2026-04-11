@@ -2029,7 +2029,6 @@ select option { background: #0d0d24; color: var(--text); }
       <button class="tab-btn active" data-tab="library">Library</button>
       <button class="tab-btn" data-tab="pexels">Photos</button>
       <button class="tab-btn" data-tab="illus">Illustrations</button>
-      <button class="tab-btn" data-tab="aigen">✦ AI Generate</button>
       <button class="tab-btn" data-tab="upload" onclick="closeModal();openCutout(modalCtx)">Upload &amp; Cut Out</button>
     </div>
 
@@ -2071,28 +2070,6 @@ select option { background: #0d0d24; color: var(--text); }
       <div id="illus-key-notice" style="padding:10px 14px;font-size:11px;color:var(--muted);text-align:center;display:none;">
         Pixabay API key not configured. Add <code style="background:var(--bg3);padding:1px 4px;border-radius:3px;">PIXABAY_API_KEY</code> to .env and restart the server.<br>
         Get a free key at <span style="color:var(--accent2);">pixabay.com/api/</span>
-      </div>
-    </div>
-
-    <!-- AI Generate tab -->
-    <div class="tab-pane" id="tab-aigen">
-      <div style="padding:14px;display:flex;flex-direction:column;gap:10px;height:100%;box-sizing:border-box;">
-        <div style="font-size:11px;color:var(--muted);">Generate an image with Azure AI (MAI-Image-2). Describe what you want in English.</div>
-        <textarea id="aigen-prompt" rows="4" placeholder="Example: biblical angel descending from golden clouds, dramatic lighting, oil painting style, highly detailed"
-          style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-s);color:var(--text);padding:8px 10px;font-size:12px;font-family:inherit;outline:none;resize:vertical;transition:border-color .15s;line-height:1.5;"
-          onkeydown="if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){event.preventDefault();aiGenerate();}"></textarea>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <select id="aigen-size" class="btn" style="padding:5px 8px;cursor:pointer;">
-            <option value="1024x1024">1024×1024</option>
-            <option value="1792x1024">1792×1024 (wide)</option>
-            <option value="1024x1792">1024×1792 (tall)</option>
-          </select>
-          <button class="btn primary" onclick="aiGenerate()" id="aigen-btn" style="flex:1;justify-content:center;">
-            ✦ Generate
-          </button>
-        </div>
-        <div id="aigen-status" style="font-size:11px;color:var(--muted);text-align:center;min-height:16px;"></div>
-        <div id="aigen-results" style="flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-content:start;min-height:0;"></div>
       </div>
     </div>
 
@@ -5699,6 +5676,52 @@ function cutoutUseThis(id) {
 
 /* Save spinner */
 #be-save-btn.saving { opacity: .6; pointer-events: none; }
+
+/* AI Edit section */
+#be-ai-prompt {
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 6px;
+  color: rgba(255,255,255,.8);
+  font-size: 11px; font-family: inherit;
+  padding: 7px 9px; resize: vertical;
+  outline: none; line-height: 1.5;
+  min-height: 64px;
+  transition: border-color .15s;
+}
+#be-ai-prompt:focus { border-color: rgba(232,160,32,.5); }
+#be-ai-btn {
+  width: 100%; margin-top: 8px;
+  padding: 8px; border-radius: 6px; font-size: 12px;
+  background: rgba(232,160,32,.18); color: #e8a020;
+  border: 1px solid rgba(232,160,32,.4); cursor: pointer;
+  font-family: inherit; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+#be-ai-btn:hover:not(:disabled) { background: rgba(232,160,32,.28); }
+#be-ai-btn:disabled { opacity: .45; cursor: default; }
+#be-ai-status {
+  margin-top: 6px; font-size: 10px;
+  color: rgba(255,255,255,.4); text-align: center; min-height: 14px;
+}
+#be-ai-result {
+  margin-top: 8px; border-radius: 6px; overflow: hidden;
+  display: none; position: relative;
+  border: 1px solid rgba(232,160,32,.3);
+}
+#be-ai-result img { width: 100%; display: block; }
+#be-ai-result-btns {
+  display: flex; gap: 5px; padding: 5px;
+  background: rgba(0,0,0,.6);
+}
+#be-ai-result-btns button {
+  flex: 1; padding: 5px 0; border-radius: 5px; font-size: 11px;
+  border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.07);
+  color: rgba(255,255,255,.7); cursor: pointer; font-family: inherit;
+}
+#be-ai-result-btns button.primary { background: rgba(232,160,32,.2); color: #e8a020; border-color: rgba(232,160,32,.4); }
+#be-ai-result-btns button:hover { opacity: .85; }
 </style>
 
 <div id="brush-editor">
@@ -5772,6 +5795,27 @@ function cutoutUseThis(id) {
           Alt/Middle — pan<br>
           Right-click — brush size<br>
           ⌘/Ctrl+Z — undo
+        </div>
+      </div>
+
+      <!-- AI Edit -->
+      <div class="be-section">
+        <div class="be-section-title">✦ AI Edit</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);line-height:1.5;margin-bottom:8px;">
+          Erase the area to replace, then describe what should appear there.
+        </div>
+        <textarea id="be-ai-prompt" rows="3"
+          placeholder="biblical angel, golden light, oil painting…"
+          onkeydown="if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){event.preventDefault();beAIGenerate();}"></textarea>
+        <button id="be-ai-btn" onclick="beAIGenerate()">✦ Generate</button>
+        <div id="be-ai-status"></div>
+        <div id="be-ai-result">
+          <img id="be-ai-result-img" src="" alt="">
+          <div id="be-ai-result-btns">
+            <button class="primary" onclick="beAIAccept()">✓ Use</button>
+            <button onclick="beAIRetry()">↻ Retry</button>
+            <button onclick="document.getElementById('be-ai-result').style.display='none'">✕</button>
+          </div>
         </div>
       </div>
 
@@ -6165,6 +6209,85 @@ function beUndo() {
   if (!_beHistory.length) return;
   const canvas = document.getElementById('be-canvas');
   canvas.getContext('2d').putImageData(_beHistory.pop(), 0, 0);
+}
+
+// ── AI Edit (inpainting) ──────────────────────────────────────
+let _beAIResultUrl = null;
+
+async function beAIGenerate() {
+  const prompt = (document.getElementById('be-ai-prompt').value || '').trim();
+  if (!prompt) { showToast('Enter a prompt', 'error'); return; }
+
+  const canvas = document.getElementById('be-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  // Check there are transparent (erased) areas to use as mask
+  const iData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let hasTransparent = false;
+  for (let i = 3; i < iData.data.length; i += 4) {
+    if (iData.data[i] < 128) { hasTransparent = true; break; }
+  }
+  if (!hasTransparent) {
+    showToast('Erase the area you want to replace first', 'error'); return;
+  }
+
+  const btn    = document.getElementById('be-ai-btn');
+  const status = document.getElementById('be-ai-status');
+  const result = document.getElementById('be-ai-result');
+
+  btn.disabled = true;
+  btn.textContent = '⟳ Generating…';
+  status.textContent = 'Sending to AI…';
+  result.style.display = 'none';
+
+  try {
+    // Resize to 1024×1024 (Azure API requirement)
+    const tmp = document.createElement('canvas');
+    tmp.width = tmp.height = 1024;
+    tmp.getContext('2d').drawImage(canvas, 0, 0, 1024, 1024);
+    const imageBase64 = tmp.toDataURL('image/png').split(',')[1];
+
+    const r = await fetch('/api/edit-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64, prompt, size: '1024x1024' }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Edit failed');
+
+    _beAIResultUrl = data.url;
+    const img = document.getElementById('be-ai-result-img');
+    img.src = data.url;
+    result.style.display = '';
+    status.textContent = '✓ Done — click "Use" to apply';
+  } catch (e) {
+    status.textContent = '✗ ' + e.message;
+    showToast('AI Edit error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✦ Generate';
+  }
+}
+
+function beAIAccept() {
+  if (!_beAIResultUrl) return;
+  const canvas = document.getElementById('be-canvas');
+  const ctx    = canvas.getContext('2d');
+  const img    = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    bePushHistory();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    document.getElementById('be-ai-result').style.display = 'none';
+    document.getElementById('be-ai-status').textContent = 'Applied ✓';
+  };
+  img.src = _beAIResultUrl + '?_t=' + Date.now();
+}
+
+function beAIRetry() {
+  document.getElementById('be-ai-result').style.display = 'none';
+  beAIGenerate();
 }
 
 // ── Save with Azure AI naming ────────────────────────────────

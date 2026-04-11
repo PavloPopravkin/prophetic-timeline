@@ -413,6 +413,73 @@ app.post('/api/generate-image', basicAuth, async (req, res) => {
   request.end();
 });
 
+// ── API: AI Image Edit / Inpainting (MAI-Image-2 edits endpoint) ──
+app.post('/api/edit-image', basicAuth, async (req, res) => {
+  const { imageBase64, prompt, size = '1024x1024' } = req.body;
+  if (!imageBase64 || !prompt) return res.status(400).json({ error: 'imageBase64 and prompt required' });
+
+  const apiKey = process.env.AZURE_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'AZURE_API_KEY not set' });
+
+  const imgBuf   = Buffer.from(imageBase64, 'base64');
+  const boundary = 'FormBoundary' + Date.now().toString(16) + Math.random().toString(16).slice(2);
+
+  // Build multipart/form-data body manually (no external deps)
+  const bodyParts = [
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="prompt"\r\n\r\n${prompt}\r\n`, 'utf8'),
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="size"\r\n\r\n${size}\r\n`, 'utf8'),
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="n"\r\n\r\n1\r\n`, 'utf8'),
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="response_format"\r\n\r\nb64_json\r\n`, 'utf8'),
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="image"; filename="image.png"\r\nContent-Type: image/png\r\n\r\n`, 'utf8'),
+    imgBuf,
+    Buffer.from(`\r\n--${boundary}--\r\n`, 'utf8'),
+  ];
+  const body = Buffer.concat(bodyParts);
+
+  const options = {
+    hostname: 'dmytropopravkin-0944-resource.cognitiveservices.azure.com',
+    path: '/openai/deployments/MAI-Image-2/images/edits?api-version=2025-04-01-preview',
+    method: 'POST',
+    headers: {
+      'Content-Type': `multipart/form-data; boundary=${boundary}`,
+      'api-key': apiKey,
+      'Content-Length': body.length,
+    },
+  };
+
+  const request = https.request(options, (response) => {
+    const chunks = [];
+    response.on('data', chunk => chunks.push(chunk));
+    response.on('end', () => {
+      try {
+        const data = Buffer.concat(chunks).toString('utf8');
+        const json = JSON.parse(data);
+        if (json.error) return res.status(502).json({ error: json.error.message || JSON.stringify(json.error) });
+
+        const item = json.data?.[0];
+        if (!item) return res.status(502).json({ error: 'No image in response' });
+
+        if (item.b64_json) {
+          const filename = `aiedit_${Date.now()}.png`;
+          const filepath = path.join(UPLOADS_DIR, filename);
+          fs.writeFileSync(filepath, Buffer.from(item.b64_json, 'base64'));
+          res.json({ url: `/uploads/${filename}` });
+        } else if (item.url) {
+          res.json({ url: item.url });
+        } else {
+          res.status(502).json({ error: 'Unknown response format' });
+        }
+      } catch (e) {
+        res.status(502).json({ error: 'Parse error: ' + e.message });
+      }
+    });
+  });
+
+  request.on('error', e => res.status(502).json({ error: e.message }));
+  request.write(body);
+  request.end();
+});
+
 app.listen(PORT, () => {
   console.log(`\n✦  Таймлайн:  http://localhost:${PORT}`);
   console.log(`✦  Админка:   http://localhost:${PORT}/admin\n`);
