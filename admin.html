@@ -1041,17 +1041,29 @@ select option { background: #0d0d24; color: var(--text); }
 }
 
 /* ── ILLUSTRATION / AI-GEN GRID ──────────────────── */
-.illus-item, .aigen-item {
+.aigen-item {
+  border-radius: var(--radius-s);
+  border: 2px solid transparent;
+  cursor: pointer;
+  aspect-ratio: 1;
+  overflow: hidden;
+  position: relative;
+}
+.illus-item {
   border-radius: var(--radius-s);
   border: 2px solid transparent;
   cursor: pointer;
   overflow: hidden;
   background: var(--bg3);
   transition: border-color 0.12s;
-  aspect-ratio: 1;
   position: relative;
 }
-.illus-item img, .aigen-item img {
+.illus-item img {
+  width: 100%; height: auto; display: block;
+  object-fit: contain;
+  transition: opacity 0.2s;
+}
+.aigen-item img {
   width: 100%; height: 100%; object-fit: cover; display: block;
   transition: opacity 0.2s;
 }
