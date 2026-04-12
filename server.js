@@ -309,6 +309,14 @@ app.post('/api/presets/:name/load', basicAuth, (req, res) => {
   const scenesFile = path.join(ROOT, `scenes.${req.params.name}.json`);
   if (!fs.existsSync(scenesFile)) return res.status(404).json({ error: 'Not found' });
   try {
+    // Auto-save the previous project before switching (if provided)
+    const prev = (req.body && req.body.prev || '').replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
+    if (prev && prev !== req.params.name) {
+      const prevScenes = path.join(ROOT, `scenes.${prev}.json`);
+      const prevPano   = path.join(ROOT, `panorama.${prev}.json`);
+      if (fs.existsSync(SCENES_FILE))   fs.copyFileSync(SCENES_FILE,   prevScenes);
+      if (fs.existsSync(PANORAMA_FILE)) fs.copyFileSync(PANORAMA_FILE, prevPano);
+    }
     fs.copyFileSync(scenesFile, SCENES_FILE);
     // Also load matching panorama preset if it exists
     const panoFile = path.join(ROOT, `panorama.${req.params.name}.json`);

@@ -2651,7 +2651,11 @@ async function init() {
   const savedProject = localStorage.getItem(STORAGE_KEY);
   if (savedProject) {
     try {
-      const r = await fetch(`/api/presets/${encodeURIComponent(savedProject)}/load`, { method: 'POST' });
+      const r = await fetch(`/api/presets/${encodeURIComponent(savedProject)}/load`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prev: '' }), // no prev on fresh editor load
+      });
       if (r.ok) {
         // Update project name and slug display
         const presets = await (await fetch('/api/presets')).json();
