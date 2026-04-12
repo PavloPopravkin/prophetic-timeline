@@ -119,6 +119,7 @@ body {
   gap: 5px;
   white-space: nowrap;
   font-family: inherit;
+  text-decoration: none;
 }
 .btn:hover  { border-color: rgba(255,255,255,0.16); color: var(--text); background: rgba(255,255,255,0.04); }
 .btn.primary {
@@ -1461,7 +1462,7 @@ select option { background: #0d0d24; color: var(--text); }
   <span id="save-status"></span>
   <div id="hdr-spacer"></div>
   <div class="hdr-sep"></div>
-  <a href="/" target="_blank" class="btn">Preview &#8599;</a>
+  <a id="preview-btn" href="/" target="_blank" class="btn">Preview &#8599;</a>
 </div>
 
 <!-- APP (scenes editor) -->
@@ -2812,9 +2813,9 @@ async function loadPreset(name) {
 // Project name
 document.getElementById('project-name').addEventListener('input', function() {
   projectName = this.value;
-  // Auto-fill slug only if user hasn't customized it
   const slugEl = document.getElementById('project-slug');
   if (!slugEl._customized) slugEl.value = toSlugJS(this.value);
+  updatePreviewLink();
 });
 
 // ── Slug helpers ──────────────────────────────────────────
@@ -2829,6 +2830,7 @@ const _slugEl = document.getElementById('project-slug');
 
 _slugEl.addEventListener('input', function() {
   this._customized = true;
+  updatePreviewLink();
   clearTimeout(_slugSaveTimer);
   _slugSaveTimer = setTimeout(() => saveSlug(this.value), 800);
 });
@@ -2861,7 +2863,13 @@ function copyProjectLink() {
 function setSlugField(slug) {
   const el = document.getElementById('project-slug');
   el.value = slug || toSlugJS(projectName);
-  el._customized = !!slug; // mark as customized only if it was stored
+  el._customized = !!slug;
+  updatePreviewLink();
+}
+
+function updatePreviewLink() {
+  const slug = document.getElementById('project-slug').value || toSlugJS(projectName);
+  document.getElementById('preview-btn').href = '/p/' + encodeURIComponent(slug);
 }
 
 // ═══════════════════════════════════════════════════════
