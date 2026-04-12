@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline — Projects</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230d0d10'/><circle cx='16' cy='16' r='3.2' fill='white'/><circle cx='16' cy='7' r='1.6' fill='white' opacity='.75'/><circle cx='16' cy='25' r='1.6' fill='white' opacity='.75'/><circle cx='7' cy='16' r='1.6' fill='white' opacity='.75'/><circle cx='25' cy='16' r='1.6' fill='white' opacity='.75'/><circle cx='9.7' cy='9.7' r='1.2' fill='white' opacity='.45'/><circle cx='22.3' cy='9.7' r='1.2' fill='white' opacity='.45'/><circle cx='9.7' cy='22.3' r='1.2' fill='white' opacity='.45'/><circle cx='22.3' cy='22.3' r='1.2' fill='white' opacity='.45'/></svg>">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0d0d10;
+  --bg2:     #111114;
+  --bg3:     #18181c;
+  --border:  rgba(255,255,255,.08);
+  --text:    rgba(255,255,255,.88);
+  --muted:   rgba(255,255,255,.35);
+  --accent:  #e8f0ff;
+  --accent2: #e8a020;
+  --danger:  #e05565;
+  --radius:  10px;
+}
+
+body {
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+
+/* ── Header ── */
+header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 28px; height: 52px;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.logo {
+  font-size: 14px; font-weight: 700; letter-spacing: .04em;
+  color: var(--accent); white-space: nowrap;
+}
+.logo span { color: var(--muted); font-weight: 400; }
+header .spacer { flex: 1; }
+header a {
+  font-size: 12px; color: var(--muted); text-decoration: none;
+  padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px;
+  transition: color .15s, border-color .15s;
+}
+header a:hover { color: var(--text); border-color: rgba(255,255,255,.2); }
+
+/* ── Main ── */
+main {
+  flex: 1; padding: 40px 28px 60px;
+  max-width: 1100px; width: 100%; margin: 0 auto;
+}
+
+.section-title {
+  font-size: 11px; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 18px;
+}
+
+/* ── Continue banner ── */
+#continue-banner {
+  display: none;
+  align-items: center; gap: 12px;
+  background: rgba(232,240,255,.05); border: 1px solid rgba(232,240,255,.15);
+  border-radius: var(--radius); padding: 14px 18px;
+  margin-bottom: 36px;
+}
+#continue-banner .cb-label {
+  font-size: 12px; color: var(--muted); white-space: nowrap;
+}
+#continue-banner .cb-name {
+  font-size: 15px; font-weight: 600; color: var(--accent); flex: 1;
+}
+#continue-banner button {
+  padding: 8px 20px; font-size: 13px; font-weight: 600;
+  background: var(--accent); color: #0b0b0c; border: none;
+  border-radius: 7px; cursor: pointer; transition: filter .15s;
+  white-space: nowrap;
+}
+#continue-banner button:hover { filter: brightness(1.1); }
+#continue-btn-change {
+  background: transparent !important; color: var(--muted) !important;
+  border: 1px solid var(--border) !important; font-weight: 400 !important;
+}
+#continue-btn-change:hover { color: var(--text) !important; }
+
+/* ── Cards grid ── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: var(--bg3); border: 1.5px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  cursor: pointer; transition: border-color .15s, transform .12s;
+  position: relative;
+  display: flex; flex-direction: column;
+}
+.card:hover { border-color: rgba(255,255,255,.22); transform: translateY(-2px); }
+.card.active-card { border-color: var(--accent); }
+
+.card-thumb {
+  width: 100%; aspect-ratio: 16/9;
+  background: #1a1a1e;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.card-thumb .thumb-placeholder {
+  font-size: 28px; color: rgba(255,255,255,.1);
+}
+
+.card-body { padding: 12px 14px 14px; flex: 1; }
+.card-title {
+  font-size: 14px; font-weight: 600; color: var(--text);
+  margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-meta {
+  font-size: 11px; color: var(--muted); line-height: 1.5;
+}
+.card-active-tag {
+  display: none;
+  font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: #0b0b0c; background: var(--accent);
+  padding: 2px 7px; border-radius: 4px; margin-top: 6px; width: fit-content;
+}
+.card.active-card .card-active-tag { display: block; }
+
+.card-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 14px; border-top: 1px solid var(--border);
+}
+.card-open-btn {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  background: rgba(255,255,255,.06); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 12px; cursor: pointer;
+  transition: background .15s;
+}
+.card-open-btn:hover { background: rgba(255,255,255,.12); }
+.active-card .card-open-btn {
+  background: var(--accent); color: #0b0b0c; border-color: transparent;
+}
+.active-card .card-open-btn:hover { filter: brightness(1.1); }
+.card-del-btn {
+  font-size: 16px; color: var(--muted); background: none; border: none;
+  cursor: pointer; line-height: 1; padding: 4px 6px; border-radius: 5px;
+  transition: color .15s, background .15s;
+}
+.card-del-btn:hover { color: var(--danger); background: rgba(224,85,101,.1); }
+
+/* ── New project card ── */
+.card-new {
+  background: transparent;
+  border: 1.5px dashed rgba(255,255,255,.12);
+  justify-content: center; align-items: center;
+  gap: 8px; min-height: 140px;
+}
+.card-new:hover { border-color: rgba(200,255,87,.3); }
+.card-new .new-icon { font-size: 24px; color: rgba(255,255,255,.2); }
+.card-new .new-label { font-size: 13px; color: var(--muted); }
+
+/* ── New project modal ── */
+#new-modal {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
+  align-items: center; justify-content: center;
+}
+#new-modal.open { display: flex; }
+.nm-box {
+  background: #1c1c20; border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px 28px 24px; width: 380px; max-width: 94vw;
+}
+.nm-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; }
+.nm-input {
+  width: 100%; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 7px; color: var(--text); font-size: 14px;
+  padding: 9px 12px; outline: none; transition: border-color .15s;
+  margin-bottom: 18px;
+}
+.nm-input:focus { border-color: rgba(232,240,255,.4); }
+.nm-row { display: flex; gap: 8px; justify-content: flex-end; }
+.nm-cancel {
+  padding: 8px 18px; background: transparent; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 7px; cursor: pointer;
+  font-size: 13px; transition: color .15s;
+}
+.nm-cancel:hover { color: var(--text); }
+.nm-create {
+  padding: 8px 20px; background: var(--accent); color: #0b0b0c;
+  border: none; border-radius: 7px; cursor: pointer;
+  font-size: 13px; font-weight: 700; transition: filter .15s;
+}
+.nm-create:hover { filter: brightness(1.1); }
+
+/* ── Toast ── */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #1c1c20; border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 18px; font-size: 13px;
+  opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 300;
+  white-space: nowrap;
+}
+#toast.show { opacity: 1; }
+#toast.ok   { border-color: rgba(232,240,255,.3); color: var(--accent); }
+#toast.err  { border-color: rgba(224,85,101,.3); color: var(--danger); }
+
+/* ── Loading ── */
+.loading { color: var(--muted); font-size: 13px; padding: 20px 0; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Prophetic <span>Timeline</span></div>
+  <div class="spacer"></div>
+  <a href="/" target="_blank">Preview ↗</a>
+</header>
+
+<main>
+  <!-- Continue with last project -->
+  <div id="continue-banner">
+    <div class="cb-label">Last project:</div>
+    <div class="cb-name" id="continue-name"></div>
+    <button onclick="openProject(localStorage.getItem('uuk-active-project'))">Continue editing →</button>
+    <button id="continue-btn-change" onclick="hideContinue()">Switch project</button>
+  </div>
+
+  <div class="section-title">All Projects</div>
+  <div class="cards" id="cards-grid">
+    <div class="loading">Loading projects…</div>
+  </div>
+</main>
+
+<!-- New project modal -->
+<div id="new-modal">
+  <div class="nm-box">
+    <div class="nm-title">New Project</div>
+    <input class="nm-input" id="nm-name" type="text" placeholder="Project name (e.g. christmas, advent)" maxlength="40"
+           onkeydown="if(event.key==='Enter')createProject()">
+    <div class="nm-row">
+      <button class="nm-cancel" onclick="closeNewModal()">Cancel</button>
+      <button class="nm-create" onclick="createProject()">Create</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'uuk-active-project';
+let presets = [];
+let hidingContinue = false;
+
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = '', 2200);
+}
+
+function hideContinue() {
+  hidingContinue = true;
+  document.getElementById('continue-banner').style.display = 'none';
+}
+
+async function openProject(name) {
+  if (!name) return;
+  try {
+    const r = await fetch(`/api/presets/${encodeURIComponent(name)}/load`, { method: 'POST' });
+    if (!r.ok) throw new Error('Load failed');
+    localStorage.setItem(STORAGE_KEY, name);
+    window.location.href = '/admin/editor';
+  } catch (e) {
+    toast('Error loading project: ' + e.message, 'err');
+  }
+}
+
+async function deleteProject(name, e) {
+  e.stopPropagation();
+  if (!confirm(`Delete project "${name}"? This cannot be undone.`)) return;
+  try {
+    const r = await fetch(`/api/presets/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error('Delete failed');
+    if (localStorage.getItem(STORAGE_KEY) === name) localStorage.removeItem(STORAGE_KEY);
+    toast('Project deleted', 'ok');
+    loadProjects();
+  } catch (e) {
+    toast('Error: ' + e.message, 'err');
+  }
+}
+
+function openNewModal() {
+  document.getElementById('nm-name').value = '';
+  document.getElementById('new-modal').classList.add('open');
+  setTimeout(() => document.getElementById('nm-name').focus(), 50);
+}
+function closeNewModal() {
+  document.getElementById('new-modal').classList.remove('open');
+}
+
+async function createProject() {
+  const raw = document.getElementById('nm-name').value.trim();
+  if (!raw) return;
+  const safe = raw.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
+  try {
+    const r = await fetch(`/api/presets/${encodeURIComponent(safe)}/create`, { method: 'POST' });
+    if (!r.ok) throw new Error('Create failed');
+    localStorage.setItem(STORAGE_KEY, safe);
+    window.location.href = '/admin/editor';
+  } catch (e) {
+    toast('Error: ' + e.message, 'err');
+  }
+}
+
+function thumbUrl(name) {
+  // Try to find a background from the preset data
+  const p = presets.find(x => x.name === name);
+  if (p && p.thumb) return p.thumb;
+  return null;
+}
+
+function renderCards() {
+  const active = localStorage.getItem(STORAGE_KEY);
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = '';
+
+  presets.forEach(p => {
+    const isActive = p.name === active;
+    const card = document.createElement('div');
+    card.className = 'card' + (isActive ? ' active-card' : '');
+    card.onclick = () => openProject(p.name);
+
+    const thumb = p.thumb
+      ? `<img src="${p.thumb}" alt="" onerror="this.parentElement.innerHTML='<div class=thumb-placeholder>🎬</div>'">`
+      : `<div class="thumb-placeholder">🎬</div>`;
+
+    card.innerHTML = `
+      <div class="card-thumb">${thumb}</div>
+      <div class="card-body">
+        <div class="card-title">${escHtml(p.title || p.name)}</div>
+        <div class="card-meta">${p.sceneCount != null ? p.sceneCount + ' scene' + (p.sceneCount !== 1 ? 's' : '') : ''}</div>
+        <div class="card-active-tag">Active</div>
+      </div>
+      <div class="card-actions">
+        <button class="card-open-btn">${isActive ? 'Continue →' : 'Open'}</button>
+        <button class="card-del-btn" title="Delete project" onclick="deleteProject('${escAttr(p.name)}', event)">🗑</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  // New project card
+  const newCard = document.createElement('div');
+  newCard.className = 'card card-new';
+  newCard.onclick = openNewModal;
+  newCard.innerHTML = `<div class="new-icon">＋</div><div class="new-label">New Project</div>`;
+  grid.appendChild(newCard);
+}
+
+async function loadProjects() {
+  try {
+    const r = await fetch('/api/presets');
+    const data = await r.json();
+    presets = data;
+    renderCards();
+  } catch (e) {
+    document.getElementById('cards-grid').innerHTML = '<div class="loading">Failed to load projects</div>';
+  }
+}
+
+function escHtml(s) { return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s) { return s.replace(/'/g, "\\'"); }
+
+// On load: check if a project was previously selected
+window.addEventListener('DOMContentLoaded', async () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved && !hidingContinue) {
+    // Show "continue" banner
+    document.getElementById('continue-name').textContent = saved;
+    document.getElementById('continue-banner').style.display = 'flex';
+  }
+
+  await loadProjects();
+});
+
+// Close new modal on backdrop click
+document.getElementById('new-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeNewModal();
+});
+</script>
+</body>
+</html>

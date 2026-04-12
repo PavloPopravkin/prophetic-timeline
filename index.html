@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Prophetic Timeline — interactive visual timeline of world history">
 <title>Prophetic Timeline</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23111'/><text x='16' y='23' text-anchor='middle' font-size='20'>✨</text></svg>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1307,11 +1308,22 @@ function encodePath(raw) {
 let PANORAMA = { bg: null, elements: [] };
 let SCENES = [], NUM_SCENES = 0;
 
+// Resolve which project to load: ?p=name → that preset, else home project
+async function resolveProjectName() {
+  const param = new URLSearchParams(location.search).get('p');
+  if (param) return param.replace(/[^a-z0-9_-]/gi, '');
+  try {
+    const cfg = await fetch('/api/config').then(r => r.json());
+    return cfg.homeProject || 'spiritual';
+  } catch { return 'spiritual'; }
+}
+
 async function fetchScenes() {
   try {
+    const project = await resolveProjectName();
     const [d, panoRaw] = await Promise.all([
-      fetch('/api/scenes').then(r => r.json()),
-      fetch('/api/panorama').then(r => r.json()).catch(() => null),
+      fetch(`/api/scenes/${encodeURIComponent(project)}`).then(r => r.ok ? r.json() : fetch('/api/scenes').then(r => r.json())),
+      fetch(`/api/panorama/${encodeURIComponent(project)}`).then(r => r.json()).catch(() => null),
     ]);
 
     // scenes.json may carry its own panorama section (legacy inline format)

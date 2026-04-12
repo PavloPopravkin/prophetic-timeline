@@ -111,11 +111,30 @@ const storage = multer.diskStorage({
 const upload = multer({ storage, limits: { fileSize: 20 * 1024 * 1024 } });
 
 // ── API: scenes ─────────────────────────────────────────────
+// Default project shown at root URL (no ?p= param)
+const HOME_PROJECT = process.env.HOME_PROJECT || 'spiritual';
+
 app.get('/api/scenes', (_req, res) => {
   try {
     res.json(JSON.parse(fs.readFileSync(SCENES_FILE, 'utf8')));
   } catch {
     res.json({ scenes: [] });
+  }
+});
+
+// Public config (home project name etc.)
+app.get('/api/config', (_req, res) => {
+  res.json({ homeProject: HOME_PROJECT });
+});
+
+// Read-only: scenes for a specific preset (doesn't change active)
+app.get('/api/scenes/:name', (req, res) => {
+  const name = req.params.name.replace(/[^a-z0-9_-]/gi, '');
+  const file = path.join(ROOT, `scenes.${name}.json`);
+  try {
+    res.json(JSON.parse(fs.readFileSync(file, 'utf8')));
+  } catch {
+    res.status(404).json({ error: 'Project not found', name });
   }
 });
 
@@ -134,6 +153,22 @@ app.get('/api/panorama', (_req, res) => {
     res.json(JSON.parse(fs.readFileSync(PANORAMA_FILE, 'utf8')));
   } catch {
     res.json({ name: '', background: '', elements: [], clickAreas: [] });
+  }
+});
+
+// Read-only: panorama for a specific preset
+app.get('/api/panorama/:name', (req, res) => {
+  const name = req.params.name.replace(/[^a-z0-9_-]/gi, '');
+  const file = path.join(ROOT, `panorama.${name}.json`);
+  try {
+    res.json(JSON.parse(fs.readFileSync(file, 'utf8')));
+  } catch {
+    // Fall back to active panorama
+    try {
+      res.json(JSON.parse(fs.readFileSync(PANORAMA_FILE, 'utf8')));
+    } catch {
+      res.json({ name: '', background: '', elements: [], clickAreas: [] });
+    }
   }
 });
 
@@ -212,11 +247,19 @@ app.get('/api/presets', (_req, res) => {
     .map(f => {
       const name = f.replace(/^scenes\./, '').replace(/\.json$/, '');
       let title = name;
+      let sceneCount = 0;
+      let thumb = null;
       try {
         const data = JSON.parse(fs.readFileSync(path.join(ROOT, f), 'utf8'));
         if (data.name) title = data.name;
+        if (Array.isArray(data.scenes)) {
+          sceneCount = data.scenes.length;
+          // Find first scene with a bg image for thumbnail
+          const firstBg = data.scenes.find(s => s.bg && !s.bg_video);
+          if (firstBg) thumb = firstBg.bg;
+        }
       } catch {}
-      return { name, file: f, title };
+      return { name, file: f, title, sceneCount, thumb };
     });
   res.json(files);
 });
@@ -247,8 +290,45 @@ app.post('/api/presets/:name/save', basicAuth, (req, res) => {
   }
 });
 
-// ── Admin panel shortcut ────────────────────────────────────
+app.post('/api/presets/:name/create', basicAuth, (req, res) => {
+  const safeName = req.params.name.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
+  if (!safeName) return res.status(400).json({ error: 'Invalid name' });
+  const scenesFile = path.join(ROOT, `scenes.${safeName}.json`);
+  try {
+    // Copy current scenes.json as the new preset (or create blank)
+    if (fs.existsSync(SCENES_FILE)) {
+      fs.copyFileSync(SCENES_FILE, scenesFile);
+    } else {
+      fs.writeFileSync(scenesFile, JSON.stringify({ name: req.params.name, scenes: [] }));
+    }
+    if (fs.existsSync(PANORAMA_FILE)) {
+      fs.copyFileSync(PANORAMA_FILE, path.join(ROOT, `panorama.${safeName}.json`));
+    }
+    res.json({ ok: true, name: safeName });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/api/presets/:name', basicAuth, (req, res) => {
+  const safeName = req.params.name.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
+  try {
+    const sf = path.join(ROOT, `scenes.${safeName}.json`);
+    const pf = path.join(ROOT, `panorama.${safeName}.json`);
+    if (fs.existsSync(sf)) fs.unlinkSync(sf);
+    if (fs.existsSync(pf)) fs.unlinkSync(pf);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Admin panel ─────────────────────────────────────────────
+// /admin → project picker; /admin/editor → editor
 app.get('/admin', basicAuth, (_req, res) => {
+  res.sendFile(path.join(ROOT, 'projects.html'));
+});
+app.get('/admin/editor', basicAuth, (_req, res) => {
   res.sendFile(path.join(ROOT, 'admin.html'));
 });
 
@@ -431,15 +511,15 @@ app.post('/api/generate-image', basicAuth, async (req, res) => {
   const apiKey = process.env.AZURE_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'AZURE_API_KEY not set' });
 
-  const body = JSON.stringify({ prompt, size, n, style: 'vivid', quality: 'standard' });
+  const body = JSON.stringify({ prompt, size, n, model: 'MAI-Image-2' });
 
   const options = {
-    hostname: 'dmytropopravkin-0944-resource.cognitiveservices.azure.com',
-    path: '/openai/deployments/MAI-Image-2/images/generations?api-version=2025-04-01-preview',
+    hostname: 'dmytropopravkin-0944-resource.openai.azure.com',
+    path: '/openai/v1/images/generations',
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'api-key': apiKey,
+      'Authorization': 'Bearer ' + apiKey,
       'Content-Length': Buffer.byteLength(body),
     },
   };
@@ -475,6 +555,27 @@ app.post('/api/generate-image', basicAuth, async (req, res) => {
   request.on('error', e => res.status(502).json({ error: e.message }));
   request.write(body);
   request.end();
+});
+
+// ── API: delete uploaded file ────────────────────────────
+app.post('/api/delete-upload', basicAuth, (req, res) => {
+  const { path: filePath } = req.body;
+  if (!filePath) return res.status(400).json({ error: 'path required' });
+  // Only allow deleting from /uploads/
+  const safeName = path.basename(filePath);
+  const absPath = path.join(UPLOADS_DIR, safeName);
+  if (!absPath.startsWith(UPLOADS_DIR + path.sep) && absPath !== UPLOADS_DIR) {
+    return res.status(400).json({ error: 'invalid path' });
+  }
+  try {
+    if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
+    // Also remove thumb if exists
+    const tFile = path.join(THUMBS_DIR, thumbName(absPath));
+    if (fs.existsSync(tFile)) fs.unlinkSync(tFile);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ── API: save recolored SVG ─────────────────────────────

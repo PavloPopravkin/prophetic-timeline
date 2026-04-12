@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prophetic Timeline — Editor</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230d0d10'/><circle cx='16' cy='16' r='3.2' fill='white'/><circle cx='16' cy='7' r='1.6' fill='white' opacity='.75'/><circle cx='16' cy='25' r='1.6' fill='white' opacity='.75'/><circle cx='7' cy='16' r='1.6' fill='white' opacity='.75'/><circle cx='25' cy='16' r='1.6' fill='white' opacity='.75'/><circle cx='9.7' cy='9.7' r='1.2' fill='white' opacity='.45'/><circle cx='22.3' cy='9.7' r='1.2' fill='white' opacity='.45'/><circle cx='9.7' cy='22.3' r='1.2' fill='white' opacity='.45'/><circle cx='22.3' cy='22.3' r='1.2' fill='white' opacity='.45'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Sans+Narrow:wght@400;700&family=Lora:ital,wght@0,400;0,500;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Philosopher:ital,wght@0,400;0,700;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Spectral:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Roboto:ital,wght@0,100;0,300;0,400;0,700;0,900;1,300;1,400&family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:ital,wght@0,100;0,300;0,400;0,700;0,900;1,300&family=Nunito:wght@300;400;600;700&family=Exo+2:ital,wght@0,100;0,300;0,400;0,700;1,300&family=Comfortaa:wght@300;400;700&family=Golos+Text:wght@400;500;700;900&family=Unbounded:wght@300;400;700;900&family=Russo+One&family=Yeseva+One&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Oswald:wght@200;300;400;700&display=swap" rel="stylesheet">
@@ -996,10 +997,59 @@ body {
 .lib-item-wrap:hover .lib-svg-paint { display: flex; }
 .lib-svg-paint:hover { background: rgba(232,160,32,.7); }
 
+.lib-del-btn {
+  position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 4px;
+  background: rgba(0,0,0,.55); border: none; cursor: pointer;
+  font-size: 13px; line-height: 1; display: none; align-items: center; justify-content: center;
+  color: rgba(255,255,255,.7); transition: background .12s;
+  z-index: 2;
+}
+.lib-item-wrap:hover .lib-del-btn { display: flex; }
+.lib-del-btn:hover { background: rgba(200,50,50,.8); color: #fff; }
+
+/* ── Upload Drop Zone Overlay ─────────────────────────── */
+#ue-dropzone {
+  display: none; position: fixed; inset: 0; z-index: 1200;
+  background: rgba(0,0,0,.85); backdrop-filter: blur(6px);
+  align-items: center; justify-content: center; flex-direction: column; gap: 20px;
+}
+#ue-dropzone.open { display: flex; }
+#ue-dz-box {
+  width: 500px; max-width: 90vw;
+  border: 2px dashed rgba(255,255,255,.2); border-radius: 16px;
+  padding: 60px 40px; text-align: center; cursor: pointer;
+  transition: all .2s; background: rgba(255,255,255,.03);
+}
+#ue-dz-box:hover, #ue-dz-box.drag-over {
+  border-color: var(--accent2); background: rgba(232,160,32,.06);
+}
+#ue-dz-icon { font-size: 48px; color: rgba(255,255,255,.3); margin-bottom: 16px; }
+#ue-dz-title { font-size: 18px; font-weight: 600; color: var(--fg); margin-bottom: 8px; }
+#ue-dz-sub { font-size: 13px; color: var(--muted); }
+#ue-dz-progress { margin-top: 16px; font-size: 13px; color: var(--accent2); }
+#ue-dz-cancel {
+  background: transparent; border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.4); font-size: 13px; padding: 8px 20px;
+  border-radius: var(--radius-s); cursor: pointer; transition: all .15s;
+}
+#ue-dz-cancel:hover { color: var(--fg); border-color: rgba(255,255,255,.3); }
+
+/* ── Batch mode "Save All" in brush editor toolbar ─────── */
+#be-save-all-btn {
+  padding: 6px 14px; font-size: 12px; font-weight: 600;
+  background: var(--accent2); color: #000; border: none;
+  border-radius: var(--radius-s); cursor: pointer; transition: all .15s;
+  display: none;
+}
+#brush-editor.batch-mode #be-save-all-btn { display: inline-flex; align-items: center; gap: 5px; }
+#be-save-all-btn:hover { filter: brightness(1.1); }
+
 #upload-zone {
   margin: 16px; border: 2px dashed var(--border); border-radius: var(--radius);
   padding: 36px 20px; text-align: center; cursor: pointer;
   transition: all 0.2s; flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 #upload-zone:hover, #upload-zone.dragover { border-color: rgba(232,160,32,0.5); background: rgba(232,160,32,0.04); }
 #upload-zone input { display: none; }
@@ -1358,7 +1408,7 @@ select option { background: #0d0d24; color: var(--text); }
 #elem-content-editor img { max-width: 100%; height: auto; margin: 4px 0; display: block; }
 #elem-content-editor b, #elem-content-editor strong { color: var(--accent2); }
 #elem-content-editor:empty:before {
-  content: 'Введите текст или вставьте изображение...';
+  content: 'Enter text or paste an image...';
   color: var(--muted); pointer-events: none;
 }
 </style>
@@ -1367,6 +1417,8 @@ select option { background: #0d0d24; color: var(--text); }
 
 <!-- HEADER -->
 <div id="header">
+  <a href="/admin" class="btn" id="back-to-projects" title="Back to projects" style="font-size:12px;padding:4px 10px;">&#8592; Projects</a>
+  <div class="hdr-sep"></div>
   <input id="project-name" type="text" value="Timeline Project" placeholder="Project name" title="Project name">
   <div class="hdr-sep"></div>
   <button id="mode-scenes-btn" class="btn active" onclick="setMode('scenes')">&#127902; Scenes</button>
@@ -1381,12 +1433,6 @@ select option { background: #0d0d24; color: var(--text); }
   <button class="btn primary" onclick="saveScenes()">Save</button>
   <span id="save-status"></span>
   <div id="hdr-spacer"></div>
-  <label style="color:var(--muted);font-size:11px;white-space:nowrap">Preset:</label>
-  <select id="preset-select" class="btn" style="padding:4px 8px;cursor:pointer" onchange="loadPreset(this.value)">
-    <option value="">— select —</option>
-  </select>
-  <div class="hdr-sep"></div>
-
   <div class="hdr-sep"></div>
   <a href="/" target="_blank" class="btn">Preview &#8599;</a>
 </div>
@@ -1637,17 +1683,17 @@ select option { background: #0d0d24; color: var(--text); }
         </div>
         <!-- Anchor binding for text -->
         <div class="prop-group">
-          <div class="prop-group-title">Привязка к объекту</div>
+          <div class="prop-group-title">Pin to element</div>
           <div class="prop-field">
-            <label>Привязать к</label>
+            <label>Attach to</label>
             <select id="pt-anchor" onchange="syncTextAnchor(this.value)">
-              <option value="">— не привязан —</option>
+              <option value="">— none —</option>
             </select>
           </div>
           <div id="pt-pin-fields" style="display:none;">
             <div class="prop-row">
               <div class="prop-field">
-                <label>Pin X (лево→право)</label>
+                <label>Pin X (left→right)</label>
                 <input type="range" id="pt-pinx-range" min="0" max="1" step="0.001" oninput="syncTextPinX(parseFloat(this.value))">
               </div>
               <div class="prop-field narrow">
@@ -1657,7 +1703,7 @@ select option { background: #0d0d24; color: var(--text); }
             </div>
             <div class="prop-row">
               <div class="prop-field">
-                <label>Pin Y (верх→низ)</label>
+                <label>Pin Y (top→bottom)</label>
                 <input type="range" id="pt-piny-range" min="0" max="1" step="0.001" oninput="syncTextPinY(parseFloat(this.value))">
               </div>
               <div class="prop-field narrow">
@@ -1669,29 +1715,29 @@ select option { background: #0d0d24; color: var(--text); }
         </div>
         <!-- Frame / speech bubble for text -->
         <div class="prop-group">
-          <div class="prop-group-title">Рамка (Speech Bubble)</div>
+          <div class="prop-group-title">Frame (Speech Bubble)</div>
           <div class="prop-row">
             <div class="prop-field">
-              <label>Стиль рамки</label>
+              <label>Frame style</label>
               <select id="pt-frame" onchange="syncTextProp('frame', this.value || null); renderStage();">
-                <option value="">Нет</option>
-                <option value="dark">Тёмный</option>
-                <option value="gold">Золотой</option>
-                <option value="light">Светлый</option>
-                <option value="glass">Стекло</option>
+                <option value="">None</option>
+                <option value="dark">Dark</option>
+                <option value="gold">Gold</option>
+                <option value="light">Light</option>
+                <option value="glass">Glass</option>
               </select>
             </div>
             <div class="prop-field">
-              <label>Сторона стрелки</label>
+              <label>Arrow side</label>
               <select id="pt-side" onchange="syncTextProp('side', this.value); renderStage();">
-                <option value="right">Справа →</option>
-                <option value="left">← Слева</option>
+                <option value="right">Right →</option>
+                <option value="left">← Left</option>
               </select>
             </div>
           </div>
           <div class="prop-row">
             <div class="prop-field">
-              <label>Внутр. отступ (px)</label>
+              <label>Inner padding (px)</label>
               <input type="range" id="pt-padding-range" min="2" max="40" step="1" oninput="syncTextProp('padding', parseInt(this.value))">
             </div>
             <div class="prop-field narrow">
@@ -1708,21 +1754,21 @@ select option { background: #0d0d24; color: var(--text); }
         <div class="prop-row">
           <div class="prop-field">
             <label>Left (0 – 1)</label>
-            <input type="range" id="p-x-range" min="0" max="1" step="0.005" oninput="syncProp('x', parseFloat(this.value))">
+            <input type="range" id="p-x-range" min="-0.5" max="1.5" step="0.005" oninput="syncProp('x', parseFloat(this.value))">
           </div>
           <div class="prop-field narrow">
             <label>&nbsp;</label>
-            <input type="number" id="p-x-num" min="0" max="1" step="0.01" oninput="syncProp('x', parseFloat(this.value))">
+            <input type="number" id="p-x-num" min="-0.5" max="1.5" step="0.01" oninput="syncProp('x', parseFloat(this.value))">
           </div>
         </div>
         <div class="prop-row">
           <div class="prop-field">
             <label>Bottom (0 – 1)</label>
-            <input type="range" id="p-bottom-range" min="0" max="1" step="0.005" oninput="syncProp('bottom', parseFloat(this.value))">
+            <input type="range" id="p-bottom-range" min="-0.5" max="1.5" step="0.005" oninput="syncProp('bottom', parseFloat(this.value))">
           </div>
           <div class="prop-field narrow">
             <label>&nbsp;</label>
-            <input type="number" id="p-bottom-num" min="0" max="1" step="0.01" oninput="syncProp('bottom', parseFloat(this.value))">
+            <input type="number" id="p-bottom-num" min="-0.5" max="1.5" step="0.01" oninput="syncProp('bottom', parseFloat(this.value))">
           </div>
         </div>
         <!-- Image-only: h/w -->
@@ -1783,18 +1829,18 @@ select option { background: #0d0d24; color: var(--text); }
 
       <!-- Image-only: content editor -->
       <div id="props-content-section" class="prop-group">
-        <div class="prop-group-title">Текст объекта</div>
+        <div class="prop-group-title">Element content</div>
         <div class="rte-wrap">
           <div class="rte-toolbar">
             <button class="rte-btn" onclick="rteExec('bold')" title="Bold"><b>B</b></button>
             <button class="rte-btn" onclick="rteExec('italic')" title="Italic"><i>I</i></button>
-            <button class="rte-btn" onclick="rteExec('insertUnorderedList')" title="Список">&#8226;&#8801;</button>
+            <button class="rte-btn" onclick="rteExec('insertUnorderedList')" title="List">&#8226;&#8801;</button>
             <div class="rte-sep"></div>
-            <button class="rte-btn" onclick="rteExec('formatBlock', 'h2')" title="Заголовок">H</button>
-            <button class="rte-btn" onclick="rteExec('formatBlock', 'p')" title="Параграф">P</button>
+            <button class="rte-btn" onclick="rteExec('formatBlock', 'h2')" title="Heading">H</button>
+            <button class="rte-btn" onclick="rteExec('formatBlock', 'p')" title="Paragraph">P</button>
             <div class="rte-sep"></div>
-            <button class="rte-btn" onclick="rteInsertImage()" title="Вставить изображение">&#128247;</button>
-            <button class="rte-btn" onclick="rteExec('removeFormat')" title="Очистить формат" style="margin-left:auto">&#x2715;</button>
+            <button class="rte-btn" onclick="rteInsertImage()" title="Insert image">&#128247;</button>
+            <button class="rte-btn" onclick="rteExec('removeFormat')" title="Clear format" style="margin-left:auto">&#x2715;</button>
           </div>
           <div id="elem-content-editor" contenteditable="true" oninput="syncElemContent()"></div>
         </div>
@@ -1807,44 +1853,44 @@ select option { background: #0d0d24; color: var(--text); }
       <!-- Label bubble section (all element types) -->
       <div id="props-label-section" class="prop-group">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <div class="prop-group-title" style="margin:0;flex:1">Подпись к объекту</div>
+          <div class="prop-group-title" style="margin:0;flex:1">Element label</div>
           <input type="checkbox" id="p-label-enabled" onchange="syncLabelEnabled(this.checked)" style="width:15px;height:15px;cursor:pointer;">
         </div>
         <div id="props-label-fields" style="display:none;">
           <!-- Text content -->
           <div class="prop-field">
-            <label>Текст подписи</label>
+            <label>Label text</label>
             <textarea id="p-label-text" rows="2" oninput="syncLabelProp('text', this.value)"
               style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-s);color:var(--text);padding:5px 7px;font-size:12px;outline:none;width:100%;resize:vertical;"></textarea>
           </div>
           <!-- Side + Style row -->
           <div class="prop-row">
             <div class="prop-field">
-              <label>Сторона</label>
+              <label>Side</label>
               <select id="p-label-side" onchange="syncLabelProp('side', this.value)">
-                <option value="right">Справа →</option>
-                <option value="left">← Слева</option>
+                <option value="right">Right →</option>
+                <option value="left">← Left</option>
               </select>
             </div>
             <div class="prop-field">
-              <label>Фон пузыря</label>
+              <label>Bubble style</label>
               <select id="p-label-style" onchange="syncLabelProp('style', this.value)">
-                <option value="dark">Тёмный</option>
-                <option value="gold">Золотой</option>
-                <option value="light">Светлый</option>
-                <option value="glass">Стекло</option>
+                <option value="dark">Dark</option>
+                <option value="gold">Gold</option>
+                <option value="light">Light</option>
+                <option value="glass">Glass</option>
               </select>
             </div>
           </div>
           <!-- Font -->
           <div class="prop-field">
-            <label>Шрифт</label>
+            <label>Font</label>
             <select id="p-label-font" onchange="syncLabelProp('font', this.value)"></select>
           </div>
           <!-- Size + Weight + Italic -->
           <div class="prop-row">
             <div class="prop-field">
-              <label>Размер (vh)</label>
+              <label>Size (vh)</label>
               <input type="range" id="p-label-fontsize-range" min="0.5" max="6" step="0.1"
                 oninput="syncLabelProp('fontSize', parseFloat(this.value))">
             </div>
@@ -1871,7 +1917,7 @@ select option { background: #0d0d24; color: var(--text); }
           <!-- Color + letterSpacing -->
           <div class="prop-row">
             <div class="prop-field">
-              <label>Цвет</label>
+              <label>Color</label>
               <input type="color" id="p-label-color" onchange="syncLabelProp('color', this.value)"
                 style="height:28px;width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-s);cursor:pointer;padding:1px 2px;">
             </div>
@@ -1884,9 +1930,9 @@ select option { background: #0d0d24; color: var(--text); }
           </div>
           <!-- Shadow -->
           <div class="prop-field">
-            <label>Тень текста</label>
+            <label>Text shadow</label>
             <select id="p-label-shadow" onchange="syncLabelProp('textShadow', this.value)">
-              <option value="">Нет</option>
+              <option value="">None</option>
               <option value="0 2px 16px rgba(0,0,0,0.9),0 0 40px rgba(0,0,0,0.7)">Dark glow</option>
               <option value="0 0 30px rgba(240,200,80,0.5),0 2px 20px rgba(0,0,0,0.9)">Gold glow</option>
               <option value="0 1px 3px rgba(0,0,0,0.8)">Subtle</option>
@@ -1896,7 +1942,7 @@ select option { background: #0d0d24; color: var(--text); }
           <!-- Max width + offset -->
           <div class="prop-row">
             <div class="prop-field">
-              <label>Ширина (vw, 0=авто)</label>
+              <label>Width (vw, 0=auto)</label>
               <input type="range" id="p-label-maxw-range" min="0" max="50" step="1"
                 oninput="syncLabelProp('maxWidth', parseInt(this.value))">
             </div>
@@ -1908,7 +1954,7 @@ select option { background: #0d0d24; color: var(--text); }
           </div>
           <div class="prop-row">
             <div class="prop-field">
-              <label>Отступ от края (%)</label>
+              <label>Offset from edge (%)</label>
               <input type="range" id="p-label-offset-range" min="0" max="30" step="1"
                 oninput="syncLabelProp('offsetPct', parseInt(this.value))">
             </div>
@@ -2108,7 +2154,7 @@ select option { background: #0d0d24; color: var(--text); }
       <button class="tab-btn active" data-tab="library">Library</button>
       <button class="tab-btn" data-tab="pexels">Photos</button>
       <button class="tab-btn" data-tab="illus">Illustrations</button>
-      <button class="tab-btn" data-tab="upload" onclick="closeModal();openCutout(modalCtx)">Upload &amp; Cut Out</button>
+      <button class="tab-btn" data-tab="upload" onclick="switchToUploadTab()">Upload &amp; Edit</button>
     </div>
 
     <div class="tab-pane active" id="tab-library" style="overflow:hidden;flex:1;">
@@ -2153,17 +2199,18 @@ select option { background: #0d0d24; color: var(--text); }
     </div>
 
     <div class="tab-pane" id="tab-upload">
-      <div id="upload-zone" onclick="document.getElementById('file-input').click()"
+      <div id="upload-zone"
+           onclick="document.getElementById('file-input').click()"
            ondragover="handleModalDragOver(event)" ondragleave="handleModalDragLeave()" ondrop="handleModalDrop(event)">
-        <input type="file" id="file-input" accept="image/*" multiple onchange="uploadFiles(this.files)">
-        <div id="upload-icon">[img]</div>
-        <div id="upload-text">Drag PNG/JPG here<br>or click to choose files (multiple)</div>
+        <input type="file" id="file-input" accept="image/*,.svg" multiple onchange="modalUploadFiles(this.files); this.value=''">
+        <div id="upload-icon">⇧</div>
+        <div id="upload-text">Drop images here<br>or click to select</div>
         <div id="upload-progress"></div>
       </div>
     </div>
 
     <div id="modal-footer">
-      <button class="btn small" onclick="closeModal();openCutout(modalCtx)" title="AI Background Removal" style="margin-right:auto">&#9986; Cut Out</button>
+      <button class="btn small" onclick="switchToUploadTab()" title="Upload &amp; Edit" style="margin-right:auto">&#8679; Upload &amp; Edit</button>
       <button class="btn" onclick="closeModal()">Cancel</button>
       <button class="btn primary" onclick="confirmModal()">Select</button>
     </div>
@@ -2172,6 +2219,8 @@ select option { background: #0d0d24; color: var(--text); }
 
 <!-- TOAST -->
 <div id="toast"></div>
+
+<!-- Hidden upload input for batch editor flow -->
 
 <script>
 // ═══════════════════════════════════════════════════════
@@ -2268,8 +2317,8 @@ function pasteElement() {
   if (!clipboard || activeIdx === null) return;
   const el = JSON.parse(JSON.stringify(clipboard));
   // Offset slightly so it's visible
-  el.x      = Math.min(1, (el.x || 0.5) + 0.03);
-  el.bottom = Math.min(1, (el.bottom || 0) + 0.03);
+  el.x      = (el.x || 0.5) + 0.03;
+  el.bottom = (el.bottom || 0) + 0.03;
   const sc = scenes[activeIdx];
   if (!sc.elements) sc.elements = [];
   sc.elements.push(el);
@@ -2285,8 +2334,8 @@ function duplicateElement() {
   const el = (scenes[activeIdx].elements || [])[selEl.idx];
   if (!el) return;
   const copy = JSON.parse(JSON.stringify(el));
-  copy.x      = Math.min(1, (copy.x || 0.5) + 0.03);
-  copy.bottom = Math.min(1, (copy.bottom || 0) + 0.03);
+  copy.x      = (copy.x || 0.5) + 0.03;
+  copy.bottom = (copy.bottom || 0) + 0.03;
   const sc = scenes[activeIdx];
   sc.elements.push(copy);
   const newIdx = sc.elements.length - 1;
@@ -2565,12 +2614,31 @@ let panoStageW = 0, panoStageH = 0;
 // ═══════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════
+const STORAGE_KEY = 'uuk-active-project';
+
 async function init() {
   buildFontPicker();
   buildLabelFontSelect();
+
+  // Auto-load the project saved in localStorage (no confirm needed)
+  const savedProject = localStorage.getItem(STORAGE_KEY);
+  if (savedProject) {
+    try {
+      const r = await fetch(`/api/presets/${encodeURIComponent(savedProject)}/load`, { method: 'POST' });
+      if (r.ok) {
+        // Update project name display
+        const presets = await (await fetch('/api/presets')).json();
+        const p = presets.find(x => x.name === savedProject);
+        if (p && p.title) {
+          document.getElementById('project-name').value = p.title;
+          projectName = p.title;
+        }
+      }
+    } catch(_) {}
+  }
+
   await loadScenes();
   await loadLibrary();
-  loadPresetList();   // async, no need to await
   renderSidebar();
   if (scenes.length > 0) selectScene(0);
   // Seed history with initial state after load
@@ -3028,8 +3096,8 @@ function renderStageEl(el, idx) {
     function onMove(ev) {
       const dx = ev.clientX - startMouseX;
       const dy = ev.clientY - startMouseY;
-      const newX = Math.max(0, Math.min(1, startX + dx / stageW));
-      const newBottom = Math.max(0, Math.min(1, startBottom - dy / stageH));
+      const newX = Math.max(-0.5, Math.min(1.5, startX + dx / stageW));
+      const newBottom = Math.max(-0.5, Math.min(1.5, startBottom - dy / stageH));
       el.x = Math.round(newX * 1000) / 1000;
       el.bottom = Math.round(newBottom * 1000) / 1000;
       wrap.style.left   = (el.x * stageW) + 'px';
@@ -3402,7 +3470,7 @@ function renderElemList() {
   const sc = scenes[activeIdx];
   const elems = sc.elements || [];
   if (!elems.length) {
-    list.innerHTML = '<div class="elem-list-empty">Нет элементов</div>';
+    list.innerHTML = '<div class="elem-list-empty">No elements</div>';
     return;
   }
   // Photoshop order: last in array = topmost, shown at top of list
@@ -3792,7 +3860,7 @@ function showPropsEmpty() {
 // ── Label bubble props ───────────────────────────────
 
 const LABEL_DEFAULTS = {
-  text: 'Подпись', side: 'right', style: 'dark',
+  text: 'Label', side: 'right', style: 'dark',
   font: "'Cormorant Garamond', serif", fontSize: 2,
   fontWeight: 400, fontStyle: 'normal',
   color: '#f0e8d8', letterSpacing: 0.05, lineHeight: 1.4,
@@ -4044,7 +4112,7 @@ function buildTextAnchorSelect() {
   const def = textIdx !== null ? elems[textIdx] : null;
   const currentAnchor = def ? def.anchorIdx : null;
 
-  sel.innerHTML = '<option value="">— не привязан —</option>';
+  sel.innerHTML = '<option value="">— none —</option>';
   elems.forEach((el, i) => {
     if (i === textIdx || el.type === 'text' || el.type === 'label') return;
     const name = (el.src || '').split('/').pop().substring(0, 25) || `element ${i}`;
@@ -4372,7 +4440,7 @@ function updatePanoPropsPanel() {
 
   // Scene dropdown
   const sceneSel = document.getElementById('pp-scene');
-  sceneSel.innerHTML = '<option value="-1">— нет —</option>';
+  sceneSel.innerHTML = '<option value="-1">— none —</option>';
   scenes.forEach((sc, i) => {
     const opt = document.createElement('option');
     opt.value = i;
@@ -4641,8 +4709,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 // ── Library ─────────────────────────────────────────────
 function renderLibrary() {
-  // Exclude 'all' and 'Загруженные' — those are implicit defaults
-  const cats = [...new Set(library.map(i => i.category).filter(c => c && c !== 'Загруженные'))];
+  // Exclude 'all' and 'Uploads' — those are implicit defaults
+  const cats = [...new Set(library.map(i => i.category).filter(c => c && c !== 'Uploads' && c !== 'Загруженные'))];
   const catEl = document.getElementById('lib-categories');
   catEl.innerHTML = cats.map(c =>
     `<button class="cat-btn ${c === libCategory ? 'active' : ''}" onclick="setCategory('${esc(c)}')">${esc(c)}</button>`
@@ -4664,6 +4732,7 @@ function filterLibrary() {
     return matchCat && matchSearch;
   });
   const isSvg = p => /\.svg$/i.test(p);
+  const isUploaded = p => /^\/uploads\//i.test(p);
   grid.innerHTML = filtered.map(item => `
     <div class="lib-item-wrap">
       <div class="lib-item ${modalSelected === item.path ? 'selected' : ''}"
@@ -4672,9 +4741,28 @@ function filterLibrary() {
            onclick="selectLibItem('${esc(item.path)}', this)">
         <img class="lib-thumb" src="${esc(isSvg(item.path) ? encodePath(item.path) : (item.thumb || encodePath(item.path)))}" alt="${esc(item.name)}" loading="lazy" decoding="async">
         <div class="lib-name">${esc(item.name.replace(/\.[^.]+$/, ''))}</div>
-      </div>${isSvg(item.path) ? `<button class="lib-svg-paint" title="Edit colors" onclick="openBrushEditorSvg(event,'${esc(item.path)}')">🎨</button>` : ''}
+      </div>
+      ${isSvg(item.path) ? `<button class="lib-svg-paint" title="Edit colors" onclick="openBrushEditorSvg(event,'${esc(item.path)}')">🎨</button>` : ''}
+      ${isUploaded(item.path) ? `<button class="lib-del-btn" title="Delete" onclick="deleteLibItem(event,'${esc(item.path)}')">×</button>` : ''}
     </div>
   `).join('') || '<div style="color:var(--muted);font-size:12px;padding:20px;text-align:center;grid-column:1/-1">Nothing found</div>';
+}
+
+async function deleteLibItem(e, path) {
+  e.stopPropagation();
+  if (!confirm('Delete this file from the library?')) return;
+  const r = await fetch('/api/delete-upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path })
+  });
+  if (r.ok) {
+    await loadLibrary();
+    filterLibrary();
+    showToast('File deleted', 'ok');
+  } else {
+    showToast('Delete failed', 'error');
+  }
 }
 
 function selectLibItem(path, el) {
@@ -4948,7 +5036,39 @@ function handleModalDragLeave() {
 function handleModalDrop(e) {
   e.preventDefault();
   document.getElementById('upload-zone').classList.remove('dragover');
-  if (e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files);
+  if (e.dataTransfer.files.length) modalUploadFiles(e.dataTransfer.files);
+}
+
+function switchToUploadTab() {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-tab="upload"]').classList.add('active');
+  document.getElementById('tab-upload').classList.add('active');
+}
+
+async function modalUploadFiles(fileList) {
+  const files = Array.from(fileList);
+  if (!files.length) return;
+  const prog = document.getElementById('upload-progress');
+  prog.style.display = 'block';
+  const paths = [];
+  let done = 0;
+  for (const file of files) {
+    prog.textContent = `Uploading ${done + 1} of ${files.length}…`;
+    try {
+      const p = await uploadFileReturnPath(file);
+      paths.push(p);
+      done++;
+    } catch(e) {
+      showToast('Error: ' + file.name, 'error');
+    }
+  }
+  prog.style.display = 'none';
+  if (paths.length) {
+    _ueSavedCtx = modalCtx;
+    closeModal();
+    openUploadEditor(paths);
+  }
 }
 
 async function uploadFileReturnPath(file) {
@@ -4966,13 +5086,15 @@ async function uploadFiles(fileList) {
   if (!files.length) return;
   const prog = document.getElementById('upload-progress');
   prog.style.display = 'block';
-  let lastPath = null;
+  prog.textContent = `Uploading 0 of ${files.length}…`;
+  const paths = [];
   let done = 0, failed = 0;
 
   for (const file of files) {
-    prog.textContent = `Uploading ${done + failed + 1} / ${files.length}: ${file.name}`;
+    prog.textContent = `Uploading ${done + failed + 1} of ${files.length}: ${file.name}`;
     try {
-      lastPath = await uploadFileReturnPath(file);
+      const p = await uploadFileReturnPath(file);
+      paths.push(p);
       done++;
     } catch(e) {
       failed++;
@@ -4980,20 +5102,270 @@ async function uploadFiles(fileList) {
     }
   }
 
-  prog.textContent = `Done: ${done} uploaded${failed ? ', ' + failed + ' failed' : ''}`;
-  if (lastPath) modalSelected = lastPath;
-  libCategory = 'all';
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  document.querySelector('[data-tab="library"]').classList.add('active');
-  document.getElementById('tab-library').classList.add('active');
-  renderLibrary();
-  showToast(`Загружено: ${done} файл${done === 1 ? '' : done < 5 ? 'а' : 'ов'}`, 'ok');
+  prog.style.display = 'none';
+  if (paths.length) {
+    openUploadEditor(paths);
+  } else {
+    showToast('Nothing uploaded', 'error');
+  }
 }
 
 // Keep single-file upload for backward compat (used in other places)
 async function uploadFile(file) {
   if (file) await uploadFiles([file]);
+}
+
+// ═══════════════════════════════════════════════════════
+//  UPLOAD BATCH EDITOR
+// ═══════════════════════════════════════════════════════
+let _ueFiles    = [];   // [{path, edited: bool}]
+let _ueSelected = 0;
+let _ueEditingIdx = null;
+let _ueSavedCtx = null; // modal context saved before opening drop zone
+
+// ── Drop zone ──────────────────────────────────────────
+function triggerUploadEditor() {
+  _ueSavedCtx = modalCtx;
+  closeModal();
+  document.getElementById('ue-dropzone').classList.add('open');
+}
+
+function ueDzCancel() {
+  document.getElementById('ue-dropzone').classList.remove('open');
+}
+
+function ueDzDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+function ueDzDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function ueDzDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (e.dataTransfer.files.length) ueDzFiles(e.dataTransfer.files);
+}
+
+// Click anywhere on box to pick files
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('ue-dz-box').addEventListener('click', () => {
+    document.getElementById('ue-dz-input').click();
+  });
+});
+
+async function ueDzFiles(fileList) {
+  const files = Array.from(fileList);
+  if (!files.length) return;
+  const prog = document.getElementById('ue-dz-progress');
+  prog.style.display = 'block';
+  const paths = [];
+  let done = 0;
+  for (const file of files) {
+    prog.textContent = `Uploading ${done + 1} of ${files.length}: ${file.name}`;
+    try {
+      const p = await uploadFileReturnPath(file);
+      paths.push(p);
+      done++;
+    } catch(e) {
+      showToast('Error: ' + file.name, 'error');
+    }
+  }
+  prog.style.display = 'none';
+  document.getElementById('ue-dropzone').classList.remove('open');
+  if (paths.length) openUploadEditor(paths);
+}
+
+// ── Batch editor (inside brush editor) ─────────────────
+function openUploadEditor(paths) {
+  _ueFiles = paths.map(p => ({ path: p, edited: false, pendingDataUrl: null, pendingModifiedSvg: null }));
+  _ueSelected = 0;
+  _ueEditingIdx = null;
+  _beCardId = null;
+  _beDirectElIdx = null;
+  _beDirectSceneIdx = null;
+  document.getElementById('brush-editor').classList.add('open', 'batch-mode');
+  ueRenderFileList();
+  ueLoadInBrushEditor(0);
+}
+
+function ueRenderFileList() {
+  const list = document.getElementById('be-file-list');
+  list.innerHTML = _ueFiles.map((f, i) => {
+    const name = f.path.split('/').pop();
+    const hasPending = f.pendingDataUrl || f.pendingModifiedSvg;
+    const thumbSrc = f.pendingDataUrl || esc(encodePath(f.path));
+    return `<div class="befl-item ${i === _ueSelected ? 'active' : ''} ${hasPending || f.edited ? 'done' : ''}"
+                 onclick="ueLoadInBrushEditor(${i})">
+      <img src="${thumbSrc}" loading="lazy">
+      <div class="befl-name">${esc(name)}</div>
+      <div class="befl-done">✓ edited</div>
+    </div>`;
+  }).join('');
+}
+
+// Save current canvas/SVG state into memory (before switching away)
+function ueSaveCurrentToMemory() {
+  if (_ueSelected < 0 || _ueSelected >= _ueFiles.length) return;
+  const f = _ueFiles[_ueSelected];
+  if (_beSvgMode && _beSvgOriginal) {
+    f.pendingModifiedSvg = beBuildModifiedSvg();
+  } else {
+    const canvas = document.getElementById('be-canvas');
+    if (canvas.width && canvas.height) {
+      f.pendingDataUrl = canvas.toDataURL('image/png');
+    }
+  }
+  // Track AI cutout intermediate file so it can be cleaned up on save
+  if (_beCoResultPath && _beCoResultPath !== f.path) {
+    f.aiTempPath = _beCoResultPath;
+  }
+}
+
+function ueLoadInBrushEditor(idx) {
+  if (idx !== _ueSelected) ueSaveCurrentToMemory(); // preserve edits before switching
+  _ueSelected = idx;
+  _ueEditingIdx = idx;
+  const f = _ueFiles[idx];
+  if (!f) return;
+  _beSrc = f.path;
+  document.getElementById('be-title').textContent = f.path.split('/').pop();
+  ueRenderFileList();
+
+  if (f.pendingModifiedSvg) {
+    // Restore saved SVG edits
+    beExitSvgMode();
+    _beSvgMode = true;
+    _beSvgOriginal = f.pendingModifiedSvg;
+    document.getElementById('be-canvas').style.display = 'none';
+    document.getElementById('be-svg-img').style.display = 'block';
+    document.getElementById('be-svg-section').style.display = '';
+    document.querySelectorAll('#be-panel .be-section:not(#be-svg-section)').forEach(s => s.style.display = 'none');
+    const colors = beExtractSvgColors(_beSvgOriginal);
+    beRenderSvgColors(colors);
+    beSvgRefreshPreview();
+  } else if (f.pendingDataUrl) {
+    // Restore saved raster edits
+    beExitSvgMode();
+    beSetMode('erase'); beUpdateBrush(); beUpdateStrVal();
+    const canvas = document.getElementById('be-canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      _beOrigData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      _beHistory = []; beFit();
+    };
+    img.src = f.pendingDataUrl;
+  } else if (/\.svg$/i.test(f.path)) {
+    beExitSvgMode();
+    beEnterSvgMode(f.path);
+  } else {
+    beExitSvgMode();
+    beSetMode('erase'); beUpdateBrush(); beUpdateStrVal();
+    const canvas = document.getElementById('be-canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      _beOrigData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      _beHistory = []; beFit();
+    };
+    img.src = encodePath(f.path) + '?_t=' + Date.now();
+  }
+}
+
+// Delete an upload from server (best-effort, silent on error)
+async function deleteUploadSilent(filePath) {
+  if (!filePath) return;
+  try {
+    await fetch('/api/delete-upload', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: filePath })
+    });
+  } catch(_) {}
+}
+
+// Save all files and close — called when Save is pressed in batch mode
+async function ueBatchSaveAll() {
+  ueSaveCurrentToMemory();
+  const btn = document.getElementById('be-save-btn');
+  btn.disabled = true; btn.textContent = '… Saving';
+  try {
+    for (const f of _ueFiles) {
+      const prevPath = f.path;
+      if (f.pendingModifiedSvg) {
+        const r = await fetch('/api/save-svg', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: f.pendingModifiedSvg, originalPath: f.path })
+        });
+        const d = await r.json();
+        if (r.ok) { f.path = d.path; f.edited = true; }
+      } else if (f.pendingDataUrl) {
+        const blob = await (await fetch(f.pendingDataUrl)).blob();
+        const base = f.path.split('/').pop().replace(/\.[^.]+$/, '');
+        const fd = new FormData();
+        fd.append('file', blob, base + '_edited_' + Date.now() + '.png');
+        const r = await fetch('/api/upload', { method: 'POST', body: fd });
+        const d = await r.json();
+        if (r.ok) { f.path = d.path; f.edited = true; }
+      }
+      // If a new file was created and an AI temp file existed, delete the intermediate
+      if (f.edited && f.aiTempPath && f.aiTempPath !== f.path && f.aiTempPath !== prevPath) {
+        deleteUploadSilent(f.aiTempPath);
+      }
+      f.pendingDataUrl = null; f.pendingModifiedSvg = null; f.aiTempPath = null;
+    }
+    // Close and apply
+    const ctx = _ueSavedCtx || modalCtx;
+    const savedFiles = _ueFiles.slice();
+    document.getElementById('brush-editor').classList.remove('open', 'batch-mode');
+    beExitSvgMode();
+    _beOrigData = null; _beHistory = [];
+    _ueFiles = []; _ueSavedCtx = null;
+    // Always refresh library so newly uploaded/edited files appear
+    await loadLibrary();
+    if (ctx === 'add-element' && activeIdx !== null) {
+      const sc = scenes[activeIdx];
+      if (!sc.elements) sc.elements = [];
+      savedFiles.forEach(f => {
+        sc.elements.push({ src: f.path, x: 0.3 + Math.random() * 0.15, h: 50, bottom: 0, anim: 'fade' });
+      });
+      pushHistoryNow(); renderStage(); selectElement(sc.elements.length - 1);
+    } else if (savedFiles.length) {
+      modalSelected = savedFiles[savedFiles.length - 1].path;
+      renderLibrary();
+    }
+    showToast(`Saved: ${savedFiles.length} file${savedFiles.length !== 1 ? 's' : ''}`, 'ok');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '✓ Save';
+  }
+}
+
+// No longer needed as separate fn — ueOnBrushSave kept for legacy
+function ueOnBrushSave(newPath) {
+  if (_ueEditingIdx === null) return;
+  _ueFiles[_ueEditingIdx].path = newPath;
+  _ueFiles[_ueEditingIdx].edited = true;
+  _ueFiles[_ueEditingIdx].pendingDataUrl = null;
+  _ueFiles[_ueEditingIdx].pendingModifiedSvg = null;
+  _ueEditingIdx = null;
+  ueRenderFileList();
+}
+
+function ueSaveAll() { ueBatchSaveAll(); }  // alias
+
+function ueCancel() {
+  document.getElementById('brush-editor').classList.remove('open', 'batch-mode');
+  beExitSvgMode();
+  _beOrigData = null; _beHistory = [];
+  _ueFiles = []; _ueEditingIdx = null; _ueSavedCtx = null;
+  loadLibrary().then(() => renderLibrary());
 }
 
 // ═══════════════════════════════════════════════════════
@@ -5098,10 +5470,10 @@ document.addEventListener('keydown', e => {
     const el = (scenes[activeIdx].elements || [])[selEl.idx];
     if (!el) return;
     const step = e.shiftKey ? 0.01 : 0.001;
-    if (e.key === 'ArrowLeft')  el.x      = Math.max(0, Math.min(1, (el.x      || 0.5) - step));
-    if (e.key === 'ArrowRight') el.x      = Math.max(0, Math.min(1, (el.x      || 0.5) + step));
-    if (e.key === 'ArrowUp')    el.bottom = Math.max(0, Math.min(1, (el.bottom || 0)   + step));
-    if (e.key === 'ArrowDown')  el.bottom = Math.max(0, Math.min(1, (el.bottom || 0)   - step));
+    if (e.key === 'ArrowLeft')  el.x      = Math.max(-0.5, Math.min(1.5, (el.x      || 0.5) - step));
+    if (e.key === 'ArrowRight') el.x      = Math.max(-0.5, Math.min(1.5, (el.x      || 0.5) + step));
+    if (e.key === 'ArrowUp')    el.bottom = Math.max(-0.5, Math.min(1.5, (el.bottom || 0)   + step));
+    if (e.key === 'ArrowDown')  el.bottom = Math.max(-0.5, Math.min(1.5, (el.bottom || 0)   - step));
     el.x      = Math.round(el.x      * 10000) / 10000;
     el.bottom = Math.round(el.bottom * 10000) / 10000;
     renderStage();
@@ -5680,6 +6052,56 @@ function cutoutUseThis(id) {
   display: none;
 }
 
+/* ── Left file list (batch upload mode) ── */
+#be-file-list {
+  display: none; width: 120px; flex-shrink: 0;
+  background: #1c1c1f; border-right: 1px solid rgba(255,255,255,.07);
+  overflow-y: auto; flex-direction: column; gap: 6px; padding: 8px;
+}
+#be-file-list::-webkit-scrollbar { width: 3px; }
+#be-file-list::-webkit-scrollbar-thumb { background: rgba(124,111,247,.25); border-radius: 2px; }
+#brush-editor.batch-mode #be-file-list { display: flex; }
+.befl-item {
+  border-radius: 5px; border: 1.5px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03); cursor: pointer;
+  transition: all .15s; overflow: hidden; flex-shrink: 0;
+}
+.befl-item:hover { border-color: rgba(255,255,255,.2); }
+.befl-item.active { border-color: var(--accent2); background: rgba(232,160,32,.1); }
+.befl-item img { width: 100%; aspect-ratio: 1; object-fit: contain; display: block; background: rgba(0,0,0,.4); }
+.befl-item .befl-name {
+  font-size: 9px; color: rgba(255,255,255,.4); padding: 3px 5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.befl-item .befl-done {
+  font-size: 9px; color: #4caf50; padding: 0 5px 4px;
+  display: none;
+}
+.befl-item.done .befl-done { display: block; }
+
+/* ── Bottom footer bar ── */
+#be-footer {
+  display: none; align-items: center; justify-content: flex-end; gap: 8px;
+  padding: 10px 16px; flex-shrink: 0;
+  background: #1c1c1f;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+#brush-editor.open #be-footer { display: flex; }
+#be-footer #be-save-btn {
+  padding: 9px 28px; font-size: 14px; font-weight: 600;
+  background: var(--accent,#c8ff57); color: #0b0b0c; border: none;
+  border-radius: 8px; cursor: pointer; transition: filter .15s;
+}
+#be-footer #be-save-btn:hover { filter: brightness(1.15); }
+#be-footer #be-save-btn:disabled { opacity: .5; pointer-events: none; }
+#be-footer-cancel {
+  padding: 9px 20px; font-size: 13px; font-weight: 500;
+  background: rgba(255,255,255,.07); color: rgba(255,255,255,.7);
+  border: 1px solid rgba(255,255,255,.12); border-radius: 8px;
+  cursor: pointer; transition: filter .15s;
+}
+#be-footer-cancel:hover { filter: brightness(1.2); }
+
 /* ── Right panel (Figma-style) ── */
 #be-panel {
   width: 240px; flex-shrink: 0;
@@ -5819,6 +6241,20 @@ function cutoutUseThis(id) {
 .be-svg-quick-btn:hover { transform:scale(1.25); }
 </style>
 
+<!-- UPLOAD DROP ZONE OVERLAY -->
+<div id="ue-dropzone">
+  <div id="ue-dz-box"
+       ondragover="ueDzDragOver(event)" ondragleave="ueDzDragLeave(event)" ondrop="ueDzDrop(event)">
+    <div id="ue-dz-icon">⇧</div>
+    <div id="ue-dz-title">Drop images here</div>
+    <div id="ue-dz-sub">or click to select files</div>
+    <div id="ue-dz-progress" style="display:none"></div>
+    <input type="file" id="ue-dz-input" accept="image/*,.svg" multiple style="display:none"
+           onchange="ueDzFiles(this.files); this.value=''">
+  </div>
+  <button id="ue-dz-cancel" onclick="ueDzCancel()">Cancel</button>
+</div>
+
 <div id="brush-editor">
   <!-- Top toolbar -->
   <div id="be-toolbar">
@@ -5832,13 +6268,13 @@ function cutoutUseThis(id) {
     </div>
     <div class="be-sep"></div>
     <button class="btn small" onclick="beUndo()" title="Undo (Ctrl/Cmd+Z)">↩ Undo</button>
-    <div class="be-sep"></div>
-    <button class="btn small primary" id="be-save-btn" onclick="beSave()">✓ Save</button>
-    <button class="btn small" onclick="beCancel()">✕ Cancel</button>
   </div>
 
   <!-- Main: viewport + right panel -->
   <div id="be-main">
+    <!-- Batch upload file list (left sidebar, shown only in batch mode) -->
+    <div id="be-file-list"></div>
+
     <!-- Canvas viewport -->
     <div id="be-viewport" tabindex="-1"
          onmousedown="beMouseDown(event)"
@@ -5903,13 +6339,6 @@ function cutoutUseThis(id) {
         </div>
         <button id="be-co-btn" onclick="beAICutout()">✦ Auto Cut Out</button>
         <div id="be-co-status"></div>
-        <div id="be-co-result">
-          <img id="be-co-result-img" src="" alt="">
-          <div id="be-co-result-btns">
-            <button class="primary" onclick="beCoAccept()">✓ Use</button>
-            <button onclick="document.getElementById('be-co-result').style.display='none'">✕</button>
-          </div>
-        </div>
       </div>
 
       <!-- SVG Colors (shown only in SVG mode) -->
@@ -5921,6 +6350,12 @@ function cutoutUseThis(id) {
 
       <div class="be-panel-spacer"></div>
     </div>
+  </div>
+
+  <!-- Bottom footer with Save / Cancel -->
+  <div id="be-footer">
+    <button id="be-footer-cancel" onclick="beCancel()">✕ Cancel</button>
+    <button id="be-save-btn" class="be-footer-save-btn" onclick="beSave()">✓ Save</button>
   </div>
 
   <!-- Brush cursor -->
@@ -6043,11 +6478,18 @@ function openBrushEditorSvg(e, path) {
 }
 
 function beCancel() {
+  const isBatch = document.getElementById('brush-editor').classList.contains('batch-mode');
+  if (isBatch) {
+    // In batch mode "Cancel" = exit entire batch (call ueCancel)
+    ueCancel();
+    document.getElementById('brush-editor').classList.remove('open');
+    return;
+  }
   document.getElementById('brush-editor').classList.remove('open');
   _beCardId = null; _beOrigData = null; _beHistory = [];
   _beDirectElIdx = null; _beDirectSceneIdx = null;
   _beSrc = null; _beCoResultPath = null;
-  document.getElementById('be-co-result').style.display = 'none';
+  _ueEditingIdx = null;
   document.getElementById('be-co-status').textContent = '';
   beExitSvgMode();
 }
@@ -6348,12 +6790,10 @@ async function beAICutout() {
 
   const btn    = document.getElementById('be-co-btn');
   const status = document.getElementById('be-co-status');
-  const result = document.getElementById('be-co-result');
 
   btn.disabled = true;
   btn.textContent = '⟳ Processing…';
   status.textContent = 'Removing background…';
-  result.style.display = 'none';
 
   try {
     const r = await fetch('/api/remove-bg', {
@@ -6365,10 +6805,27 @@ async function beAICutout() {
     if (!r.ok || !data.path) throw new Error(data.error || 'Failed');
 
     _beCoResultPath = data.path;
-    const img = document.getElementById('be-co-result-img');
-    img.src = data.path + '?t=' + Date.now();
-    result.style.display = 'block';
-    status.textContent = '✓ Done — click "Use" to load into editor';
+    status.textContent = 'Loading result…';
+    // Auto-accept: load result directly into canvas
+    await new Promise((resolve, reject) => {
+      const img2 = new Image();
+      img2.crossOrigin = 'anonymous';
+      img2.onload = () => {
+        const canvas = document.getElementById('be-canvas');
+        const ctx = canvas.getContext('2d');
+        bePushHistory();
+        canvas.width  = img2.naturalWidth;
+        canvas.height = img2.naturalHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img2, 0, 0);
+        _beSrc = data.path;
+        beFit();
+        resolve();
+      };
+      img2.onerror = reject;
+      img2.src = data.path + '?t=' + Date.now();
+    });
+    status.textContent = '✓ Background removed — refine with brush';
   } catch (e) {
     status.textContent = '✗ ' + e.message;
     showToast('Cut Out error: ' + e.message, 'error');
@@ -6390,8 +6847,7 @@ function beCoAccept() {
     canvas.height = img.naturalHeight;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0);
-    _beSrc = _beCoResultPath;  // update src so re-run uses the cutout result
-    document.getElementById('be-co-result').style.display = 'none';
+    _beSrc = _beCoResultPath;
     document.getElementById('be-co-status').textContent = 'Loaded ✓ — refine with brush';
     beFit();
   };
@@ -6435,6 +6891,7 @@ function beBuildModifiedSvg() {
   return svg;
 }
 function beSvgRefreshPreview() {
+  if (!_beSvgOriginal) return;
   const modified = beBuildModifiedSvg();
   const blob = new Blob([modified], {type:'image/svg+xml'});
   const url = URL.createObjectURL(blob);
@@ -6480,16 +6937,22 @@ async function beEnterSvgMode(src) {
   document.getElementById('be-canvas').style.display = 'none';
   document.getElementById('be-svg-img').style.display = 'block';
   document.getElementById('be-svg-section').style.display = '';
-  // Hide raster-only sections
-  ['be-erase-btn','be-paint-btn','be-cmd-hint','be-brush-size','be-opacity','be-co-btn','be-ai-btn'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.closest('.be-section') && (el.closest('.be-section').style.display = 'none');
-  });
-  const r = await fetch(encodePath(src) + '?_t=' + Date.now());
-  _beSvgOriginal = await r.text();
-  const colors = beExtractSvgColors(_beSvgOriginal);
-  beRenderSvgColors(colors);
-  beSvgRefreshPreview();
+  // Hide all raster-only sections except SVG section
+  document.querySelectorAll('#be-panel .be-section:not(#be-svg-section)').forEach(s => s.style.display = 'none');
+  // Show loading state
+  document.getElementById('be-svg-colors').innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,.4);padding:8px 0;">Loading…</div>';
+  try {
+    const r = await fetch(encodePath(src) + '?_t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    _beSvgOriginal = await r.text();
+    if (!_beSvgOriginal.trim().startsWith('<')) throw new Error('Not valid SVG');
+    const colors = beExtractSvgColors(_beSvgOriginal);
+    beRenderSvgColors(colors);
+    beSvgRefreshPreview();
+  } catch(e) {
+    showToast('Could not load SVG: ' + e.message, 'error');
+    document.getElementById('be-svg-colors').innerHTML = '<div style="font-size:11px;color:#e74c3c;padding:8px 0;">Failed to load SVG</div>';
+  }
 }
 function beExitSvgMode() {
   if (!_beSvgMode) return;
@@ -6502,6 +6965,7 @@ function beExitSvgMode() {
   document.querySelectorAll('#be-panel .be-section').forEach(s => s.style.display = '');
 }
 async function beSaveSvg() {
+  if (!_beSvgOriginal) { showToast('SVG not loaded yet', 'error'); return; }
   const btn = document.getElementById('be-save-btn');
   btn.classList.add('saving'); btn.textContent = '… Saving';
   try {
@@ -6512,6 +6976,11 @@ async function beSaveSvg() {
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Save failed');
+    // If in batch upload mode
+    if (_ueEditingIdx !== null) {
+      ueOnBrushSave(d.path);
+      return;
+    }
     // Update stage element if applicable
     const tElIdx    = _beDirectElIdx    !== null ? _beDirectElIdx    : _cutoutTargetElIdx;
     const tSceneIdx = _beDirectSceneIdx !== null ? _beDirectSceneIdx : _cutoutTargetSceneIdx;
@@ -6532,6 +7001,7 @@ async function beSaveSvg() {
 
 // ── Save with Azure AI naming ────────────────────────────────
 async function beSave() {
+  if (document.getElementById('brush-editor').classList.contains('batch-mode')) return ueBatchSaveAll();
   if (_beSvgMode) return beSaveSvg();
   const canvas = document.getElementById('be-canvas');
   const btn    = document.getElementById('be-save-btn');
@@ -6563,6 +7033,12 @@ async function beSave() {
       const r = await fetch('/api/upload', { method: 'POST', body: fd });
       if (!r.ok) throw new Error('Upload failed');
       const { path } = await r.json();
+
+      // If in batch upload mode
+      if (_ueEditingIdx !== null) {
+        ueOnBrushSave(path);
+        return;
+      }
 
       if (_beDirectElIdx !== null && _beDirectSceneIdx !== null) {
         // Direct edit mode: update stage element src immediately
@@ -6614,6 +7090,11 @@ async function beSave() {
         }
       }
 
+      // Delete AI cutout intermediate file if user saved a new version
+      if (_beCoResultPath && _beCoResultPath !== path) {
+        deleteUploadSilent(_beCoResultPath);
+        _beCoResultPath = null;
+      }
       showToast('Saved ✓', 'ok');
       beCancel();
       if (typeof loadLibrary === 'function') loadLibrary();
