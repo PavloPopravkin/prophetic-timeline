@@ -123,6 +123,17 @@ main {
 .card-meta {
   font-size: 11px; color: var(--muted); line-height: 1.5;
 }
+.card-slug {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; color: rgba(255,255,255,.25); font-family: monospace;
+  margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-slug-copy {
+  background: none; border: none; cursor: pointer; padding: 0 2px;
+  color: rgba(255,255,255,.2); font-size: 11px; line-height: 1;
+  transition: color .15s; flex-shrink: 0;
+}
+.card-slug-copy:hover { color: var(--accent); }
 .card-active-tag {
   display: none;
   font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
@@ -256,6 +267,11 @@ const STORAGE_KEY = 'uuk-active-project';
 let presets = [];
 let hidingContinue = false;
 
+function copyLink(url, e) {
+  e.stopPropagation();
+  navigator.clipboard.writeText(url).then(() => toast('Link copied!', 'ok'));
+}
+
 function toast(msg, type = 'ok') {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -340,11 +356,14 @@ function renderCards() {
       ? `<img src="${p.thumb}" alt="" onerror="this.parentElement.innerHTML='<div class=thumb-placeholder>🎬</div>'">`
       : `<div class="thumb-placeholder">🎬</div>`;
 
+    const slug = p.slug || p.name;
+    const publicUrl = location.origin + '/p/' + encodeURIComponent(slug);
     card.innerHTML = `
       <div class="card-thumb">${thumb}</div>
       <div class="card-body">
         <div class="card-title">${escHtml(p.title || p.name)}</div>
         <div class="card-meta">${p.sceneCount != null ? p.sceneCount + ' scene' + (p.sceneCount !== 1 ? 's' : '') : ''}</div>
+        <div class="card-slug" title="${escHtml(publicUrl)}">/p/${escHtml(slug)}<button class="card-slug-copy" onclick="copyLink('${escAttr(publicUrl)}',event)" title="Copy link">⎘</button></div>
         <div class="card-active-tag">Active</div>
       </div>
       <div class="card-actions">

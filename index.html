@@ -1308,10 +1308,25 @@ function encodePath(raw) {
 let PANORAMA = { bg: null, elements: [] };
 let SCENES = [], NUM_SCENES = 0;
 
-// Resolve which project to load: ?p=name → that preset, else home project
+// Resolve which project to load:
+//   /p/:slug  → resolve slug → preset name
+//   ?p=name   → preset name directly (legacy)
+//   /         → home project from config
 async function resolveProjectName() {
+  // 1. Clean URL: /p/:slug
+  const pathMatch = location.pathname.match(/^\/p\/([^/]+)/);
+  if (pathMatch) {
+    const slug = pathMatch[1];
+    try {
+      const r = await fetch(`/api/resolve-slug/${encodeURIComponent(slug)}`);
+      if (r.ok) return (await r.json()).preset;
+    } catch {}
+    return slug; // fallback: treat slug as preset name
+  }
+  // 2. Legacy ?p= param
   const param = new URLSearchParams(location.search).get('p');
   if (param) return param.replace(/[^a-z0-9_-]/gi, '');
+  // 3. Home project
   try {
     const cfg = await fetch('/api/config').then(r => r.json());
     return cfg.homeProject || 'spiritual';
@@ -1370,6 +1385,14 @@ async function fetchScenes() {
         : [...(sc.mid || []), ...(sc.fg || [])].map(el => ({ ...el, src: encodePath(el.src) }));
       return { ...sc, bg: encodePath(sc.bg), elements };
     });
+
+    // Update page title and meta description with project info
+    if (d.name) {
+      const sceneNames = SCENES.slice(0, 4).map(s => s.title).filter(Boolean).join(' · ');
+      document.title = d.name;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc && sceneNames) metaDesc.content = d.name + (sceneNames ? ' — ' + sceneNames : '');
+    }
   } catch { SCENES = []; PANORAMA = { bg: null, elements: [] }; }
   NUM_SCENES = SCENES.length;
 }

@@ -241,27 +241,68 @@ app.get('/api/library', (_req, res) => {
 });
 
 // ── API: presets (scenes.*.json files) ──────────────────────
+// Helper: generate a URL-safe slug from a string
+function toSlug(str) {
+  return str.toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    || 'project';
+}
+
 app.get('/api/presets', (_req, res) => {
   const files = fs.readdirSync(ROOT)
     .filter(f => /^scenes\..+\.json$/.test(f))
     .map(f => {
       const name = f.replace(/^scenes\./, '').replace(/\.json$/, '');
-      let title = name;
-      let sceneCount = 0;
-      let thumb = null;
+      let title = name, sceneCount = 0, thumb = null, slug = name;
       try {
         const data = JSON.parse(fs.readFileSync(path.join(ROOT, f), 'utf8'));
         if (data.name) title = data.name;
+        if (data.slug) slug = data.slug;
         if (Array.isArray(data.scenes)) {
           sceneCount = data.scenes.length;
-          // Find first scene with a bg image for thumbnail
           const firstBg = data.scenes.find(s => s.bg && !s.bg_video);
           if (firstBg) thumb = firstBg.bg;
         }
       } catch {}
-      return { name, file: f, title, sceneCount, thumb };
+      return { name, file: f, title, sceneCount, thumb, slug };
     });
   res.json(files);
+});
+
+// Resolve a public slug → preset name (checks slug field, then preset name)
+app.get('/api/resolve-slug/:slug', (req, res) => {
+  const slug = req.params.slug.replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
+  const files = fs.readdirSync(ROOT).filter(f => /^scenes\..+\.json$/.test(f));
+  for (const f of files) {
+    try {
+      const data = JSON.parse(fs.readFileSync(path.join(ROOT, f), 'utf8'));
+      const name = f.replace(/^scenes\./, '').replace(/\.json$/, '');
+      const fileSlug = data.slug || name;
+      if (fileSlug === slug || name === slug) {
+        return res.json({ preset: name, slug: fileSlug, title: data.name || name });
+      }
+    } catch {}
+  }
+  res.status(404).json({ error: 'Not found', slug });
+});
+
+// Set a custom slug for a preset
+app.post('/api/presets/:name/set-slug', basicAuth, (req, res) => {
+  const safeName = req.params.name.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
+  const raw = (req.body.slug || '').trim();
+  const slug = raw ? toSlug(raw) : safeName;
+  const file = path.join(ROOT, `scenes.${safeName}.json`);
+  try {
+    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    data.slug = slug;
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    res.json({ ok: true, slug });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.post('/api/presets/:name/load', basicAuth, (req, res) => {
@@ -321,6 +362,11 @@ app.delete('/api/presets/:name', basicAuth, (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+});
+
+// ── Public project URLs (/p/:slug) ──────────────────────────
+app.get('/p/:slug', (_req, res) => {
+  res.sendFile(path.join(ROOT, 'index.html'));
 });
 
 // ── Admin panel ─────────────────────────────────────────────

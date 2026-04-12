@@ -80,6 +80,28 @@ body {
 #project-name:hover { border-color: var(--border); }
 #project-name:focus { border-color: rgba(232,160,32,0.4); background: var(--bg3); }
 
+#project-slug-wrap {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; color: var(--muted);
+  border: 1px solid transparent; border-radius: var(--radius-s);
+  padding: 2px 6px; transition: border-color 0.15s;
+  cursor: text;
+}
+#project-slug-wrap:hover { border-color: var(--border); }
+#project-slug-prefix { color: var(--muted); user-select: none; flex-shrink: 0; }
+#project-slug {
+  background: transparent; border: none; outline: none;
+  color: rgba(255,255,255,.55); font-size: 12px; font-family: 'Fira Code', monospace;
+  width: 120px; min-width: 60px;
+}
+#project-slug:focus { color: var(--text); }
+#slug-copy-btn {
+  background: none; border: none; cursor: pointer; padding: 0 2px;
+  color: var(--muted); font-size: 13px; line-height: 1; transition: color 0.15s;
+  flex-shrink: 0;
+}
+#slug-copy-btn:hover { color: var(--text); }
+
 .hdr-sep { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
 
 .btn {
@@ -1420,6 +1442,11 @@ select option { background: #0d0d24; color: var(--text); }
   <a href="/admin" class="btn" id="back-to-projects" title="Back to projects" style="font-size:12px;padding:4px 10px;">&#8592; Projects</a>
   <div class="hdr-sep"></div>
   <input id="project-name" type="text" value="Timeline Project" placeholder="Project name" title="Project name">
+  <div id="project-slug-wrap" title="Public URL slug — edit to customize">
+    <span id="project-slug-prefix">/p/</span>
+    <input id="project-slug" type="text" placeholder="slug" spellcheck="false">
+    <button id="slug-copy-btn" title="Copy link" onclick="copyProjectLink()">⎘</button>
+  </div>
   <div class="hdr-sep"></div>
   <button id="mode-scenes-btn" class="btn active" onclick="setMode('scenes')">&#127902; Scenes</button>
   <button id="mode-pano-btn" class="btn" onclick="setMode('panorama')">&#127748; Panorama</button>
@@ -2626,12 +2653,12 @@ async function init() {
     try {
       const r = await fetch(`/api/presets/${encodeURIComponent(savedProject)}/load`, { method: 'POST' });
       if (r.ok) {
-        // Update project name display
+        // Update project name and slug display
         const presets = await (await fetch('/api/presets')).json();
         const p = presets.find(x => x.name === savedProject);
-        if (p && p.title) {
-          document.getElementById('project-name').value = p.title;
-          projectName = p.title;
+        if (p) {
+          if (p.title) { document.getElementById('project-name').value = p.title; projectName = p.title; }
+          setSlugField(p.slug !== p.name ? p.slug : null);
         }
       }
     } catch(_) {}
@@ -2776,7 +2803,57 @@ async function loadPreset(name) {
 // Project name
 document.getElementById('project-name').addEventListener('input', function() {
   projectName = this.value;
+  // Auto-fill slug only if user hasn't customized it
+  const slugEl = document.getElementById('project-slug');
+  if (!slugEl._customized) slugEl.value = toSlugJS(this.value);
 });
+
+// ── Slug helpers ──────────────────────────────────────────
+function toSlugJS(str) {
+  return str.toLowerCase()
+    .replace(/[^\w\s-]/g, '').replace(/\s+/g, '-')
+    .replace(/-+/g, '-').replace(/^-|-$/g, '') || 'project';
+}
+
+let _slugSaveTimer = null;
+const _slugEl = document.getElementById('project-slug');
+
+_slugEl.addEventListener('input', function() {
+  this._customized = true;
+  clearTimeout(_slugSaveTimer);
+  _slugSaveTimer = setTimeout(() => saveSlug(this.value), 800);
+});
+
+_slugEl.addEventListener('blur', function() {
+  // Normalize on blur
+  const clean = toSlugJS(this.value || projectName);
+  this.value = clean;
+  saveSlug(clean);
+});
+
+async function saveSlug(raw) {
+  const activeProject = localStorage.getItem(STORAGE_KEY);
+  if (!activeProject) return;
+  try {
+    await fetch(`/api/presets/${encodeURIComponent(activeProject)}/set-slug`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: raw }),
+    });
+  } catch(_) {}
+}
+
+function copyProjectLink() {
+  const slug = document.getElementById('project-slug').value || toSlugJS(projectName);
+  const url = location.origin + '/p/' + encodeURIComponent(slug);
+  navigator.clipboard.writeText(url).then(() => showToast('Link copied!', 'ok'));
+}
+
+function setSlugField(slug) {
+  const el = document.getElementById('project-slug');
+  el.value = slug || toSlugJS(projectName);
+  el._customized = !!slug; // mark as customized only if it was stored
+}
 
 // ═══════════════════════════════════════════════════════
 //  MODE TOGGLE
