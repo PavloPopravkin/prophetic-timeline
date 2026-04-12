@@ -1386,12 +1386,23 @@ async function fetchScenes() {
       return { ...sc, bg: encodePath(sc.bg), elements };
     });
 
-    // Update page title and meta description with project info
+    // Update page title, loader, panorama header with real project name
     if (d.name) {
       const sceneNames = SCENES.slice(0, 4).map(s => s.title).filter(Boolean).join(' · ');
       document.title = d.name;
       const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc && sceneNames) metaDesc.content = d.name + (sceneNames ? ' — ' + sceneNames : '');
+      if (metaDesc && sceneNames) metaDesc.content = d.name + ' — ' + sceneNames;
+      // Override translation strings so applyLang() won't reset them
+      Object.keys(TRANSLATIONS).forEach(lang => {
+        TRANSLATIONS[lang].siteTitle   = d.name;
+        TRANSLATIONS[lang].loaderTitle = d.name;
+        if (d.subtitle) TRANSLATIONS[lang].siteSubtitle = d.subtitle;
+      });
+      // Apply immediately to DOM elements already rendered
+      const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      setEl('loader-title',        d.name);
+      setEl('panorama-main-title', d.name);
+      if (d.subtitle) setEl('panorama-subtitle', d.subtitle);
     }
   } catch { SCENES = []; PANORAMA = { bg: null, elements: [] }; }
   NUM_SCENES = SCENES.length;

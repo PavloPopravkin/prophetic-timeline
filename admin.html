@@ -2753,6 +2753,11 @@ async function savePanorama() {
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify(panoData),
   });
+  // Also persist to the named preset file so /p/:slug sees the updated panorama
+  const activeProject = localStorage.getItem(STORAGE_KEY);
+  if (activeProject) {
+    fetch(`/api/presets/${encodeURIComponent(activeProject)}/save-panorama`, { method: 'POST' }).catch(() => {});
+  }
 }
 
 async function loadLibrary() {
@@ -2885,6 +2890,11 @@ async function saveScenes() {
       savePanorama(),
     ]);
     if (!r.ok) throw new Error('Server error');
+    // Snapshot active files → named preset so /p/:slug stays in sync
+    const activeProject = localStorage.getItem(STORAGE_KEY);
+    if (activeProject) {
+      fetch(`/api/presets/${encodeURIComponent(activeProject)}/save`, { method: 'POST' }).catch(() => {});
+    }
     status.textContent = 'Saved';
     status.className = 'ok';
     showToast('Saved', 'ok');

@@ -331,6 +331,18 @@ app.post('/api/presets/:name/save', basicAuth, (req, res) => {
   }
 });
 
+// Save only panorama to a named preset file (called after editing panorama in admin)
+app.post('/api/presets/:name/save-panorama', basicAuth, (req, res) => {
+  const safeName = req.params.name.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
+  const destFile = path.join(ROOT, `panorama.${safeName}.json`);
+  try {
+    fs.copyFileSync(PANORAMA_FILE, destFile);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/api/presets/:name/create', basicAuth, (req, res) => {
   const safeName = req.params.name.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
   if (!safeName) return res.status(400).json({ error: 'Invalid name' });
