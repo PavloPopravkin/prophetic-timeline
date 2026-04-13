@@ -6329,6 +6329,68 @@ function cutoutUseThis(id) {
   color: rgba(255,255,255,.4); cursor: pointer; font-family: inherit; transition: all .12s;
 }
 .be-model-btn.active { background: rgba(232,160,32,.15); color: #e8a020; border-color: rgba(232,160,32,.4); }
+
+/* ── Crop section ─────────────────────────────────────────── */
+#be-trim-btn {
+  width: 100%; margin-top: 4px;
+  padding: 8px; border-radius: 6px; font-size: 12px;
+  background: rgba(80,160,255,.15); color: #50a0ff;
+  border: 1px solid rgba(80,160,255,.35); cursor: pointer;
+  font-family: inherit; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+#be-trim-btn:hover:not(:disabled) { background: rgba(80,160,255,.28); }
+#be-trim-btn:disabled { opacity: .45; cursor: default; }
+#be-crop-toggle-btn {
+  width: 100%; margin-top: 6px;
+  padding: 7px; border-radius: 6px; font-size: 12px;
+  background: rgba(255,255,255,.05); color: rgba(255,255,255,.55);
+  border: 1px solid rgba(255,255,255,.1); cursor: pointer;
+  font-family: inherit; transition: all .15s; text-align: center;
+}
+#be-crop-toggle-btn:hover { background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); }
+#be-crop-toggle-btn.active { background: rgba(80,160,255,.15); color: #50a0ff; border-color: rgba(80,160,255,.35); }
+#be-crop-apply-row {
+  display: none; gap: 5px; margin-top: 6px;
+}
+#be-crop-apply-row.visible { display: flex; }
+#be-crop-cancel-btn, #be-crop-apply-btn {
+  flex: 1; padding: 6px 0; border-radius: 5px; font-size: 11px;
+  border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.6); cursor: pointer; font-family: inherit; transition: all .12s;
+}
+#be-crop-apply-btn { background: rgba(80,160,255,.2); color: #50a0ff; border-color: rgba(80,160,255,.4); }
+#be-crop-cancel-btn:hover { background: rgba(255,255,255,.1); }
+#be-crop-apply-btn:hover { background: rgba(80,160,255,.35); }
+
+/* Crop overlay in viewport */
+#be-crop-overlay {
+  display: none;
+  position: absolute; inset: 0;
+  z-index: 10; cursor: crosshair;
+}
+#be-crop-overlay.active { display: block; }
+/* Dark shade outside crop box */
+.be-crop-shade {
+  position: absolute; background: rgba(0,0,0,.52); pointer-events: none;
+}
+/* Crop box border */
+#be-crop-box {
+  position: absolute;
+  border: 1.5px solid rgba(80,160,255,.9);
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.45);
+  pointer-events: none;
+}
+/* Corner/edge handles */
+.be-crop-handle {
+  position: absolute; width: 10px; height: 10px;
+  background: #50a0ff; border: 1.5px solid #fff;
+  border-radius: 2px; pointer-events: auto;
+}
+.be-crop-handle.tl { top:-5px; left:-5px; cursor:nwse-resize; }
+.be-crop-handle.tr { top:-5px; right:-5px; cursor:nesw-resize; }
+.be-crop-handle.bl { bottom:-5px; left:-5px; cursor:nesw-resize; }
+.be-crop-handle.br { bottom:-5px; right:-5px; cursor:nwse-resize; }
 .be-model-btn:hover:not(.active) { background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); }
 
 /* SVG mode in brush editor */
@@ -6389,6 +6451,15 @@ function cutoutUseThis(id) {
         <canvas id="be-canvas"></canvas>
       </div>
       <img id="be-svg-img" src="" alt="" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);max-width:90%;max-height:90%;object-fit:contain;">
+      <!-- Crop overlay -->
+      <div id="be-crop-overlay">
+        <div id="be-crop-box">
+          <div class="be-crop-handle tl" data-handle="tl"></div>
+          <div class="be-crop-handle tr" data-handle="tr"></div>
+          <div class="be-crop-handle bl" data-handle="bl"></div>
+          <div class="be-crop-handle br" data-handle="br"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Right panel -->
@@ -6438,6 +6509,17 @@ function cutoutUseThis(id) {
         </div>
         <button id="be-co-btn" onclick="beAICutout()">✦ Auto Cut Out</button>
         <div id="be-co-status"></div>
+      </div>
+
+      <!-- Crop / Trim -->
+      <div class="be-section" id="be-crop-section">
+        <div class="be-section-title">✂ Crop</div>
+        <button id="be-trim-btn" onclick="beTrimEdges()">✂ Auto-trim transparent edges</button>
+        <button id="be-crop-toggle-btn" onclick="beToggleCropMode()">⬜ Select crop area</button>
+        <div id="be-crop-apply-row">
+          <button id="be-crop-cancel-btn" onclick="beCancelCrop()">Cancel</button>
+          <button id="be-crop-apply-btn" onclick="beApplyCrop()">Apply crop</button>
+        </div>
       </div>
 
       <!-- SVG Colors (shown only in SVG mode) -->
@@ -6591,6 +6673,7 @@ function beCancel() {
   _ueEditingIdx = null;
   document.getElementById('be-co-status').textContent = '';
   beExitSvgMode();
+  if (_beCropMode) beCancelCrop();
 }
 
 function beSetMode(mode) {
@@ -6655,6 +6738,7 @@ function beApplyTransform() {
     `translate(${_beOffX}px,${_beOffY}px) scale(${_beScale})`;
   document.getElementById('be-zoom-val').textContent = Math.round(_beScale * 100) + '%';
   beUpdateBrush();
+  if (_beCropMode) _beUpdateCropOverlay();
 }
 
 // ── Mouse to canvas coords ───────────────────────────────────
@@ -6953,6 +7037,246 @@ function beCoAccept() {
   img.src = _beCoResultPath + '?t=' + Date.now();
 }
 
+// ── Crop / Trim ───────────────────────────────────────────────
+let _beCropMode    = false;
+let _beCropRect    = { x: 0, y: 0, w: 0, h: 0 }; // in canvas pixels
+let _beCropDragging = null; // null | { handle, startX, startY, origRect }
+
+function beTrimEdges() {
+  const canvas = document.getElementById('be-canvas');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  if (!W || !H) return;
+  const data = ctx.getImageData(0, 0, W, H).data;
+
+  let minX = W, maxX = 0, minY = H, maxY = 0;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const a = data[(y * W + x) * 4 + 3];
+      if (a > 10) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (minX > maxX || minY > maxY) { showToast('Nothing to trim — canvas is empty', 'warn'); return; }
+
+  const cw = maxX - minX + 1;
+  const ch = maxY - minY + 1;
+  if (cw === W && ch === H) { showToast('Already trimmed — no transparent edges', 'info'); return; }
+
+  bePushHistory();
+  const cropped = ctx.getImageData(minX, minY, cw, ch);
+  canvas.width  = cw;
+  canvas.height = ch;
+  ctx.putImageData(cropped, 0, 0);
+
+  // Also trim _beOrigData to match new dimensions
+  if (_beOrigData) {
+    const origW = _beOrigData.width;
+    const origH = _beOrigData.height;
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = cw; tmpCanvas.height = ch;
+    const tmpCtx = tmpCanvas.getContext('2d');
+    const origCropped = tmpCtx.createImageData(cw, ch);
+    for (let y = 0; y < ch; y++) {
+      for (let x = 0; x < cw; x++) {
+        const si = ((y + minY) * origW + (x + minX)) * 4;
+        const di = (y * cw + x) * 4;
+        origCropped.data[di]     = _beOrigData.data[si];
+        origCropped.data[di + 1] = _beOrigData.data[si + 1];
+        origCropped.data[di + 2] = _beOrigData.data[si + 2];
+        origCropped.data[di + 3] = _beOrigData.data[si + 3];
+      }
+    }
+    _beOrigData = origCropped;
+  }
+
+  beFit();
+  showToast(`Trimmed to ${cw}×${ch}`, 'success');
+}
+
+// Manual crop mode
+function beToggleCropMode() {
+  if (_beCropMode) { beCancelCrop(); return; }
+  _beCropMode = true;
+  const btn = document.getElementById('be-crop-toggle-btn');
+  btn.classList.add('active');
+  btn.textContent = '✕ Cancel crop mode';
+  document.getElementById('be-crop-apply-row').classList.add('visible');
+
+  const canvas = document.getElementById('be-canvas');
+  const W = canvas.width, H = canvas.height;
+  _beCropRect = { x: 0, y: 0, w: W, h: H };
+  _beUpdateCropOverlay();
+  document.getElementById('be-crop-overlay').classList.add('active');
+  _beCropBindHandlers();
+}
+
+function beCancelCrop() {
+  _beCropMode = false;
+  document.getElementById('be-crop-toggle-btn').classList.remove('active');
+  document.getElementById('be-crop-toggle-btn').textContent = '⬜ Select crop area';
+  document.getElementById('be-crop-apply-row').classList.remove('visible');
+  document.getElementById('be-crop-overlay').classList.remove('active');
+  _beCropUnbindHandlers();
+}
+
+function beApplyCrop() {
+  const canvas = document.getElementById('be-canvas');
+  const ctx    = canvas.getContext('2d');
+  const { x, y, w, h } = _beCropRect;
+  const cx = Math.round(Math.max(0, x));
+  const cy = Math.round(Math.max(0, y));
+  const cw = Math.round(Math.min(w, canvas.width  - cx));
+  const ch = Math.round(Math.min(h, canvas.height - cy));
+  if (cw <= 0 || ch <= 0) return;
+
+  bePushHistory();
+  const cropped = ctx.getImageData(cx, cy, cw, ch);
+
+  if (_beOrigData) {
+    const origW = _beOrigData.width;
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = cw; tmpCanvas.height = ch;
+    const tmpCtx = tmpCanvas.getContext('2d');
+    const origCropped = tmpCtx.createImageData(cw, ch);
+    for (let py = 0; py < ch; py++) {
+      for (let px = 0; px < cw; px++) {
+        const si = ((py + cy) * origW + (px + cx)) * 4;
+        const di = (py * cw + px) * 4;
+        origCropped.data[di]     = _beOrigData.data[si];
+        origCropped.data[di + 1] = _beOrigData.data[si + 1];
+        origCropped.data[di + 2] = _beOrigData.data[si + 2];
+        origCropped.data[di + 3] = _beOrigData.data[si + 3];
+      }
+    }
+    _beOrigData = origCropped;
+  }
+
+  canvas.width  = cw;
+  canvas.height = ch;
+  ctx.putImageData(cropped, 0, 0);
+
+  beCancelCrop();
+  beFit();
+  showToast(`Cropped to ${cw}×${ch}`, 'success');
+}
+
+// Position the crop box overlay based on _beCropRect (canvas coords → viewport screen coords)
+function _beUpdateCropOverlay() {
+  const vp     = document.getElementById('be-viewport');
+  const vpRect = vp.getBoundingClientRect();
+  const box    = document.getElementById('be-crop-box');
+
+  // Canvas-space rect → screen coords using current pan/zoom
+  const sx = _beCropRect.x * _beScale + _beOffX;
+  const sy = _beCropRect.y * _beScale + _beOffY;
+  const sw = _beCropRect.w * _beScale;
+  const sh = _beCropRect.h * _beScale;
+
+  box.style.left   = sx + 'px';
+  box.style.top    = sy + 'px';
+  box.style.width  = sw + 'px';
+  box.style.height = sh + 'px';
+}
+
+// Drag state for crop handles
+let _beCropHandleDrag = null;
+
+function _beCropHandleDown(e) {
+  if (!_beCropMode) return;
+  e.preventDefault(); e.stopPropagation();
+  const handle = e.target.dataset.handle;
+  _beCropHandleDrag = {
+    handle,
+    startX: e.clientX, startY: e.clientY,
+    origRect: { ..._beCropRect },
+  };
+}
+
+function _beCropOverlayDown(e) {
+  if (!_beCropMode) return;
+  if (e.target.classList.contains('be-crop-handle')) return;
+  e.preventDefault(); e.stopPropagation();
+  // Start drag-to-draw new rect
+  const { x, y } = beClientToCanvas(e.clientX, e.clientY);
+  _beCropHandleDrag = {
+    handle: 'draw',
+    startX: e.clientX, startY: e.clientY,
+    canvasStartX: x, canvasStartY: y,
+    origRect: { ..._beCropRect },
+  };
+}
+
+function _beCropMoveGlobal(e) {
+  if (!_beCropHandleDrag) return;
+  const canvas = document.getElementById('be-canvas');
+  const W = canvas.width, H = canvas.height;
+  const { handle, startX, startY, origRect, canvasStartX, canvasStartY } = _beCropHandleDrag;
+
+  const dx = (e.clientX - startX) / _beScale;
+  const dy = (e.clientY - startY) / _beScale;
+
+  let { x, y, w, h } = origRect;
+
+  if (handle === 'draw') {
+    const { x: cx, y: cy } = beClientToCanvas(e.clientX, e.clientY);
+    const nx = Math.min(canvasStartX, cx);
+    const ny = Math.min(canvasStartY, cy);
+    const nw = Math.abs(cx - canvasStartX);
+    const nh = Math.abs(cy - canvasStartY);
+    _beCropRect = {
+      x: Math.max(0, nx), y: Math.max(0, ny),
+      w: Math.min(nw, W - Math.max(0, nx)),
+      h: Math.min(nh, H - Math.max(0, ny)),
+    };
+  } else if (handle === 'tl') {
+    const nx = Math.max(0, Math.min(x + w - 4, x + dx));
+    const ny = Math.max(0, Math.min(y + h - 4, y + dy));
+    _beCropRect = { x: nx, y: ny, w: (x + w) - nx, h: (y + h) - ny };
+  } else if (handle === 'tr') {
+    const ny = Math.max(0, Math.min(y + h - 4, y + dy));
+    const nw = Math.max(4, Math.min(W - x, w + dx));
+    _beCropRect = { x, y: ny, w: nw, h: (y + h) - ny };
+  } else if (handle === 'bl') {
+    const nx = Math.max(0, Math.min(x + w - 4, x + dx));
+    const nh = Math.max(4, Math.min(H - y, h + dy));
+    _beCropRect = { x: nx, y, w: (x + w) - nx, h: nh };
+  } else if (handle === 'br') {
+    _beCropRect = {
+      x, y,
+      w: Math.max(4, Math.min(W - x, w + dx)),
+      h: Math.max(4, Math.min(H - y, h + dy)),
+    };
+  }
+  _beUpdateCropOverlay();
+}
+
+function _beCropUpGlobal() {
+  _beCropHandleDrag = null;
+}
+
+function _beCropBindHandlers() {
+  document.querySelectorAll('.be-crop-handle').forEach(h => {
+    h.addEventListener('mousedown', _beCropHandleDown);
+  });
+  document.getElementById('be-crop-overlay').addEventListener('mousedown', _beCropOverlayDown);
+  document.addEventListener('mousemove', _beCropMoveGlobal);
+  document.addEventListener('mouseup', _beCropUpGlobal);
+}
+
+function _beCropUnbindHandlers() {
+  document.querySelectorAll('.be-crop-handle').forEach(h => {
+    h.removeEventListener('mousedown', _beCropHandleDown);
+  });
+  document.getElementById('be-crop-overlay').removeEventListener('mousedown', _beCropOverlayDown);
+  document.removeEventListener('mousemove', _beCropMoveGlobal);
+  document.removeEventListener('mouseup', _beCropUpGlobal);
+}
+
 // ── SVG mode ─────────────────────────────────────────────────
 const BE_SVG_PALETTE = ['#c9a84c','#e8e0c8','#8b4513','#2c5f2e','#1a237e','#b71c1c','#f5f5dc','#4a4a4a','#ffffff','#000000'];
 let _beSvgMode     = false;
@@ -7100,6 +7424,7 @@ async function beSaveSvg() {
 
 // ── Save with Azure AI naming ────────────────────────────────
 async function beSave() {
+  if (_beCropMode) beCancelCrop();
   if (document.getElementById('brush-editor').classList.contains('batch-mode')) return ueBatchSaveAll();
   if (_beSvgMode) return beSaveSvg();
   const canvas = document.getElementById('be-canvas');
