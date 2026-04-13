@@ -1,108 +1,89 @@
 {
-  "name": "Духовная история человечества",
-  "background": "/uploads/вариации_2K_202603191339-2.jpg",
+  "name": "Облачко)",
+  "background": "/uploads/вариации_2K_202603191339.jpg",
   "elements": [
     {
-      "id": "elem-word",
-      "src": "/uploads/0001.png",
+      "id": "elem-angel-ann",
+      "src": "/uploads/0009.png",
       "x": 8,
       "y": 22,
-      "width": 13,
+      "width": 12,
       "sceneId": 0,
       "anim": "float"
     },
     {
-      "id": "elem-light",
-      "src": "/uploads/0002.png",
+      "id": "elem-road",
+      "src": "/uploads/0005.png",
       "x": 22,
-      "y": 18,
-      "width": 11,
-      "sceneId": 1,
-      "anim": "zoom"
-    },
-    {
-      "id": "elem-tree",
-      "src": "/uploads/0013.png",
-      "x": 33,
-      "y": 38,
+      "y": 30,
       "width": 10,
-      "sceneId": 5,
-      "anim": "float"
-    },
-    {
-      "id": "elem-law",
-      "src": "/uploads/0010.png",
-      "x": 44,
-      "y": 25,
-      "width": 9,
-      "sceneId": 13,
+      "sceneId": 1,
       "anim": null
     },
     {
-      "id": "elem-cross",
-      "src": "/uploads/0015.png",
-      "x": 55,
-      "y": 12,
-      "width": 16,
-      "sceneId": 27,
-      "anim": "zoom"
-    },
-    {
-      "id": "elem-risen",
-      "src": "/uploads/0016.png",
-      "x": 67,
-      "y": 28,
-      "width": 12,
-      "sceneId": 28,
-      "anim": "float"
-    },
-    {
-      "id": "elem-fire",
-      "src": "/uploads/0017.png",
-      "x": 78,
-      "y": 20,
-      "width": 10,
-      "sceneId": 29,
-      "anim": "zoom"
-    },
-    {
-      "id": "elem-jerusalem",
+      "id": "elem-city",
       "src": "/uploads/0018.png",
-      "x": 88,
-      "y": 32,
-      "width": 11,
-      "sceneId": 32,
-      "anim": "float"
+      "x": 38,
+      "y": 20,
+      "width": 13,
+      "sceneId": 2,
+      "anim": null
     },
     {
-      "id": "elem-angel",
+      "id": "elem-birth",
+      "src": "/uploads/0001.png",
+      "x": 52,
+      "y": 14,
+      "width": 14,
+      "sceneId": 4,
+      "anim": "zoom"
+    },
+    {
+      "id": "elem-angel-flock",
       "src": "/uploads/0009.png",
-      "x": 15,
-      "y": 52,
-      "width": 9,
-      "sceneId": 19,
+      "x": 64,
+      "y": 22,
+      "width": 11,
+      "sceneId": 5,
       "anim": "float"
     },
     {
       "id": "elem-star",
       "src": "/uploads/0012.png",
-      "x": 48,
-      "y": 55,
-      "width": 8,
-      "sceneId": 20,
+      "x": 75,
+      "y": 14,
+      "width": 10,
+      "sceneId": 7,
       "anim": "zoom"
     },
     {
+      "id": "elem-magi",
+      "src": "/uploads/0014.png",
+      "x": 87,
+      "y": 24,
+      "width": 11,
+      "sceneId": 9,
+      "anim": null
+    },
+    {
       "id": "elem-flower-l",
-      "src": "/uploads/3D Glass Flowers (5).png",
+      "src": "/uploads/3D Glass Flowers (1).png",
       "x": 2,
-      "y": 60,
+      "y": 58,
       "width": 7,
       "anim": "float"
     },
     {
+      "id": "elem-flower-c",
+      "src": "/uploads/3D Glass Flowers (7).png",
+      "x": 48,
+      "y": 60,
+      "width": 8,
+      "anim": "float"
+    },
+    {
       "id": "elem-flower-r",
-      "src": "/uploads/3D Glass Flowers (13).png",
+      "src": "/uploads/3D Glass Flowers (21).png",
       "x": 95,
       "y": 55,
       "width": 7,
@@ -113,107 +94,72 @@
     {
       "sceneId": 0,
       "x": 2.0000000000000004,
-      "y": 8.000000000000002,
-      "width": 18,
-      "height": 38
+      "y": 7.999999999999999,
+      "width": 16,
+      "height": 45
     },
     {
       "sceneId": 1,
-      "x": 17,
+      "x": 16,
+      "y": 18,
+      "width": 14.000000000000002,
+      "height": 38
+    },
+    {
+      "sceneId": 2,
+      "x": 28.999999999999996,
       "y": 8.000000000000002,
-      "width": 16,
-      "height": 30
+      "width": 14.000000000000002,
+      "height": 38
+    },
+    {
+      "sceneId": 3,
+      "x": 38,
+      "y": 55.00000000000001,
+      "width": 14.000000000000002,
+      "height": 35
     },
     {
       "sceneId": 4,
-      "x": 27,
-      "y": 55.00000000000001,
-      "width": 14.000000000000002,
-      "height": 35
+      "x": 44,
+      "y": 5.000000000000002,
+      "width": 16,
+      "height": 42
     },
     {
       "sceneId": 5,
-      "x": 27.999999999999996,
-      "y": 24.000000000000004,
+      "x": 57.00000000000001,
+      "y": 8.000000000000002,
       "width": 14.000000000000002,
-      "height": 32
+      "height": 40
+    },
+    {
+      "sceneId": 6,
+      "x": 57.00000000000001,
+      "y": 55.00000000000001,
+      "width": 14.000000000000002,
+      "height": 35
+    },
+    {
+      "sceneId": 7,
+      "x": 70,
+      "y": 4.999999999999999,
+      "width": 14.000000000000002,
+      "height": 40
+    },
+    {
+      "sceneId": 8,
+      "x": 70,
+      "y": 55.00000000000001,
+      "width": 12,
+      "height": 35
     },
     {
       "sceneId": 9,
-      "x": 40,
-      "y": 55.00000000000001,
-      "width": 12,
-      "height": 35
-    },
-    {
-      "sceneId": 12,
-      "x": 38,
-      "y": 12.000000000000002,
-      "width": 12,
-      "height": 30
-    },
-    {
-      "sceneId": 13,
-      "x": 39,
-      "y": 42,
-      "width": 13,
-      "height": 15
-    },
-    {
-      "sceneId": 17,
-      "x": 49.99999999999999,
-      "y": 65,
-      "width": 13,
-      "height": 25
-    },
-    {
-      "sceneId": 20,
-      "x": 43,
-      "y": 45.00000000000001,
-      "width": 14.000000000000002,
-      "height": 20
-    },
-    {
-      "sceneId": 27,
-      "x": 50,
-      "y": 4.999999999999999,
-      "width": 18,
-      "height": 38
-    },
-    {
-      "sceneId": 28,
-      "x": 61.999999999999986,
-      "y": 13.999999999999998,
-      "width": 14.000000000000002,
-      "height": 32
-    },
-    {
-      "sceneId": 19,
-      "x": 10,
-      "y": 40,
-      "width": 14.000000000000002,
-      "height": 28.000000000000004
-    },
-    {
-      "sceneId": 29,
-      "x": 73,
-      "y": 7.999999999999999,
-      "width": 14.000000000000002,
-      "height": 32
-    },
-    {
-      "sceneId": 30,
-      "x": 73,
-      "y": 55.00000000000001,
-      "width": 14.000000000000002,
-      "height": 35
-    },
-    {
-      "sceneId": 32,
       "x": 82,
-      "y": 18,
+      "y": 7.999999999999999,
       "width": 16,
-      "height": 38
+      "height": 45
     }
   ]
 }
