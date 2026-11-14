@@ -5,6 +5,7 @@ const path     = require('path');
 const https    = require('https');
 const http     = require('http');
 const { spawn } = require('child_process');
+const ai       = require('./lib/ai');
 
 // Load .env if present (no dotenv dependency needed)
 try {
@@ -516,111 +517,29 @@ app.post('/api/image-fetch', basicAuth, async (req, res) => {
   doFetch(url);
 });
 
-// ── API: name image with Azure OpenAI vision ────────────────
+// ── API: name image (vision via Antigravity pool, no Azure) ─
 app.post('/api/name-image', basicAuth, async (req, res) => {
   const { imageBase64 } = req.body;
   if (!imageBase64) return res.status(400).json({ error: 'No image' });
-
-  const AZURE_KEY      = process.env.AZURE_API_KEY;
-  const AZURE_BASE     = process.env.AZURE_BASE_URL;
-  const AZURE_MODEL    = process.env.AZURE_MODEL;
-
-  const payload = JSON.stringify({
-    model: AZURE_MODEL,
-    messages: [{
-      role: 'user',
-      content: [
-        { type: 'text', text: 'Describe this image in 3-5 English words suitable as a filename. Only output the words, lowercase, separated by underscores. No punctuation. Examples: angel_in_light, warrior_with_sword, nativity_scene_star.' },
-        { type: 'image_url', image_url: { url: imageBase64 } }
-      ]
-    }],
-    max_tokens: 30
-  });
-
-  try {
-    const url = new URL(AZURE_BASE + '/chat/completions');
-    const result = await new Promise((resolve, reject) => {
-      const options = {
-        hostname: url.hostname,
-        path:     url.pathname + url.search,
-        method:   'POST',
-        headers:  {
-          'Content-Type':   'application/json',
-          'api-key':        AZURE_KEY,
-          'Authorization':  'Bearer ' + AZURE_KEY,
-          'Content-Length': Buffer.byteLength(payload),
-        },
-      };
-      const r = https.request(options, resp => {
-        let body = '';
-        resp.on('data', c => body += c);
-        resp.on('end', () => resolve({ status: resp.statusCode, body }));
-      });
-      r.on('error', reject);
-      r.write(payload);
-      r.end();
-    });
-    const data = JSON.parse(result.body);
-    const raw  = (data.choices?.[0]?.message?.content || '').trim();
-    const name = raw.replace(/[^a-z0-9_]/gi, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').toLowerCase() || 'edited_image';
-    res.json({ name });
-  } catch (e) {
-    res.json({ name: 'edited_image' });
-  }
+  let raw = '';
+  try { raw = await ai.nameImage(imageBase64); } catch (_) {}
+  const name = raw.replace(/[^a-z0-9_]/gi, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').toLowerCase() || 'edited_image';
+  res.json({ name });
 });
 
-// ── API: AI Image Generation (MAI-Image-2 via Azure) ────────
+// ── API: AI image generation (pool -> Cloudflare, no Azure) ─
 app.post('/api/generate-image', basicAuth, async (req, res) => {
-  const { prompt, size = '1024x1024', n = 1 } = req.body;
+  const { prompt, size = '1024x1024' } = req.body;
   if (!prompt) return res.status(400).json({ error: 'prompt required' });
-
-  const apiKey = process.env.AZURE_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'AZURE_API_KEY not set' });
-
-  const body = JSON.stringify({ prompt, size, n, model: 'MAI-Image-2' });
-
-  const options = {
-    hostname: 'dmytropopravkin-0944-resource.openai.azure.com',
-    path: '/openai/v1/images/generations',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'Content-Length': Buffer.byteLength(body),
-    },
-  };
-
-  const request = https.request(options, (response) => {
-    let data = '';
-    response.on('data', chunk => data += chunk);
-    response.on('end', () => {
-      try {
-        const json = JSON.parse(data);
-        if (json.error) return res.status(502).json({ error: json.error.message });
-
-        const item = json.data?.[0];
-        if (!item) return res.status(502).json({ error: 'No image in response' });
-
-        if (item.b64_json) {
-          // Save to uploads and return URL
-          const filename = `ai_${Date.now()}.png`;
-          const filepath = path.join(UPLOADS_DIR, filename);
-          fs.writeFileSync(filepath, Buffer.from(item.b64_json, 'base64'));
-          res.json({ url: `/uploads/${filename}`, filename });
-        } else if (item.url) {
-          res.json({ url: item.url });
-        } else {
-          res.status(502).json({ error: 'Unknown response format', raw: json });
-        }
-      } catch (e) {
-        res.status(502).json({ error: 'Parse error', raw: data.slice(0, 200) });
-      }
-    });
-  });
-
-  request.on('error', e => res.status(502).json({ error: e.message }));
-  request.write(body);
-  request.end();
+  try {
+    const { buffer, provider } = await ai.generateImage(prompt, size);
+    const ext = buffer[0] === 0xff && buffer[1] === 0xd8 ? 'jpg' : 'png';
+    const filename = `ai_${Date.now()}.${ext}`;
+    fs.writeFileSync(path.join(UPLOADS_DIR, filename), buffer);
+    res.json({ url: `/uploads/${filename}`, filename, provider });
+  } catch (e) {
+    res.status(502).json({ error: String(e.message || e).slice(0, 300) });
+  }
 });
 
 // ── API: delete uploaded file ────────────────────────────
@@ -659,7 +578,7 @@ app.post('/api/save-svg', basicAuth, (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, process.env.BIND || '0.0.0.0', () => {
   console.log(`\n✦  Таймлайн:  http://localhost:${PORT}`);
   console.log(`✦  Админка:   http://localhost:${PORT}/admin\n`);
 });
