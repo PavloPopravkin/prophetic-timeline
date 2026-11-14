@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 
 const ADMIN_USER = process.env.ADMIN_USER || 'timelineAdmin';
-const ADMIN_PASS = process.env.ADMIN_PASS || 'hwbUNWHqR9N4mT';
+const ADMIN_PASS = process.env.ADMIN_PASS || '';  // no built-in default: without ADMIN_PASS the admin stays closed
 
 function basicAuth(req, res, next) {
   const header = req.headers['authorization'];
@@ -30,7 +30,7 @@ function basicAuth(req, res, next) {
     return res.status(401).send('Unauthorized');
   }
   const [user, pass] = Buffer.from(header.slice(6), 'base64').toString().split(':');
-  if (user === ADMIN_USER && pass === ADMIN_PASS) return next();
+  if (ADMIN_PASS && user === ADMIN_USER && pass === ADMIN_PASS) return next();
   res.set('WWW-Authenticate', 'Basic realm="Timeline Admin"');
   return res.status(401).send('Unauthorized');
 }
