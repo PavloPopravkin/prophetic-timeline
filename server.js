@@ -20,7 +20,11 @@ const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 
 const ADMIN_USER = process.env.ADMIN_USER || 'timelineAdmin';
-const ADMIN_PASS = process.env.ADMIN_PASS || 'hwbUNWHqR9N4mT';
+const ADMIN_PASS = process.env.ADMIN_PASS;
+if (!ADMIN_PASS) {
+  console.error('ADMIN_PASS is not set: refusing to start (no default admin password)');
+  process.exit(1);
+}
 
 function basicAuth(req, res, next) {
   const header = req.headers['authorization'];

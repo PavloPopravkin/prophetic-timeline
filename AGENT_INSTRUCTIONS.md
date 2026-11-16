@@ -36,10 +36,10 @@ DELETE /api/presets/:name              Delete project files
 **Creating a new project via CLI:**
 ```bash
 curl -X POST http://localhost:3000/api/presets/my_project/create \
-  -u timelineAdmin:hwbUNWHqR9N4mT
+  -u "timelineAdmin:$ADMIN_PASS"
 # Then load it:
 curl -X POST http://localhost:3000/api/presets/my_project/load \
-  -u timelineAdmin:hwbUNWHqR9N4mT
+  -u "timelineAdmin:$ADMIN_PASS"
 ```
 
 ---
